@@ -1,4 +1,4 @@
-// ─── SEED DE OPOSICIONES ───
+﻿// ─── SEED DE OPOSICIONES ───
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
@@ -461,7 +461,7 @@ function opos_applySeed() {
   const vActual = parseInt(localStorage.getItem(vKey) || '0');
   if (vActual >= OPOS_SEED_VERSION) return;
 
-  const actuales = JSON.parse(localStorage.getItem('opos_convocatorias') || '[]');
+  const actuales = Store.get('opos_convocatorias', []);
   const norm = s => (s || '').toLowerCase().replace(/[^a-záéíóúüñ0-9]/g, '');
 
   const isSameConv = (a, b) => {
@@ -491,7 +491,7 @@ function opos_applySeed() {
     }
   });
 
-  localStorage.setItem('opos_convocatorias', JSON.stringify(actuales));
+  Store.set('opos_convocatorias', actuales);
   localStorage.setItem(vKey, String(OPOS_SEED_VERSION));
   console.info(`[Oposiciones] Seed v${OPOS_SEED_VERSION}: ${añadidas} añadidas, ${actualizadas} actualizadas.`);
 }

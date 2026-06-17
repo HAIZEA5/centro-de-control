@@ -61,24 +61,24 @@ function _pmtCalc(rate, nper, pv) {
 }
 
 function piso_getConfig() {
-  return Object.assign({}, PISO_CONFIG_DEF, JSON.parse(localStorage.getItem('piso_config') || '{}'));
+  return Object.assign({}, PISO_CONFIG_DEF, Store.get('piso_config'));
 }
-function piso_saveConfig(c) { localStorage.setItem('piso_config', JSON.stringify(c)); }
+function piso_saveConfig(c) { Store.set('piso_config', c); }
 
 function piso_getPisos() {
   const s = localStorage.getItem('piso_pisos');
   return s ? JSON.parse(s) : JSON.parse(JSON.stringify(PISO_PISOS_DEF));
 }
-function piso_savePisos(p) { localStorage.setItem('piso_pisos', JSON.stringify(p)); }
+function piso_savePisos(p) { Store.set('piso_pisos', p); }
 
 function piso_getBancos() {
   const s = localStorage.getItem('piso_bancos');
   return s ? JSON.parse(s) : JSON.parse(JSON.stringify(PISO_BANCOS_DEF));
 }
-function piso_saveBancos(b) { localStorage.setItem('piso_bancos', JSON.stringify(b)); }
+function piso_saveBancos(b) { Store.set('piso_bancos', b); }
 
 function _getCTVInfo(cfg) {
-  const saldos = JSON.parse(localStorage.getItem('fin_saldos') || '{}');
+  const saldos = Store.get('fin_saldos');
   const fin = parseFloat(saldos.ctv || 0);
   if (fin > 0) return { value: fin, source: 'finanzas' };
   return { value: parseFloat(cfg.aportas || 0), source: 'manual' };
@@ -92,8 +92,6 @@ function _calcMeta(cfg, hipoteca) {
   return arras + 1000 + (resto > 0 ? resto : 0) + itpAmt + cfg.notario + extras;
 }
 
-const eur  = v => parseFloat(v).toLocaleString('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:0,maximumFractionDigits:0});
-const eur2 = v => parseFloat(v).toLocaleString('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
 
 // ── AHORRO CTV ────────────────────────────────────────────────
 
@@ -123,7 +121,7 @@ function renderPisoAhorro() {
         <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">
           Cuenta Vivienda (CTV) ${syncBadge}
         </div>
-        <div style="font-size:2rem;font-weight:900;color:${col};line-height:1.1">${eur(ctv)}</div>
+        <div style="font-size:2rem;font-weight:900;color:${col};line-height:1.1">${Fmt.eur(ctv)}</div>
         ${ctvi.source === 'manual' ? `
           <div style="margin-top:8px;display:flex;gap:6px">
             <input id="piso-ctv-edit" type="number" value="${ctv}" step="100" style="width:100px;font-size:.8rem;padding:4px 8px">
@@ -139,7 +137,7 @@ function renderPisoAhorro() {
             <div style="font-size:.63rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">
               Total necesario (${entradaPct}% entrada + ITP + gastos)
             </div>
-            <div style="font-size:1.1rem;font-weight:700;color:var(--text2)">${eur(meta)}</div>
+            <div style="font-size:1.1rem;font-weight:700;color:var(--text2)">${Fmt.eur(meta)}</div>
           </div>
           <div style="text-align:right">
             <div style="font-size:2.2rem;font-weight:900;color:${col};line-height:1">${pct}%</div>
@@ -151,9 +149,9 @@ function renderPisoAhorro() {
             <div style="height:100%;width:${pct}%;background:${col};border-radius:99px;transition:.5s"></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text3)">
-            <span>${eur(ctv)} ahorrado</span>
+            <span>${Fmt.eur(ctv)} ahorrado</span>
             <span style="color:${falta>0?'var(--red)':'var(--green)'}">
-              ${falta > 0 ? `Faltan ${eur(falta)}` : '🎉 ¡Meta alcanzada!'}
+              ${falta > 0 ? `Faltan ${Fmt.eur(falta)}` : '🎉 ¡Meta alcanzada!'}
             </span>
           </div>
         </div>
@@ -189,11 +187,11 @@ function _pisoAhorroProyeccionHTML(meta, ctv) {
             <div style="font-size:.68rem;font-weight:700;color:${c};margin-bottom:6px">${sim.label}</div>
             <div style="font-size:1.8rem;font-weight:900;color:${c};line-height:1">${anios}<span style="font-size:.75rem;font-weight:600;color:var(--text3);margin-left:4px">${typeof anios==='number'?'años':''}</span></div>
             <div style="font-size:.68rem;color:var(--text3);margin-top:5px">
-              ~${eur(totalAnual)}/año efectivos<br>
-              (8.500 € + ${eur(devAnual)} Hacienda)
+              ~${Fmt.eur(totalAnual)}/año efectivos<br>
+              (8.500 € + ${Fmt.eur(devAnual)} Hacienda)
             </div>
             <div style="font-size:.65rem;color:${c};margin-top:4px;opacity:.8">
-              Bonus Kutxabank: +${eur(sim.bonusFinal)}
+              Bonus Kutxabank: +${Fmt.eur(sim.bonusFinal)}
             </div>
           </div>`;
         }).join('')}
@@ -271,11 +269,11 @@ function renderPisoCalc() {
           <div style="font-size:.7rem;color:var(--text3);margin-bottom:6px;font-weight:600">🏦 IMPORTE A PEDIR AL BANCO</div>
           <div style="display:flex;gap:8px;align-items:center">
             <input type="number" id="pcfg-impPedido" value="${cfg.importe_pedido||''}"
-              placeholder="Auto: ${eur(hipAuto)}" step="1000" style="flex:1;font-size:.9rem" oninput="piso_liveCalc()">
+              placeholder="Auto: ${Fmt.eur(hipAuto)}" step="1000" style="flex:1;font-size:.9rem" oninput="piso_liveCalc()">
             ${impP > 0 ? `<button onclick="piso_clearImpPedido()" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:.85rem">✕</button>` : ''}
           </div>
           <div style="font-size:.65rem;color:var(--text3);margin-top:4px">
-            Vacío = auto (precio × ${cfg.financiacion}% = ${eur(hipAuto)}). Rellena si tienes oferta real.
+            Vacío = auto (precio × ${cfg.financiacion}% = ${Fmt.eur(hipAuto)}). Rellena si tienes oferta real.
           </div>
         </div>
       </div>
@@ -295,19 +293,19 @@ function _calcResultsHTML(hipoteca, hipAuto, impP, cuota, intereses, costeTotal,
   const extras   = parseFloat(cfg.gastos_adicionales) || 0;
   const rows = [
     ['━━ HIPOTECA ━━', null],
-    [impP > 0 ? '💬 Importe pedido al banco' : `Hipoteca (${cfg.financiacion}%)`, eur(hipoteca), 'var(--text2)'],
-    ['Cuota mensual',  eur2(cuota),     'var(--accent)', true],
-    ['Total intereses ('+cfg.anios+'a)', eur(intereses), 'var(--red)'],
-    ['Coste total vida hipoteca', eur(costeTotal), 'var(--text3)'],
+    [impP > 0 ? '💬 Importe pedido al banco' : `Hipoteca (${cfg.financiacion}%)`, Fmt.eur(hipoteca), 'var(--text2)'],
+    ['Cuota mensual',  Fmt.eur2(cuota),     'var(--accent)', true],
+    ['Total intereses ('+cfg.anios+'a)', Fmt.eur(intereses), 'var(--red)'],
+    ['Coste total vida hipoteca', Fmt.eur(costeTotal), 'var(--text3)'],
     ['━━ ENTRADA + GASTOS ━━', null],
-    [`Tu entrada (${entradaPct}%)`, eur(entrada),        'var(--text2)'],
-    [`ITP (${cfg.itp}%)`,           eur(itpAmt),         'var(--text2)'],
-    ['Notario',                     eur(cfg.notario),     'var(--text2)'],
-    ['Tasación + Registro',         eur(extras),          'var(--text2)'],
+    [`Tu entrada (${entradaPct}%)`, Fmt.eur(entrada),        'var(--text2)'],
+    [`ITP (${cfg.itp}%)`,           Fmt.eur(itpAmt),         'var(--text2)'],
+    ['Notario',                     Fmt.eur(cfg.notario),     'var(--text2)'],
+    ['Tasación + Registro',         Fmt.eur(extras),          'var(--text2)'],
     ['━━ TOTAL NECESARIO ━━', null],
-    ['Total para la compra', eur(meta), 'var(--text2)', true],
-    ['Tienes (CTV)',          eur(ctv),  ctv >= meta ? 'var(--green)' : 'var(--yellow)', true],
-    [diferencia >= 0 ? '✓ Te sobra' : '✗ Te falta', eur(Math.abs(diferencia)), difColor, true],
+    ['Total para la compra', Fmt.eur(meta), 'var(--text2)', true],
+    ['Tienes (CTV)',          Fmt.eur(ctv),  ctv >= meta ? 'var(--green)' : 'var(--yellow)', true],
+    [diferencia >= 0 ? '✓ Te sobra' : '✗ Te falta', Fmt.eur(Math.abs(diferencia)), difColor, true],
   ];
   return rows.map(r => {
     if (r[1] === null) return `<div style="font-size:.65rem;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;padding:8px 0 2px 0;border-top:1px solid var(--border);margin-top:4px">${r[0]}</div>`;
@@ -345,7 +343,7 @@ function piso_liveCalc() {
   const elR = document.getElementById('piso-calc-results');
   if (elR) elR.innerHTML = _calcResultsHTML(hipoteca, hipAuto, impP, cuota, intereses, costeTotal, meta, ctv, diferencia, difColor, entradaPct, cfg);
   const elImp = document.getElementById('pcfg-impPedido');
-  if (elImp) elImp.placeholder = `Auto: ${eur(hipAuto)}`;
+  if (elImp) elImp.placeholder = `Auto: ${Fmt.eur(hipAuto)}`;
   renderPisoAhorro();
 }
 
@@ -552,19 +550,19 @@ function _pisoCard(p, idx, cfg) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
       <div>
         <div style="font-size:.62rem;color:var(--text3)">Precio</div>
-        <div style="font-size:.95rem;font-weight:800">${eur(p.precio)}</div>
+        <div style="font-size:.95rem;font-weight:800">${Fmt.eur(p.precio)}</div>
       </div>
       <div>
         <div style="font-size:.62rem;color:var(--text3)">€/m²${p.m2?' ('+p.m2+'m²)':''}</div>
-        <div style="font-size:.85rem;font-weight:600">${m2Price ? eur(m2Price) : '—'}</div>
+        <div style="font-size:.85rem;font-weight:600">${m2Price ? Fmt.eur(m2Price) : '—'}</div>
       </div>
       <div>
         <div style="font-size:.62rem;color:var(--text3)">Coste real est.</div>
-        <div style="font-size:.85rem;font-weight:600;color:var(--orange)">${eur(costeReal)}</div>
+        <div style="font-size:.85rem;font-weight:600;color:var(--orange)">${Fmt.eur(costeReal)}</div>
       </div>
       <div>
         <div style="font-size:.62rem;color:var(--text3)">Cuota est.</div>
-        <div style="font-size:.9rem;font-weight:800;color:var(--accent)">${eur2(cuota)}/mes</div>
+        <div style="font-size:.9rem;font-weight:800;color:var(--accent)">${Fmt.eur2(cuota)}/mes</div>
       </div>
     </div>
 
@@ -572,7 +570,7 @@ function _pisoCard(p, idx, cfg) {
       ${p.comunidad ? `<span>🏢 ${p.comunidad}€/mes</span>` : ''}
       ${p.ibi       ? `<span>📋 IBI ${p.ibi}€</span>`       : ''}
       ${p.ite       ? `<span style="${iteStyle}">🔧 ITE ${p.ite}</span>` : ''}
-      ${reforma     ? `<span style="color:var(--red)">🛠 Reforma ${eur(reforma)}</span>` : ''}
+      ${reforma     ? `<span style="color:var(--red)">🛠 Reforma ${Fmt.eur(reforma)}</span>` : ''}
       <span style="color:${p.honor==='Incluidos'?'var(--green)':'var(--orange)'}">
         ${p.honor==='Incluidos'?'✓ Honor. incl.':'⚠ +3%+IVA'}
       </span>
@@ -636,11 +634,11 @@ function renderPisoBancos() {
   el.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
       <div style="font-size:.78rem;color:var(--text3)">
-        Importe base: <strong style="color:var(--accent)">${eur(hip)}</strong>
-        <span style="font-size:.7rem"> (${impP>0?'importe pedido':cfg.financiacion+'% de '+eur(cfg.precio_ref)})</span>
+        Importe base: <strong style="color:var(--accent)">${Fmt.eur(hip)}</strong>
+        <span style="font-size:.7rem"> (${impP>0?'importe pedido':cfg.financiacion+'% de '+Fmt.eur(cfg.precio_ref)})</span>
       </div>
       ${mejorInfo ? `<div style="font-size:.75rem;background:var(--green)15;color:var(--green);border-radius:8px;padding:4px 10px">
-        🏆 Mejor: ${eur2(mejorInfo.c)}/mes — ${mejorInfo.banco}</div>` : ''}
+        🏆 Mejor: ${Fmt.eur2(mejorInfo.c)}/mes — ${mejorInfo.banco}</div>` : ''}
     </div>
 
     <div class="bancos-table-wrap" style="overflow-x:auto">
@@ -683,7 +681,7 @@ function _bancoRow(b, i, hip) {
   const isDescartado = b.estatus === '🚫';
   let cuota = '—', cuotaColor = 'var(--text3)';
   if (b.tae && b.anios && tae > 0 && anios > 0) {
-    cuota = eur2(_pmtCalc(tae/100/12, anios*12, hip));
+    cuota = Fmt.eur2(_pmtCalc(tae/100/12, anios*12, hip));
     cuotaColor = isDescartado ? 'var(--text3)' : 'var(--accent)';
   }
   const rowStyle = isDescartado ? 'opacity:.4' : '';

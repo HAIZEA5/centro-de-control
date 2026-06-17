@@ -36,10 +36,10 @@ function loadFinanzas() {
    STATS CARDS
 ══════════════════════════════════════════════════════ */
 function getSaldosActuales() {
-  const saved = JSON.parse(localStorage.getItem('fin_saldos') || '{}');
+  const saved = Store.get('fin_saldos');
   const c = FIN_DATA.cuentas;
   const fmBase = saved.fm ?? (FIN_DATA.revolut_fondo_monetario.historial[FIN_DATA.revolut_fondo_monetario.historial.length-1]?.saldo_final ?? 291.28);
-  const interesesDiarios = (JSON.parse(localStorage.getItem('fin_revolut_intereses') || '[]')).reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
+  const interesesDiarios = (Store.get('fin_revolut_intereses', [])).reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
   return {
     ktx: saved.ktx ?? c.kutxabank_personal.saldo,
     rvp: saved.rvp ?? c.revolut_personal.saldo,
@@ -82,7 +82,7 @@ function renderFinStats() {
   set('fin-deuda-cuotas', `${pagadasReal}/${deuda.cuotas_total} cuotas`);
 
   // CTV progress — usa la meta real de compra (entrada 20% + ITP + gastos), no el límite anual de aportación
-  const pisoCfgStat = JSON.parse(localStorage.getItem('piso_config') || '{}');
+  const pisoCfgStat = Store.get('piso_config');
   let ctv_meta = 51500;
   if (pisoCfgStat.precio_ref) {
     const _p  = pisoCfgStat.precio_ref;
@@ -277,12 +277,12 @@ function fin_getGastosFijos() {
     ...p.gastos_fijos_conjunta.map(g => toEntry(g, 'conjunta')),
     ...p.suscripciones_personales.map(g => toEntry(g, 'suscripcion')),
   ];
-  localStorage.setItem('fin_gastos_fijos', JSON.stringify(list));
+  Store.set('fin_gastos_fijos', list);
   return list;
 }
 
 function fin_saveGastosFijos(list) {
-  localStorage.setItem('fin_gastos_fijos', JSON.stringify(list));
+  Store.set('fin_gastos_fijos', list);
 }
 
 // Auto-genera transacciones del mes actual para gastos fijos con día de cobro
@@ -297,7 +297,7 @@ function fin_autoTxns() {
   // Transacciones ya existentes este mes (historial + manuales)
   const existing = [
     ...FIN_DATA.transacciones,
-    ...JSON.parse(localStorage.getItem('fin_txns') || '[]'),
+    ...Store.get('fin_txns', []),
   ].filter(t => t.f?.startsWith(mesStr));
 
   return gastos
@@ -317,7 +317,7 @@ function fin_autoTxns() {
 }
 
 function getFilteredReal(opts={}) {
-  const local = JSON.parse(localStorage.getItem('fin_txns') || '[]');
+  const local = Store.get('fin_txns', []);
   const auto  = fin_autoTxns();
   return [...FIN_DATA.transacciones, ...local, ...auto];
 }
@@ -474,7 +474,7 @@ function renderFinTransacciones() {
   const q       = (document.getElementById('fin-search')?.value || '').toLowerCase();
   const hideInt = document.getElementById('fin-hide-internal')?.checked ?? true;
 
-  const local = JSON.parse(localStorage.getItem('fin_txns') || '[]').map(t=>({...t, _local:true}));
+  const local = Store.get('fin_txns', []).map(t=>({...t, _local:true}));
   const auto  = fin_autoTxns().map(t => ({...t, _auto:true}));
   let txns = [...FIN_DATA.transacciones, ...local, ...auto];
 
@@ -532,9 +532,9 @@ function renderFinTransacciones() {
 }
 
 function borrarTxnLocal(i) {
-  const local = JSON.parse(localStorage.getItem('fin_txns') || '[]');
+  const local = Store.get('fin_txns', []);
   local.splice(i, 1);
-  localStorage.setItem('fin_txns', JSON.stringify(local));
+  Store.set('fin_txns', local);
   renderFinTransacciones();
 }
 
@@ -548,9 +548,9 @@ function addTransaccionManual() {
   if (!fecha || isNaN(imp) || !desc || !cat || !ct) {
     alert('Rellena fecha, importe, descripción, categoría y cuenta.'); return;
   }
-  const local = JSON.parse(localStorage.getItem('fin_txns') || '[]');
+  const local = Store.get('fin_txns', []);
   local.push({ f: fecha, i: imp, d: desc, c: cat, ct, ref });
-  localStorage.setItem('fin_txns', JSON.stringify(local));
+  Store.set('fin_txns', local);
   ['fin-new-fecha','fin-new-importe','fin-new-sub','fin-new-ref'].forEach(id=>{
     const e=document.getElementById(id); if(e) e.value='';
   });
@@ -567,14 +567,14 @@ function renderFinSinking() {
   if (!el) return;
 
   const fm = FIN_DATA.revolut_fondo_monetario;
-  const fmExtra   = JSON.parse(localStorage.getItem('fin_fm_extra')  || '[]');
-  const fmDaily   = JSON.parse(localStorage.getItem('fin_fm_daily')  || '[]').sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const fmExtra   = Store.get('fin_fm_extra', []);
+  const fmDaily   = Store.get('fin_fm_daily', []).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const fmHistorial = [...fm.historial, ...fmExtra];
   const s = getSaldosActuales();
   const totalIntereses = fmHistorial.reduce((a,h) => a + (h.interes || 0), 0) + s.interesesDiarios;
 
   // Compras futuras planeadas
-  const compras = JSON.parse(localStorage.getItem('local_finanzas') || '{}').compras || '';
+  const compras = Store.get('local_finanzas').compras || '';
   const listaCompras = compras.split('\n').map(l => l.trim()).filter(Boolean);
   const totalCompras = listaCompras.reduce((a, l) => {
     const m = l.match(/[\d.,]+/g);
@@ -890,7 +890,7 @@ function renderFinActualizar() {
       <button class="upd-btn" style="margin-top:16px;width:100%" onclick="guardarSaldos()">💾 Guardar saldos</button>
       <button class="upd-btn" style="margin-top:8px;width:100%;background:transparent;border:1px solid var(--text3);color:var(--text2)" onclick="resetSaldos()">↩ Restaurar saldos originales de los PDFs</button>
       ${(() => {
-        const ts = JSON.parse(localStorage.getItem('fin_saldos') || '{}')._ts;
+        const ts = Store.get('fin_saldos')._ts;
         if (!ts) return '<p style="font-size:.75rem;color:var(--text3);margin-top:10px">⚠️ Saldos no actualizados todavía — usando valores de los PDFs.</p>';
         const d = new Date(ts);
         const diff = Math.floor((Date.now() - ts) / 86400000);
@@ -1085,7 +1085,7 @@ function guardarSaldos() {
   });
   if (!ok) { alert('Revisa los valores — todos deben ser números.'); return; }
   data._ts = Date.now();
-  localStorage.setItem('fin_saldos', JSON.stringify(data));
+  Store.set('fin_saldos', data);
   renderFinStats();
   renderFinActualizar();
   renderFinSinking();
@@ -1113,17 +1113,17 @@ function addFMDiario() {
   const saldo = parseFloat(document.getElementById('fin-fmd-saldo')?.value);
   const nota  = document.getElementById('fin-fmd-nota')?.value?.trim() || '';
   if (!fecha || isNaN(saldo)) { alert('Indica fecha y saldo.'); return; }
-  const daily = JSON.parse(localStorage.getItem('fin_fm_daily') || '[]');
+  const daily = Store.get('fin_fm_daily', []);
   // Actualiza si ya existe esa fecha, o añade
   const idx = daily.findIndex(d => d.fecha === fecha);
   if (idx >= 0) daily[idx] = { fecha, saldo, nota };
   else daily.push({ fecha, saldo, nota });
-  localStorage.setItem('fin_fm_daily', JSON.stringify(daily));
+  Store.set('fin_fm_daily', daily);
   // Actualiza también el saldo FM actual
-  const saldos = JSON.parse(localStorage.getItem('fin_saldos') || '{}');
+  const saldos = Store.get('fin_saldos');
   saldos.fm = saldo;
   saldos._ts = Date.now();
-  localStorage.setItem('fin_saldos', JSON.stringify(saldos));
+  Store.set('fin_saldos', saldos);
   document.getElementById('fin-fmd-saldo').value = '';
   document.getElementById('fin-fmd-nota').value  = '';
   mostrarOk('fin-fmd-ok');
@@ -1133,9 +1133,9 @@ function addFMDiario() {
 }
 
 function finFMDailyBorrar(i) {
-  const daily = JSON.parse(localStorage.getItem('fin_fm_daily') || '[]').sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const daily = Store.get('fin_fm_daily', []).sort((a,b) => b.fecha.localeCompare(a.fecha));
   daily.splice(i, 1);
-  localStorage.setItem('fin_fm_daily', JSON.stringify(daily));
+  Store.set('fin_fm_daily', daily);
   renderFinSinking();
 }
 
@@ -1146,10 +1146,10 @@ function addMesFondoMonetario() {
   const saldo   = parseFloat(document.getElementById('fin-fm-saldo')?.value);
   const nota    = document.getElementById('fin-fm-nota')?.value?.trim();
   if (!mes || isNaN(interes) || isNaN(saldo)) { alert('Rellena al menos mes, interés y saldo final.'); return; }
-  const extra = JSON.parse(localStorage.getItem('fin_fm_extra') || '[]');
+  const extra = Store.get('fin_fm_extra', []);
   const anterior = FIN_DATA.revolut_fondo_monetario.historial[FIN_DATA.revolut_fondo_monetario.historial.length-1]?.saldo_final ?? 642.22;
   extra.push({ mes, aportacion: isNaN(aport) ? 0 : aport, saldo_anterior: anterior, interes, saldo_final: saldo, nota });
-  localStorage.setItem('fin_fm_extra', JSON.stringify(extra));
+  Store.set('fin_fm_extra', extra);
   ['fin-fm-mes','fin-fm-aport','fin-fm-interes','fin-fm-saldo','fin-fm-nota'].forEach(id => { const e = document.getElementById(id); if(e) e.value=''; });
   const fb = document.getElementById('fin-fm-feedback');
   if (fb) { fb.style.display='block'; setTimeout(()=>fb.style.display='none', 3000); }
@@ -1161,7 +1161,7 @@ function addMesFondoMonetario() {
 ══════════════════════════════════════════════════════ */
 function fmt(v) {
   if (v===undefined||v===null||isNaN(v)) return '—';
-  return parseFloat(v).toLocaleString('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+  return Fmt.eur2(v);
 }
 function fmtFechaShort(f) {
   if (!f) return '—';
@@ -1175,9 +1175,9 @@ function set(id, val) { const el=document.getElementById(id); if(el) el.textCont
 const RV_INT_KEY = 'fin_revolut_intereses';
 
 function rv_getEntradas() {
-  try { return JSON.parse(localStorage.getItem(RV_INT_KEY)) || []; } catch { return []; }
+  try { return Store.get(RV_INT_KEY, []); } catch { return []; }
 }
-function rv_saveEntradas(arr) { localStorage.setItem(RV_INT_KEY, JSON.stringify(arr)); }
+function rv_saveEntradas(arr) { Store.set(RV_INT_KEY, arr); }
 
 function renderFinRevolutIntereses() {
   const el = document.getElementById('fin-revolut-content');
@@ -1309,7 +1309,7 @@ function renderFinCTVSimulador() {
 
   // Calcular meta desde config de piso si existe
   let metaTotal = 51500;
-  const pisoCfg = JSON.parse(localStorage.getItem('piso_config') || '{}');
+  const pisoCfg = Store.get('piso_config');
   if (pisoCfg.precio_ref) {
     const precio = pisoCfg.precio_ref;
     const hip    = precio * ((pisoCfg.financiacion || 80) / 100);

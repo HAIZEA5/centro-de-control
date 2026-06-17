@@ -1,5 +1,28 @@
 // ─── MÓDULO AGENDA ───
 
+// ── Seed de guardias ──
+(function age_seedGuardias() {
+  const KEY  = 'age_guardias_seed_v';
+  const VER  = 1;
+  if (parseInt(localStorage.getItem(KEY) || '0') >= VER) return;
+
+  const GUARDIAS = [
+    { fecha: '2026-07-09', nombre: '🏥 Guardia' },
+    { fecha: '2026-07-27', nombre: '🏥 Guardia' },
+    { fecha: '2026-08-06', nombre: '🏥 Guardia' },
+    { fecha: '2026-08-20', nombre: '🏥 Guardia' },
+    { fecha: '2026-09-09', nombre: '🏥 Guardia' },
+  ];
+
+  const lista = Store.get('age_eventos_struct', []);
+  GUARDIAS.forEach(g => {
+    const existe = lista.some(e => e.fecha === g.fecha && e.nombre === g.nombre);
+    if (!existe) lista.push({ id: Date.now() + Math.random(), nombre: g.nombre, fecha: g.fecha, hora: '', cat: 'personal', ubicacion: '', notas: 'Guardia' });
+  });
+  Store.set('age_eventos_struct', lista);
+  localStorage.setItem(KEY, String(VER));
+})();
+
 // ── Estado del calendario ──
 let _calYear  = new Date().getFullYear();
 let _calMonth = new Date().getMonth(); // 0-indexed
@@ -10,7 +33,7 @@ function age_getEventosCalendario(year, month) {
   const pad = n => String(n).padStart(2,'0');
 
   // ── Cumpleaños (DD/MM, recurrentes) ──
-  const local = JSON.parse(localStorage.getItem('local_agenda') || '{}');
+  const local = Store.get('local_agenda');
   if (local.cumples) {
     local.cumples.split('\n').filter(l => l.trim()).forEach(linea => {
       // Formato: "Nombre — DD/MM" o "Nombre - DD/MM" o "Nombre DD/MM"
@@ -33,7 +56,7 @@ function age_getEventosCalendario(year, month) {
   const _AGE_CAL_ICON = {
     personal:'💙', oposiciones:'📚', finanzas:'💚', carnet:'🚗', medico:'💊', familia:'👨‍👩‍👧', ocio:'🎭', otro:'📌',
   };
-  JSON.parse(localStorage.getItem('age_eventos_struct') || '[]').forEach(ev => {
+  Store.get('age_eventos_struct', []).forEach(ev => {
     if (!ev.fecha) return;
     const d = new Date(ev.fecha + 'T12:00:00');
     if (d.getFullYear() === year && d.getMonth() === month) {
@@ -92,7 +115,7 @@ function age_getEventosCalendario(year, month) {
 
   // ── Carnet: Tests (agrupados por día) ──
   try {
-    const rawTests = JSON.parse(localStorage.getItem('car_tests') || '[]');
+    const rawTests = Store.get('car_tests', []);
     const testsByDay = {};
     rawTests.forEach(t => {
       if (!t.fecha) return;
@@ -115,7 +138,7 @@ function age_getEventosCalendario(year, month) {
         : `${dayTests.length} tests · ${mediaFallos}❌`;
       eventos.push({ fecha, texto, tipo: 'carnet-test', color: 'var(--blue)', icono: '📋' });
     });
-    const rawExamenes = JSON.parse(localStorage.getItem('car_examenes') || '[]');
+    const rawExamenes = Store.get('car_examenes', []);
     rawExamenes.forEach(e => {
       if (!e.fecha) return;
       const d = new Date(e.fecha);
@@ -246,7 +269,7 @@ function renderAgendaDia(dateStr, evs) {
   }
   // Para eventos estructurados, recuperar datos completos
   const structMap = {};
-  JSON.parse(localStorage.getItem('age_eventos_struct') || '[]').forEach(ev => {
+  Store.get('age_eventos_struct', []).forEach(ev => {
     structMap[ev.fecha + '_' + ev.nombre] = ev;
   });
 
@@ -255,7 +278,7 @@ function renderAgendaDia(dateStr, evs) {
       const sk = e._struct ? (e.fecha?.slice(0,10) + '_' + (e.texto?.split(' ')[0] ? e.texto : '')) : null;
       // buscar por fecha + nombre original (antes de añadir hora/ubicación)
       const fullEv = e._struct
-        ? JSON.parse(localStorage.getItem('age_eventos_struct') || '[]').find(s => e.fecha === s.fecha && e.texto.startsWith(s.nombre))
+        ? Store.get('age_eventos_struct', []).find(s => e.fecha === s.fecha && e.texto.startsWith(s.nombre))
         : null;
       return `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
         <span style="font-size:1rem;flex-shrink:0">${e.icono}</span>
@@ -289,7 +312,6 @@ function renderAgeGastosFijos() {
   if (!el) return;
   const hoy    = new Date();
   const diaHoy = hoy.getDate();
-  const fmt    = v => parseFloat(v).toLocaleString('es-ES', { style:'currency', currency:'EUR' });
   const tipoColor = { personal:'var(--red)', conjunta:'var(--pink)', suscripcion:'var(--blue)' };
   const tipoLabel = { personal:'Personal', conjunta:'Conjunta', suscripcion:'Suscripción' };
   const ctaColor  = { KTX:'#60a5fa', RVP:'#a78bfa', RVC:'#f472b6', CTV:'#34d399', BP:'#fbbf24' };
@@ -320,7 +342,7 @@ function renderAgeGastosFijos() {
 }
 
 async function loadAgenda() {
-  const local = JSON.parse(localStorage.getItem('local_agenda') || '{}');
+  const local = Store.get('local_agenda');
 
   // ── Cumpleaños ──
   const cumpleRows = await fetchSheet(CONFIG.SHEETS.AGENDA, 'Cumpleanos!A:B');

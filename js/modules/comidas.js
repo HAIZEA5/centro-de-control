@@ -1,4 +1,4 @@
-// ─── MÓDULO COMIDAS ───
+﻿// ─── MÓDULO COMIDAS ───
 // Hojas: "Planning" (dia, comida, cena), "Recetas" (nombre, tiempo, notas), "Compra" (item, cantidad)
 
 async function loadComidas() {

@@ -1,4 +1,4 @@
-// ─── MÓDULO CROCHET ───
+﻿// ─── MÓDULO CROCHET ───
 // Hojas: "Proyectos" (nombre, estado, coste), "Material" (item, cantidad), "Ideas" (idea)
 
 async function loadCrochet() {

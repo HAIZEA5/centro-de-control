@@ -224,7 +224,7 @@ async function excel_exportar() {
     );
 
     // ── Agenda: Cumpleaños ──
-    const local = JSON.parse(localStorage.getItem('local_agenda') || '{}');
+    const local = Store.get('local_agenda');
     const cumpleRows = (local.cumples || '').split('\n').filter(l => l.trim()).map(l => {
       const mDate = l.match(/(\d{1,2})[\/\-](\d{1,2})/);
       const nombre = l.replace(/[\-—]\s*\d{1,2}[\/\-]\d{1,2}/, '').replace(/\d{1,2}[\/\-]\d{1,2}/, '').trim();
@@ -303,7 +303,7 @@ async function excel_exportar() {
     );
 
     // ── Finanzas: Transacciones ──
-    const txnsManuales = JSON.parse(localStorage.getItem('ufin_movimientos_manuales') || '[]');
+    const txnsManuales = Store.get('ufin_movimientos_manuales', []);
     addSheet('Finanzas_Transacciones',
       [
         { label: 'Fecha',       key: 'f',   isDate: true },
@@ -450,7 +450,7 @@ function excel_importar(file) {
           const c = car_getConfig();
           c.prox_fecha  = _xlToISO(cfgRows[0]['Próxima fecha examen']);
           c.prox_estado = String(cfgRows[0]['Estado']||'');
-          localStorage.setItem('car_config', JSON.stringify(c));
+          Store.set('car_config', c);
           importados.push('Carnet Config');
         }
 
@@ -488,27 +488,27 @@ function excel_importar(file) {
         // ── Agenda Cumpleaños ──
         const cumples = sheet('Agenda_Cumpleanos');
         if (cumples?.length && cumples[0]['Nombre']) {
-          const datos = JSON.parse(localStorage.getItem('local_agenda')||'{}');
+          const datos = Store.get('local_agenda');
           datos.cumples = cumples.map(r => `${r['Nombre']} — ${r['Fecha (DD/MM)']}`).join('\n');
-          localStorage.setItem('local_agenda', JSON.stringify(datos));
+          Store.set('local_agenda', datos);
           importados.push('Agenda Cumpleaños');
         }
 
         // ── Agenda Eventos ──
         const eventos = sheet('Agenda_Eventos');
         if (eventos?.length && eventos[0]['Evento']) {
-          const datos = JSON.parse(localStorage.getItem('local_agenda')||'{}');
+          const datos = Store.get('local_agenda');
           datos.eventos = eventos.map(r => r['Evento'] + (r['Fecha'] ? ` | ${r['Fecha']}` : '')).join('\n');
-          localStorage.setItem('local_agenda', JSON.stringify(datos));
+          Store.set('local_agenda', datos);
           importados.push('Agenda Eventos');
         }
 
         // ── Agenda Vencimientos ──
         const venc = sheet('Agenda_Vencimientos');
         if (venc?.length && venc[0]['Vencimiento']) {
-          const datos = JSON.parse(localStorage.getItem('local_agenda')||'{}');
+          const datos = Store.get('local_agenda');
           datos.vencimientos = venc.map(r => r['Vencimiento'] + (r['Fecha'] ? ` | ${r['Fecha']}` : '')).join('\n');
-          localStorage.setItem('local_agenda', JSON.stringify(datos));
+          Store.set('local_agenda', datos);
           importados.push('Agenda Vencimientos');
         }
 
@@ -529,12 +529,12 @@ function excel_importar(file) {
         // ── Finanzas Saldos ──
         const saldosRows = sheet('Finanzas_Saldos');
         if (saldosRows?.length) {
-          const sv = JSON.parse(localStorage.getItem('fin_saldos')||'{}');
+          const sv = Store.get('fin_saldos');
           saldosRows.forEach(r => {
             const k = r['Clave'] || '';
             if (k && r['Saldo'] !== '' && r['Saldo'] !== undefined) sv[k] = parseFloat(r['Saldo'])||0;
           });
-          localStorage.setItem('fin_saldos', JSON.stringify(sv));
+          Store.set('fin_saldos', sv);
           importados.push('Saldos');
         }
 

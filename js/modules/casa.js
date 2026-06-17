@@ -1,7 +1,7 @@
-// ─── MÓDULO CASA ───
+﻿// ─── MÓDULO CASA ───
 
 async function loadCasa() {
-  const local = JSON.parse(localStorage.getItem('local_casa') || '{}');
+  const local = Store.get('local_casa');
 
   const [tareaRows, decoRows, mamRows, invRows] = await Promise.all([
     fetchSheet(CONFIG.SHEETS.CASA, 'Tareas!A:B'),

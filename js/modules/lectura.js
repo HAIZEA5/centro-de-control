@@ -1,4 +1,4 @@
-// ─── MÓDULO LECTURA ───
+﻿// ─── MÓDULO LECTURA ───
 // Columnas: titulo, autor, estado(leido/leyendo/pendiente), paginas, fecha_fin, mes
 
 async function loadLectura() {

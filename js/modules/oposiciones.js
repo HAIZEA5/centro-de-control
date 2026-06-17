@@ -52,7 +52,7 @@ function renderOposStats(data) {
   }
 
   // Horas estudiadas: mes actual y semana actual
-  const _sesiones = JSON.parse(localStorage.getItem('opos_sesiones') || '[]');
+  const _sesiones = Store.get('opos_sesiones', []);
   const _hoy = new Date(); _hoy.setHours(0,0,0,0);
   const _parseDate = str => {
     const p = str?.split('/');
@@ -245,7 +245,7 @@ function renderFechasPanel(r) {
 
   // Ubicación del examen (guardada en localStorage por convocatoria)
   const ubKey = 'opos_ubicacion_' + (r.convocatoria || '').replace(/\s+/g,'_');
-  const ub = JSON.parse(localStorage.getItem(ubKey) || '{}');
+  const ub = Store.get(ubKey);
 
   return `
   <div class="det-fechas-grid">
@@ -316,7 +316,7 @@ function renderDocsPanel(r) {
   ];
   const colorEstado = { 'Listo': 'badge--green', 'Pendiente': 'badge--yellow', 'No aplica': 'badge--red', '': 'badge--blue' };
   const ckKey = 'opos_checklist_' + (r.convocatoria || '').replace(/\s+/g,'_');
-  const ck = JSON.parse(localStorage.getItem(ckKey) || '{}');
+  const ck = Store.get(ckKey);
   const checkItems = [
     { id:'dni',    label:'DNI / Pasaporte en vigor' },
     { id:'tasa',   label:'Justificante de tasa pagada / resguardo de inscripción' },
@@ -520,8 +520,8 @@ function addHistorial(i) {
 }
 
 /* ── Revisiones de estado ── */
-function getRevisiones() { return JSON.parse(localStorage.getItem('opos_revisiones') || '[]'); }
-function saveRevisiones(r) { localStorage.setItem('opos_revisiones', JSON.stringify(r)); }
+function getRevisiones() { return Store.get('opos_revisiones', []); }
+function saveRevisiones(r) { Store.set('opos_revisiones', r); }
 
 function setupRevisiones(data) {
   // Rellena el select de oposiciones
@@ -577,8 +577,8 @@ function borrarRevision(i) {
 }
 
 /* ── Temas ── */
-function getOposTemas() { return JSON.parse(localStorage.getItem('opos_temas') || '[]'); }
-function saveOposTemas(t) { localStorage.setItem('opos_temas', JSON.stringify(t)); }
+function getOposTemas() { return Store.get('opos_temas', []); }
+function saveOposTemas(t) { Store.set('opos_temas', t); }
 
 function renderOposTemas() {
   const temas    = getOposTemas();
@@ -640,8 +640,8 @@ function setupOposTemas() {
 }
 
 /* ── Sesiones ── */
-function getOposSesiones() { return JSON.parse(localStorage.getItem('opos_sesiones') || '[]'); }
-function saveOposSesiones(s) { localStorage.setItem('opos_sesiones', JSON.stringify(s)); }
+function getOposSesiones() { return Store.get('opos_sesiones', []); }
+function saveOposSesiones(s) { Store.set('opos_sesiones', s); }
 
 function renderOposSesiones() {
   const todas   = getOposSesiones();
@@ -691,8 +691,8 @@ function opos_borrarSesion(i) {
 }
 
 /* ── Local storage ── */
-function getOposLocal()       { return JSON.parse(localStorage.getItem('opos_convocatorias') || '[]'); }
-function saveOposLocal(lista) { localStorage.setItem('opos_convocatorias', JSON.stringify(lista)); }
+function getOposLocal()       { return Store.get('opos_convocatorias', []); }
+function saveOposLocal(lista) { Store.set('opos_convocatorias', lista); }
 
 /* ── Helpers ── */
 function _excelSerialToDate(serial) {
@@ -740,7 +740,7 @@ function guardarUbicacionExamen(conv, key) {
     aula:     document.getElementById('ub-aula')?.value.trim()    || '',
     asiento:  document.getElementById('ub-asiento')?.value.trim() || '',
   };
-  localStorage.setItem(key, JSON.stringify(ub));
+  Store.set(key, ub);
   // Re-render el panel fechas del opos activo
   const data = window._oposData || [];
   const idx  = data.findIndex(r => r.convocatoria === conv);
@@ -751,9 +751,9 @@ function guardarUbicacionExamen(conv, key) {
 }
 
 function opos_toggleCheck(key, field, checked) {
-  const ck = JSON.parse(localStorage.getItem(key) || '{}');
+  const ck = Store.get(key);
   ck[field] = checked;
-  localStorage.setItem(key, JSON.stringify(ck));
+  Store.set(key, ck);
   // actualiza estilo del label sin re-render completo
   const label = event?.target?.closest('label');
   if (label) {

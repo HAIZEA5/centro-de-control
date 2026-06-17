@@ -1,4 +1,4 @@
-// ─── MÓDULO DIARIO ───
+﻿// ─── MÓDULO DIARIO ───
 // Guardado en localStorage (privado, solo en este navegador)
 
 const DIARIO_KEY = 'cdc_diario';
@@ -22,7 +22,7 @@ function loadDiario() {
     if (idx >= 0) entradas[idx] = entrada;
     else entradas.unshift(entrada);
 
-    localStorage.setItem(DIARIO_KEY, JSON.stringify(entradas.slice(0, 365)));
+    Store.set(DIARIO_KEY, entradas.slice(0, 365));
 
     document.getElementById('dia-hecho').value = '';
     document.getElementById('dia-bueno').value = '';
@@ -32,7 +32,7 @@ function loadDiario() {
 }
 
 function getDiarioEntradas() {
-  try { return JSON.parse(localStorage.getItem(DIARIO_KEY)) || []; }
+  return Store.get(DIARIO_KEY, []);
   catch { return []; }
 }
 

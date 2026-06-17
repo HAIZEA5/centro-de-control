@@ -1,4 +1,4 @@
-// ─── MÓDULO OBJETIVOS ───
+﻿// ─── MÓDULO OBJETIVOS ───
 // Columnas: nombre, emoji, progreso(0-100), descripcion
 
 // Datos por defecto mientras no hay Sheet conectado

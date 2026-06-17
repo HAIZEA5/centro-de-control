@@ -38,14 +38,14 @@ const CAR_TEMAS_DGT = [
 ];
 
 // ── Storage ──
-function car_getTests()     { return JSON.parse(localStorage.getItem('car_tests')     || '[]'); }
-function car_getExamenes()  { return JSON.parse(localStorage.getItem('car_examenes')  || '[]'); }
-function car_getPracticas() { return JSON.parse(localStorage.getItem('car_practicas') || '[]'); }
-function car_getConfig()    { return JSON.parse(localStorage.getItem('car_config')    || '{}'); }
-function car_getCatsExtra() { return JSON.parse(localStorage.getItem('car_cats_extra')|| '[]'); }
-function car_saveTests(d)     { localStorage.setItem('car_tests',     JSON.stringify(d)); }
-function car_saveExamenes(d)  { localStorage.setItem('car_examenes',  JSON.stringify(d)); }
-function car_savePracticas(d) { localStorage.setItem('car_practicas', JSON.stringify(d)); }
+function car_getTests()     { return Store.get('car_tests', []); }
+function car_getExamenes()  { return Store.get('car_examenes', []); }
+function car_getPracticas() { return Store.get('car_practicas', []); }
+function car_getConfig()    { return Store.get('car_config'); }
+function car_getCatsExtra() { return Store.get('car_cats_extra', []); }
+function car_saveTests(d)     { Store.set('car_tests', d); }
+function car_saveExamenes(d)  { Store.set('car_examenes', d); }
+function car_savePracticas(d) { Store.set('car_practicas', d); }
 
 function car_getTodosLosTemas() {
   return [...CAR_TEMAS_DGT, ...car_getCatsExtra().map(c => c.label)];
@@ -104,7 +104,7 @@ function car_guardarProxima() {
   const cfg = car_getConfig();
   cfg.prox_estado = estado;
   cfg.prox_fecha  = fecha;
-  localStorage.setItem('car_config', JSON.stringify(cfg));
+  Store.set('car_config', cfg);
   mostrarOk('upd-car-prox-ok');
   loadCarnet();
 }
@@ -131,7 +131,7 @@ function car_guardarTest() {
     const extras = car_getCatsExtra();
     if (!extras.find(c => c.label === nueva.trim())) {
       extras.push({ label: nueva.trim() });
-      localStorage.setItem('car_cats_extra', JSON.stringify(extras));
+      Store.set('car_cats_extra', extras);
     }
     cat = nueva.trim();
     car_poblarSelectTema();

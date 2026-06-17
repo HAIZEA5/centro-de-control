@@ -300,9 +300,9 @@ function setupUpdFinanzas() {
   // Compras futuras (legacy field kept)
   document.getElementById('upd-fin-guardar')?.addEventListener('click', () => {
     const compras = document.getElementById('upd-fin-compras')?.value || '';
-    const datos = JSON.parse(localStorage.getItem('local_finanzas')||'{}');
+    const datos = Store.get('local_finanzas');
     datos.compras = compras;
-    localStorage.setItem('local_finanzas', JSON.stringify(datos));
+    Store.set('local_finanzas', datos);
     mostrarOk('upd-fin-ok');
   });
 
@@ -318,7 +318,7 @@ function setupUpdFinanzas() {
 
 /* ══ CATEGORÍAS EXTRA ══ */
 function ufin_getCatsExtra() {
-  return JSON.parse(localStorage.getItem('fin_cats_extra') || '[]');
+  return Store.get('fin_cats_extra', []);
 }
 
 function ufin_renderCatsExtra() {
@@ -355,7 +355,7 @@ function ufin_nuevaCat() {
   const cats = ufin_getCatsExtra();
   if (cats.find(c => c.id === id)) { alert('Ya existe esa categoría.'); return; }
   cats.push({ id, label: label.trim(), icon: icon.trim() });
-  localStorage.setItem('fin_cats_extra', JSON.stringify(cats));
+  Store.set('fin_cats_extra', cats);
   const container = document.getElementById('ufin-cats-extra');
   if (container) container.innerHTML = '';
   ufin_renderCatsExtra();
@@ -365,7 +365,7 @@ function ufin_nuevaCat() {
 
 function ufin_borrarCat(id) {
   const cats = ufin_getCatsExtra().filter(c => c.id !== id);
-  localStorage.setItem('fin_cats_extra', JSON.stringify(cats));
+  Store.set('fin_cats_extra', cats);
   const container = document.getElementById('ufin-cats-extra');
   if (container) container.innerHTML = '';
   ufin_renderCatsExtra();
@@ -395,9 +395,9 @@ function ufin_guardarMovimiento() {
     alert('Rellena fecha, importe, descripción, categoría y cuenta.'); return;
   }
   const importe = _ufinTipo === 'ingreso' ? impRaw : -impRaw;
-  const local = JSON.parse(localStorage.getItem('fin_txns') || '[]');
+  const local = Store.get('fin_txns', []);
   local.push({ f: fecha, i: importe, d: desc, c: cat, ct: cuenta, ref: nota || undefined });
-  localStorage.setItem('fin_txns', JSON.stringify(local));
+  Store.set('fin_txns', local);
 
   // Clear fields (keep fecha, cuenta, cat)
   document.getElementById('ufin-importe').value = '';
@@ -432,7 +432,7 @@ function ufin_guardarMovimiento() {
 function ufin_renderRecientes() {
   const el = document.getElementById('ufin-recientes');
   if (!el) return;
-  const local = JSON.parse(localStorage.getItem('fin_txns') || '[]');
+  const local = Store.get('fin_txns', []);
   if (local.length === 0) {
     el.innerHTML = '<p style="color:var(--text3);font-size:.82rem">Sin movimientos añadidos todavía.</p>';
     return;
@@ -465,7 +465,7 @@ function ufin_renderRecientes() {
           <div style="font-size:.85rem;font-weight:600">${t.d}</div>
           <div style="font-size:.72rem;color:var(--text3)">${getLabel(t.c)} · <span style="color:${getCtaColor(t.ct)}">${t.ct}</span>${t.ref?' · '+t.ref:''}</div>
         </div>
-        <span style="font-weight:700;color:${t.i>=0?'var(--green)':'var(--red)'};font-size:.9rem">${t.i>=0?'+':''}${parseFloat(t.i).toLocaleString('es-ES',{style:'currency',currency:'EUR'})}</span>
+        <span style="font-weight:700;color:${t.i>=0?'var(--green)':'var(--red)'};font-size:.9rem">${t.i>=0?'+':''}${Fmt.eur2(t.i)}</span>
         <button onclick="ufin_borrar(${realIdx})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:2px 6px" title="Eliminar">✕</button>
       </div>`;
     }).join('')}
@@ -473,9 +473,9 @@ function ufin_renderRecientes() {
 }
 
 function ufin_borrar(idx) {
-  const local = JSON.parse(localStorage.getItem('fin_txns') || '[]');
+  const local = Store.get('fin_txns', []);
   local.splice(idx, 1);
-  localStorage.setItem('fin_txns', JSON.stringify(local));
+  Store.set('fin_txns', local);
   ufin_renderRecientes();
   if (typeof renderFinTransacciones === 'function') renderFinTransacciones();
   if (typeof renderFinResumen === 'function') renderFinResumen();
@@ -510,7 +510,7 @@ function ufin_guardarSaldos() {
     else data[id] = v;
   });
   if (!ok) { alert('Revisa los valores — deben ser números.'); return; }
-  localStorage.setItem('fin_saldos', JSON.stringify(data));
+  Store.set('fin_saldos', data);
   const okEl = document.getElementById('ufin-saldos-ok');
   if (okEl) { okEl.style.display='inline'; setTimeout(()=>okEl.style.display='none',2500); }
   if (typeof renderFinStats === 'function') renderFinStats();
@@ -536,7 +536,6 @@ function ufin_renderIphoneInfo() {
   const pagadas = d.cuotas_pagadas + extra;
   const restantes = Math.max(0, d.cuotas_total - pagadas);
   const pct = Math.min(100, Math.round(pagadas / d.cuotas_total * 100));
-  const fmt = v => parseFloat(v).toLocaleString('es-ES',{style:'currency',currency:'EUR'});
   const col = pct >= 80 ? 'var(--green)' : pct >= 40 ? 'var(--accent)' : 'var(--yellow)';
   el.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -589,8 +588,8 @@ function setupUpdCarnet() {
    AGENDA
 ════════════════════════════════ */
 // ── Helpers de agenda ──
-function age_getDatos() { return JSON.parse(localStorage.getItem('local_agenda') || '{}'); }
-function age_saveDatos(d) { localStorage.setItem('local_agenda', JSON.stringify(d)); loadAgenda(); }
+function age_getDatos() { return Store.get('local_agenda'); }
+function age_saveDatos(d) { Store.set('local_agenda', d); loadAgenda(); }
 
 function age_parseCumples(txt) {
   return (txt || '').split('\n').filter(l => l.trim()).map(l => {
@@ -644,9 +643,9 @@ function age_addEvento() {
 
   // Guardar como estructura JSON
   const ev = { id: Date.now(), nombre, fecha: fechaISO, hora, cat, ubicacion, notas };
-  const lista = JSON.parse(localStorage.getItem('age_eventos_struct') || '[]');
+  const lista = Store.get('age_eventos_struct', []);
   lista.push(ev);
-  localStorage.setItem('age_eventos_struct', JSON.stringify(lista));
+  Store.set('age_eventos_struct', lista);
 
   // También actualizar el texto legacy para compatibilidad con parser de calendario antiguo
   const [y, m, dd] = fechaISO.split('-');
@@ -686,9 +685,9 @@ function age_deleteCumple(idx) {
   age_renderCumplesList();
 }
 function age_deleteEventoStruct(idx) {
-  const lista = JSON.parse(localStorage.getItem('age_eventos_struct') || '[]');
+  const lista = Store.get('age_eventos_struct', []);
   lista.splice(idx, 1);
-  localStorage.setItem('age_eventos_struct', JSON.stringify(lista));
+  Store.set('age_eventos_struct', lista);
   age_renderEventosList();
 }
 function age_deleteEvento(idx) {
@@ -733,7 +732,7 @@ function age_renderEventosList() {
   const el = document.getElementById('age-eventos-list'); if (!el) return;
 
   // Eventos estructurados (nuevos)
-  const struct = JSON.parse(localStorage.getItem('age_eventos_struct') || '[]');
+  const struct = Store.get('age_eventos_struct', []);
 
   // Eventos legacy (texto)
   const d = age_getDatos();
@@ -780,7 +779,7 @@ function age_renderVencList() {
    CARGA INICIAL
 ════════════════════════════════ */
 function cargarValoresGuardados() {
-  const fin = JSON.parse(localStorage.getItem('local_finanzas')||'null');
+  const fin = Store.get('local_finanzas', null);
   if (fin) {
     const comprasEl = document.getElementById('upd-fin-compras');
     if (comprasEl && fin.compras) comprasEl.value = fin.compras;
@@ -800,5 +799,5 @@ function mostrarOk(id) {
 }
 
 function formatEuros(val) {
-  return parseFloat(val).toLocaleString('es-ES', { style:'currency', currency:'EUR' });
+  return Fmt.eur2(val);
 }

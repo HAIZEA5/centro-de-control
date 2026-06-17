@@ -48,11 +48,9 @@ function _dashFinanzas() {
   const deudaRest  = cuotasRest * (deuda?.importe_cuota || 0);
   const neto = patrimonio - deudaRest;
 
-  const fmtE = v => parseFloat(v).toLocaleString('es-ES', { style:'currency', currency:'EUR', maximumFractionDigits:0 });
-  const fmtE2 = v => parseFloat(v).toLocaleString('es-ES', { style:'currency', currency:'EUR' });
 
   // Gasto del mes actual desde transacciones manuales + historial
-  const local = JSON.parse(localStorage.getItem('fin_txns') || '[]');
+  const local = Store.get('fin_txns', []);
   const hoy = new Date();
   const mesStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
   const gastoMes = [...FIN_DATA.transacciones, ...local]
@@ -70,25 +68,25 @@ function _dashFinanzas() {
   el.innerHTML = `
     <div class="dash-row" style="margin-bottom:4px">
       <span class="dash-row-label" style="font-weight:700">Patrimonio total</span>
-      <span style="font-weight:800;color:var(--accent2);font-size:1.05rem">${fmtE2(patrimonio)}</span>
+      <span style="font-weight:800;color:var(--accent2);font-size:1.05rem">${Fmt.eur2(patrimonio)}</span>
     </div>
     <div class="dash-row" style="margin-bottom:10px">
       <span class="dash-row-label" style="color:var(--text3);font-size:.78rem">Patrimonio neto (sin deuda)</span>
-      <span style="font-weight:700;color:${neto >= 0 ? 'var(--green)' : 'var(--red)'};font-size:.9rem">${fmtE2(neto)}</span>
+      <span style="font-weight:700;color:${neto >= 0 ? 'var(--green)' : 'var(--red)'};font-size:.9rem">${Fmt.eur2(neto)}</span>
     </div>
     ${cuentas.map(c => `
     <div class="dash-row">
       <span class="dash-row-label"><span style="color:${c.color}">●</span> ${c.label}</span>
-      <span class="dash-row-val">${fmtE2(c.val)}</span>
+      <span class="dash-row-val">${Fmt.eur2(c.val)}</span>
     </div>`).join('')}
     <div class="dash-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
       <span class="dash-row-label">Gasto ${new Date().toLocaleDateString('es-ES',{month:'long'})}</span>
-      <span class="dash-row-val red">${gastoMes > 0 ? '-' + fmtE2(gastoMes) : 'Sin datos aún'}</span>
+      <span class="dash-row-val red">${gastoMes > 0 ? '-' + Fmt.eur2(gastoMes) : 'Sin datos aún'}</span>
     </div>
     ${deudaRest > 0 ? `
     <div class="dash-row">
       <span class="dash-row-label">Deuda iPhone (${cuotasRest} cuotas)</span>
-      <span class="dash-row-val red">-${fmtE2(deudaRest)}</span>
+      <span class="dash-row-val red">-${Fmt.eur2(deudaRest)}</span>
     </div>` : `
     <div class="dash-row">
       <span class="dash-row-label">Deuda iPhone</span>
@@ -101,10 +99,10 @@ function _dashCarnet() {
   const el = document.getElementById('dash-car-content');
   if (!el) return;
 
-  const tests     = JSON.parse(localStorage.getItem('car_tests')    || '[]');
-  const examenes  = JSON.parse(localStorage.getItem('car_examenes') || '[]');
-  const practicas = JSON.parse(localStorage.getItem('car_practicas')|| '[]');
-  const cfg       = JSON.parse(localStorage.getItem('car_config')   || '{}');
+  const tests     = Store.get('car_tests', []);
+  const examenes  = Store.get('car_examenes', []);
+  const practicas = Store.get('car_practicas', []);
+  const cfg       = Store.get('car_config');
 
   const estadoLabel = { pendiente:'⏳ Pendiente de fecha', en_proceso:'🔄 En proceso', convocado:'📅 Convocado' };
   const aprobado    = examenes.some(e => e.resultado === 'aprobado');
@@ -154,9 +152,9 @@ function _dashOposiciones() {
   const el = document.getElementById('dash-opos-content');
   if (!el) return;
 
-  const lista    = JSON.parse(localStorage.getItem('opos_convocatorias') || '[]');
-  const sesiones = JSON.parse(localStorage.getItem('opos_sesiones')      || '[]');
-  const temas    = JSON.parse(localStorage.getItem('opos_temas')         || '[]');
+  const lista    = Store.get('opos_convocatorias', []);
+  const sesiones = Store.get('opos_sesiones', []);
+  const temas    = Store.get('opos_temas', []);
 
   if (!lista.length) {
     el.innerHTML = '<p style="color:var(--text3);font-size:.85rem">Sin convocatorias registradas.</p>';
@@ -218,7 +216,7 @@ function _dashAgenda() {
   const el = document.getElementById('dash-casa-content');
   if (!el) return;
 
-  const age = JSON.parse(localStorage.getItem('local_agenda') || '{}');
+  const age = Store.get('local_agenda');
   const hoy = new Date(); hoy.setHours(0,0,0,0);
 
   // Próximos cumpleaños
