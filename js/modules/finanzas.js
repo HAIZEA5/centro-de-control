@@ -110,12 +110,22 @@ function setupFinTabs() {
       document.getElementById(tab.dataset.fintab)?.classList.add('active');
     });
   });
-  // Set current month as default
+  // Generar opciones de mes dinámicamente desde transacciones + mes actual
   const mesSelect = document.getElementById('fin-mes-filter');
   if (mesSelect) {
     const hoy = new Date();
     const mesActual = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
-    if ([...mesSelect.options].some(o => o.value === mesActual)) mesSelect.value = mesActual;
+    const txns = [...FIN_DATA.transacciones, ...Store.get('fin_txns', []), ...fin_autoTxns()];
+    const mesesConDatos = [...new Set(txns.map(t => (t.f || t.fecha || '').substring(0, 7)).filter(Boolean))];
+    if (!mesesConDatos.includes(mesActual)) mesesConDatos.push(mesActual);
+    mesesConDatos.sort();
+    const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    mesSelect.innerHTML = '<option value="">Todos los meses</option>' +
+      mesesConDatos.map(m => {
+        const [y, mo] = m.split('-');
+        return `<option value="${m}">${MESES_ES[parseInt(mo)-1]} ${y}</option>`;
+      }).join('');
+    mesSelect.value = mesActual;
   }
   document.getElementById('fin-mes-filter')?.addEventListener('change',  renderFinTransacciones);
   document.getElementById('fin-cat-filter')?.addEventListener('change',  renderFinTransacciones);

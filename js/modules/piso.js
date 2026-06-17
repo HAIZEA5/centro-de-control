@@ -227,7 +227,16 @@ function renderPisoCalc() {
   const difColor   = diferencia >= 0 ? 'var(--green)' : 'var(--red)';
   const entradaPct = 100 - cfg.financiacion;
 
-  el.innerHTML = `
+  const bannerSim = window._pisoSimulando ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--accent)15;border:1px solid var(--accent)44;border-radius:10px;padding:10px 14px;margin-bottom:14px;flex-wrap:wrap">
+      <div style="font-size:.82rem;color:var(--accent)">
+        <strong>🔢 Simulando:</strong> ${window._pisoSimulando.dir}
+        ${window._pisoSimulando.reforma > 0 ? `<span style="color:var(--text3);font-size:.75rem"> · Reforma ${Fmt.eur(window._pisoSimulando.reforma)} incluida en gastos</span>` : ''}
+      </div>
+      <button onclick="window._pisoSimulando=null;renderPisoCalc()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:.8rem">✕ Limpiar</button>
+    </div>` : '';
+
+  el.innerHTML = bannerSim + `
     <div class="cards-row">
       <div class="card" style="flex:1.3">
         <h3>⚙️ Parámetros</h3>
@@ -538,6 +547,8 @@ function _pisoCard(p, idx, cfg) {
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
       <span style="font-size:.65rem;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.05em">${p.estado}</span>
       <div style="display:flex;gap:2px">
+        <button onclick="piso_simularEste(${idx})" title="Simular hipoteca con este piso"
+          style="background:var(--accent)18;border:1px solid var(--accent)55;border-radius:6px;cursor:pointer;color:var(--accent);font-size:.75rem;padding:3px 7px;font-weight:600">🔢 Simular</button>
         <button onclick="piso_abrirForm(${idx})" title="Editar"
           style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text3);font-size:.75rem;padding:3px 7px">✏️ Editar</button>
         <button onclick="piso_borrar(${idx})" title="Eliminar"
@@ -583,6 +594,27 @@ function piso_filtrarEstado(estado) {
   document.querySelectorAll('.piso-card').forEach(c => {
     c.style.display = (!estado || c.dataset.estado === estado) ? '' : 'none';
   });
+}
+
+function piso_simularEste(idx) {
+  const pisos = piso_getPisos();
+  const p = pisos[idx];
+  const cfg = piso_getConfig();
+  cfg.precio_ref = p.precio;
+  cfg.importe_pedido = '';
+  cfg.gastos_adicionales = (parseFloat(p.reforma) || 0) + 500;
+  piso_saveConfig(cfg);
+  window._pisoSimulando = { dir: p.dir, precio: p.precio, reforma: parseFloat(p.reforma) || 0 };
+
+  // Cambiar a pestaña Calculadora
+  document.querySelectorAll('.piso-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.piso-panel').forEach(panel => panel.classList.remove('active'));
+  document.querySelector('.piso-tab[data-ptab="piso-panel-calc"]')?.classList.add('active');
+  document.getElementById('piso-panel-calc')?.classList.add('active');
+
+  renderPisoCalc();
+  renderPisoAhorro();
+  document.getElementById('piso')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function piso_borrar(idx) {
