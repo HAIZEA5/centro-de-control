@@ -1,5 +1,8 @@
 // ─── MÓDULO OPOSICIONES ───
 
+// Parsea YYYY-MM-DD como fecha local (evita desfase UTC en Spain UTC+2)
+const oposLocalDate = str => str ? new Date(str + 'T00:00:00') : null;
+
 async function loadOposiciones() {
   if (typeof opos_applySeed === 'function') opos_applySeed();
 
@@ -35,7 +38,7 @@ function renderOposStats(data) {
   ).length || '0';
 
   const conFecha = data.filter(r => r.fecha_examen).sort((a,b) =>
-    new Date(a.fecha_examen) - new Date(b.fecha_examen)
+    oposLocalDate(a.fecha_examen) - oposLocalDate(b.fecha_examen)
   );
   const proxEl = document.getElementById('opos-prox-fecha');
   if (conFecha.length) {
@@ -79,12 +82,12 @@ function renderOposStats(data) {
 function renderOposCountdown(data) {
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   const proximos = data
-    .filter(r => r.fecha_examen && new Date(r.fecha_examen) >= hoy)
-    .sort((a,b) => new Date(a.fecha_examen) - new Date(b.fecha_examen));
+    .filter(r => r.fecha_examen && oposLocalDate(r.fecha_examen) >= hoy)
+    .sort((a,b) => oposLocalDate(a.fecha_examen) - oposLocalDate(b.fecha_examen));
   const cd = document.getElementById('opos-countdown');
   if (!proximos.length) { cd.style.display='none'; return; }
   const next = proximos[0];
-  const dias = Math.round((new Date(next.fecha_examen) - hoy) / 86400000);
+  const dias = Math.round((oposLocalDate(next.fecha_examen) - hoy) / 86400000);
   const mismodia = proximos.filter(r => r.fecha_examen === next.fecha_examen);
   cd.style.display = 'flex';
   const nombreEl = document.getElementById('opos-cd-nombre');
@@ -247,21 +250,30 @@ function renderFechasPanel(r) {
   const ubKey = 'opos_ubicacion_' + (r.convocatoria || '').replace(/\s+/g,'_');
   const ub = Store.get(ubKey);
 
+  // Si un hito posterior tiene fecha pasada, los hitos anteriores sin fecha se marcan como superados
+  const primerFuturoIdx = fechas.findIndex(f => {
+    const d = f.val ? oposLocalDate(f.val) : null;
+    return d && d >= hoy;
+  });
+
   return `
   <div class="det-fechas-grid">
-    ${fechas.map(f => {
-      const d = f.val ? new Date(f.val) : null;
-      const pasado = d && d < hoy;
-      const hoyEs  = d && d.getTime() === hoy.getTime();
-      const dias   = d ? Math.round((d - hoy) / 86400000) : null;
+    ${fechas.map((f, fi) => {
+      const d = f.val ? oposLocalDate(f.val) : null;
+      const pasado    = d && d < hoy;
+      const hoyEs     = d && d.getTime() === hoy.getTime();
+      const dias      = d ? Math.round((d - hoy) / 86400000) : null;
+      // Sin fecha pero inferimos que ya pasó: hay hitos posteriores con fecha futura
+      const superado  = !f.val && primerFuturoIdx > 0 && fi < primerFuturoIdx;
       return `
-      <div class="det-fecha-card ${pasado ? 'pasado' : hoyEs ? 'hoy' : f.val ? 'futuro' : 'vacio'}">
-        <span class="det-fecha-icon">${f.icon}</span>
+      <div class="det-fecha-card ${pasado || superado ? 'pasado' : hoyEs ? 'hoy' : f.val ? 'futuro' : 'vacio'}" style="${superado ? 'opacity:.5' : ''}">
+        <span class="det-fecha-icon">${pasado || superado ? '✓' : f.icon}</span>
         <div class="det-fecha-info">
           <div class="det-fecha-label">${f.label}</div>
-          <div class="det-fecha-val">${f.val ? formatFecha(f.val) : '—'}</div>
+          <div class="det-fecha-val">${f.val ? formatFecha(f.val) : superado ? 'Superado' : '—'}</div>
           ${f.extra ? `<div class="det-fecha-dias" style="color:var(--text2)">${f.extra}</div>` : ''}
-          ${d && !pasado && dias !== null ? `<div class="det-fecha-dias">${dias === 0 ? '¡Hoy!' : 'en '+dias+' días'}</div>` : ''}
+          ${d && !pasado && !hoyEs && dias !== null ? `<div class="det-fecha-dias">${'en '+dias+' día'+(dias===1?'':'s')}</div>` : ''}
+          ${hoyEs ? '<div class="det-fecha-dias" style="color:var(--green);font-weight:700">¡Hoy!</div>' : ''}
           ${pasado ? '<div class="det-fecha-dias pasado-txt">Pasado</div>' : ''}
         </div>
       </div>`;
@@ -598,7 +610,24 @@ function renderOposTemas() {
     horasPorTema[s.tema] = (horasPorTema[s.tema] || 0) + (parseFloat(s.horas) || 0);
   });
 
-  el.innerHTML = temas.map((t,i) => {
+  const avgPct = temas.length ? Math.round(temas.reduce((s,t) => s + (t.pct||0), 0) / temas.length) : 0;
+  const totalHoras = Object.values(horasPorTema).reduce((s,h) => s + h, 0);
+  const temasCompletos = temas.filter(t => t.pct >= 100).length;
+  el.innerHTML = `
+  <div style="background:var(--card2);border-radius:10px;padding:12px 14px;margin-bottom:12px;border:1px solid var(--border)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:.85rem;font-weight:600;color:var(--text2)">Progreso global</span>
+      <span style="font-size:1.1rem;font-weight:700;color:${avgPct>=80?'var(--green)':avgPct>=40?'var(--accent)':'var(--text1)'}">${avgPct}%</span>
+    </div>
+    <div class="progress-bar" style="height:8px">
+      <div class="progress-fill" style="width:${avgPct}%;background:${avgPct>=80?'var(--green)':avgPct>=40?'var(--accent)':'var(--red)'}"></div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:8px;font-size:.75rem;color:var(--text3)">
+      <span>📚 ${temasCompletos}/${temas.length} temas al 100%</span>
+      ${totalHoras > 0 ? `<span>⏱ ${totalHoras}h totales</span>` : ''}
+    </div>
+  </div>` +
+  temas.map((t,i) => {
     const hAcum = horasPorTema[t.nombre] || 0;
     return `
     <div class="tema-row">
