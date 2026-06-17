@@ -1,5 +1,6 @@
 // ─── APLICACIÓN PRINCIPAL ───
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  if (typeof supaInit === 'function') await supaInit();
   setupAuth();
   if (isAuthenticated()) initApp();
 });
