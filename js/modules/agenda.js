@@ -396,8 +396,33 @@ async function loadAgenda() {
   const eventos = rowsToObjects(evRows);
   const ul2 = document.getElementById('age-eventos');
 
-  if (eventos.length) {
-    ul2.innerHTML = eventos.map(e => `<li>${e.nombre} <span style="color:var(--text2);margin-left:auto">${e.fecha}</span></li>`).join('');
+  // Calcular días hasta una fecha YYYY-MM-DD
+  const daysUntilDate = fecha => {
+    if (!fecha) return 999;
+    const hoy  = new Date(); hoy.setHours(0,0,0,0);
+    const dest = new Date(fecha + 'T00:00:00');
+    return Math.round((dest - hoy) / 86400000);
+  };
+  const tagFecha = (fecha, color = 'var(--text2)') => {
+    const d = daysUntilDate(fecha);
+    const txt = d < 0 ? 'Pasado' : d === 0 ? 'HOY' : d === 1 ? 'Mañana' : `en ${d}d`;
+    const c   = d < 0 ? 'var(--text3)' : d === 0 ? 'var(--green)' : d <= 7 ? 'var(--yellow)' : color;
+    return `<span style="color:${c};margin-left:auto;font-size:.78rem;font-weight:${d<=1?700:400}">${txt}</span>`;
+  };
+
+  // Preferir struct sobre sheets/local para mayor control
+  const struct = Store.get('age_eventos_struct', [])
+    .filter(e => e.cat !== 'personal' || !e.notas?.includes('Guardia'))
+    .sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+
+  if (struct.length) {
+    const futuros = struct.filter(e => daysUntilDate(e.fecha) >= -30);
+    const lista   = futuros.length ? futuros : struct.slice(-5);
+    ul2.innerHTML = lista.map(e =>
+      `<li style="opacity:${daysUntilDate(e.fecha)<0?.5:1}">${e.nombre}${e.hora ? ' · '+e.hora : ''} ${tagFecha(e.fecha)}</li>`
+    ).join('') || '<li style="color:var(--text2)">Sin eventos próximos</li>';
+  } else if (eventos.length) {
+    ul2.innerHTML = eventos.map(e => `<li>${e.nombre} ${tagFecha(e.fecha)}</li>`).join('');
   } else if (local.eventos) {
     const lineas = local.eventos.split('\n').filter(l => l.trim());
     ul2.innerHTML = lineas.map(l => `<li>${l.trim()}</li>`).join('') || '<li style="color:var(--text2)">Sin eventos</li>';
@@ -411,7 +436,7 @@ async function loadAgenda() {
   const ul3 = document.getElementById('age-vencimientos');
 
   if (venc.length) {
-    ul3.innerHTML = venc.map(v => `<li>${v.item} <span style="color:var(--yellow);margin-left:auto">${v.fecha}</span></li>`).join('');
+    ul3.innerHTML = venc.map(v => `<li>${v.item} ${tagFecha(v.fecha, 'var(--yellow)')}</li>`).join('');
   } else if (local.vencimientos) {
     const lineas = local.vencimientos.split('\n').filter(l => l.trim());
     ul3.innerHTML = lineas.map(l => `<li style="color:var(--yellow)">${l.trim()}</li>`).join('') || '<li style="color:var(--text2)">Sin vencimientos</li>';
@@ -426,10 +451,10 @@ function daysUntil(ddmm) {
   if (!ddmm) return 999;
   const [d, m] = ddmm.split('/').map(Number);
   if (!d || !m) return 999;
-  const now  = new Date();
+  const now  = new Date(); now.setHours(0, 0, 0, 0); // comparar siempre a medianoche
   let next   = new Date(now.getFullYear(), m - 1, d);
   if (next < now) next.setFullYear(now.getFullYear() + 1);
-  return Math.ceil((next - now) / 86400000);
+  return Math.round((next - now) / 86400000);
 }
 
 function sortByProximity(arr, field) {
