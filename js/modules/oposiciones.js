@@ -136,14 +136,87 @@ function renderOposCountdown(data) {
 }
 
 /* ── Tabla principal ── */
+// Filtros activos (persisten mientras la sección está abierta)
+window._oposFiltros = window._oposFiltros || { texto: '', fase: '', perfil: '' };
+
 function renderOposTable(data) {
+  window._oposData = data;
+
+  // ── Barra de filtros (se inyecta una sola vez) ──
+  const wrap = document.getElementById('opos-table')?.closest('.card');
+  if (wrap && !document.getElementById('opos-filtros-bar')) {
+    const fases   = [...new Set(data.map(r => r.fase).filter(Boolean))].sort();
+    const perfiles = [...new Set(data.map(r => r.perfil).filter(Boolean))].sort();
+    const bar = document.createElement('div');
+    bar.id = 'opos-filtros-bar';
+    bar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center';
+    bar.innerHTML = `
+      <input id="opos-f-texto" type="text" placeholder="🔍 Buscar convocatoria…"
+        style="flex:1;min-width:160px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:.83rem;font-family:inherit"
+        oninput="opos_aplicarFiltros()" value="${window._oposFiltros.texto}">
+      <select id="opos-f-fase" onchange="opos_aplicarFiltros()"
+        style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:.83rem;font-family:inherit">
+        <option value="">Todas las fases</option>
+        ${fases.map(f => `<option value="${f}" ${window._oposFiltros.fase===f?'selected':''}>${f}</option>`).join('')}
+      </select>
+      <select id="opos-f-perfil" onchange="opos_aplicarFiltros()"
+        style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:.83rem;font-family:inherit">
+        <option value="">Todos los perfiles</option>
+        ${perfiles.map(p => `<option value="${p}" ${window._oposFiltros.perfil===p?'selected':''}>${p}</option>`).join('')}
+      </select>
+      <span id="opos-f-count" style="font-size:.78rem;color:var(--text3);white-space:nowrap"></span>
+      <button onclick="opos_limpiarFiltros()"
+        style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;font-size:.78rem;font-family:inherit">
+        ✕ Limpiar
+      </button>`;
+    wrap.querySelector('h3').after(bar);
+  }
+
+  opos_renderFiltered();
+}
+
+function opos_aplicarFiltros() {
+  window._oposFiltros.texto  = document.getElementById('opos-f-texto')?.value.trim().toLowerCase() || '';
+  window._oposFiltros.fase   = document.getElementById('opos-f-fase')?.value || '';
+  window._oposFiltros.perfil = document.getElementById('opos-f-perfil')?.value || '';
+  opos_renderFiltered();
+}
+
+function opos_limpiarFiltros() {
+  window._oposFiltros = { texto: '', fase: '', perfil: '' };
+  const t = document.getElementById('opos-f-texto');   if (t) t.value = '';
+  const f = document.getElementById('opos-f-fase');    if (f) f.value = '';
+  const p = document.getElementById('opos-f-perfil');  if (p) p.value = '';
+  opos_renderFiltered();
+}
+
+function opos_renderFiltered() {
+  const all   = window._oposData || [];
+  const { texto, fase, perfil } = window._oposFiltros;
+  const filtered = all.filter(r => {
+    if (texto  && !(r.convocatoria || '').toLowerCase().includes(texto)) return false;
+    if (fase   && r.fase   !== fase)   return false;
+    if (perfil && r.perfil !== perfil) return false;
+    return true;
+  });
+
+  const count = document.getElementById('opos-f-count');
+  if (count) count.textContent = filtered.length < all.length
+    ? `${filtered.length} de ${all.length}`
+    : `${all.length} convocatorias`;
+
   const tbody = document.getElementById('opos-tbody');
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Sin datos — añade convocatorias en ✏️ Actualizar</td></tr>';
+  if (!tbody) return;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Sin resultados para ese filtro.</td></tr>';
     return;
   }
-  tbody.innerHTML = data.map((r, i) => `
-    <tr class="opos-row" onclick="toggleOposDetalle(${i}, this)" data-idx="${i}" style="cursor:pointer">
+
+  tbody.innerHTML = filtered.map((r, i) => {
+    const realIdx = all.indexOf(r);
+    return `
+    <tr class="opos-row" onclick="toggleOposDetalle(${realIdx}, this)" data-idx="${realIdx}" style="cursor:pointer">
       <td data-label="Perfil">${badgePerfil(r.perfil)}</td>
       <td data-label="Convocatoria"><strong>${r.convocatoria || '—'}</strong></td>
       <td data-label="Grupo">${r.grupo || '—'}</td>
@@ -154,13 +227,10 @@ function renderOposTable(data) {
       <td data-label="Méritos">${calcMeritosTotal(r) > 0 ? `<span style="color:var(--accent2);font-weight:700">${calcMeritosTotal(r).toFixed(2)} pts</span>` : '—'}</td>
       <td data-label="Fase">${r.fase ? `<span class="chip">${r.fase}</span>` : '—'}</td>
     </tr>
-    <tr class="opos-detalle-row hidden" id="opos-det-${i}">
-      <td colspan="9" style="padding:0">${renderDetalleHTML(r, i)}</td>
-    </tr>
-  `).join('');
-
-  // Guardar datos para referencia en detalle
-  window._oposData = data;
+    <tr class="opos-detalle-row hidden" id="opos-det-${realIdx}">
+      <td colspan="9" style="padding:0">${renderDetalleHTML(r, realIdx)}</td>
+    </tr>`;
+  }).join('');
 }
 
 /* ── Detalle expandible ── */
