@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a1b2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="CdC" />
+  <title>Centro de Control</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">⚡</div>
+      <span class="logo-text">Centro de Control</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#dashboard"   class="nav-link active" data-section="dashboard">📊 Dashboard</a></li>
+      <li><a href="#finanzas"    class="nav-link" data-section="finanzas">💰 Finanzas</a></li>
+      <li><a href="#piso"        class="nav-link" data-section="piso">🏡 Futuro Piso</a></li>
+      <li><a href="#carnet"      class="nav-link" data-section="carnet">🚗 Carnet</a></li>
+      <li><a href="#oposiciones" class="nav-link" data-section="oposiciones">📚 Oposiciones</a></li>
+      <li><a href="#agenda"      class="nav-link" data-section="agenda">📅 Agenda</a></li>
+      <li><a href="#actualizar"  class="nav-link" data-section="actualizar">✏️ Actualizar</a></li>
+    </ul>
+    <div class="sidebar-footer"><span class="version">v1.0</span></div>
+  </nav>
+
+  <main class="main-content">
+    <button class="menu-toggle" id="menuToggle">☰</button>
+
+    <!-- LOGIN -->
+    <div id="loginScreen" class="login-screen">
+      <div class="login-card">
+        <div class="login-icon">⚡</div>
+        <h1>Centro de Control</h1>
+        <p>Acceso privado</p>
+        <input type="password" id="passwordInput" placeholder="Contraseña" class="password-input" />
+        <button class="login-btn" id="loginBtn">Entrar</button>
+        <span class="login-error" id="loginError"></span>
+      </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
+
+      <!-- DASHBOARD -->
+      <section id="dashboard" class="section active">
+        <div class="dash-header">
+          <div>
+            <h2 class="section-title" id="dash-saludo" style="margin-bottom:4px">Hola 👋</h2>
+            <p id="dashQuote" style="font-size:.82rem;color:var(--text3);font-style:italic;margin:0"></p>
+          </div>
+          <div class="dash-fecha" id="dash-fecha-hoy"></div>
+        </div>
+
+        <!-- Cards de sección -->
+        <div class="dash-cards-grid">
+
+          <div class="card dash-section-card">
+            <div class="dash-card-title">💰 Finanzas</div>
+            <div id="dash-fin-content" class="dash-card-body"></div>
+            <a href="#finanzas" class="dash-card-link nav-link" data-section="finanzas">Ver finanzas →</a>
+          </div>
+
+          <div class="card dash-section-card">
+            <div class="dash-card-title">🚗 Carnet</div>
+            <div id="dash-car-content" class="dash-card-body"></div>
+            <a href="#carnet" class="dash-card-link nav-link" data-section="carnet">Ver carnet →</a>
+          </div>
+
+          <div class="card dash-section-card">
+            <div class="dash-card-title">📚 Oposiciones</div>
+            <div id="dash-opos-content" class="dash-card-body"></div>
+            <a href="#oposiciones" class="dash-card-link nav-link" data-section="oposiciones">Ver oposiciones →</a>
+          </div>
+
+          <div class="card dash-section-card">
+            <div class="dash-card-title">📅 Agenda</div>
+            <div id="dash-casa-content" class="dash-card-body"></div>
+            <a href="#agenda" class="dash-card-link nav-link" data-section="agenda">Ver agenda →</a>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- FINANZAS -->
+      <section id="finanzas" class="section">
+        <h2 class="section-title">Finanzas</h2>
+
+        <!-- Stats patrimonio global -->
+        <div class="fin-patrimonio-row">
+          <div class="card fin-patrimonio-total">
+            <div class="fin-year-label">Patrimonio total</div>
+            <div class="fin-patrimonio-num" id="fin-total-patrimonio">—</div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:5px">
+              Neto (sin deuda): <span id="fin-neto-patrimonio" style="color:var(--green);font-weight:700">—</span>
+            </div>
+          </div>
+          <div class="fin-cuentas-grid">
+            <div class="card fin-cuenta-card" style="border-left:3px solid #60a5fa">
+              <div class="fin-cuenta-label">Kutxabank personal</div>
+              <div class="fin-cuenta-num blue" id="fin-ktx-saldo">—</div>
+            </div>
+            <div class="card fin-cuenta-card" style="border-left:3px solid #a78bfa">
+              <div class="fin-cuenta-label">Revolut personal</div>
+              <div class="fin-cuenta-num accent2" id="fin-rvp-saldo">—</div>
+            </div>
+            <div class="card fin-cuenta-card" style="border-left:3px solid #f472b6">
+              <div class="fin-cuenta-label">Revolut conjunta</div>
+              <div class="fin-cuenta-num" style="color:#f472b6" id="fin-rvc-saldo">—</div>
+            </div>
+            <div class="card fin-cuenta-card" style="border-left:3px solid #34d399">
+              <div class="fin-cuenta-label">CTV – Vivienda</div>
+              <div class="fin-cuenta-num green" id="fin-ctv-saldo">—</div>
+              <div class="progress-wrap" style="margin-top:6px">
+                <div class="progress-bar"><div class="progress-fill" id="fin-objetivo-bar" style="width:0%"></div></div>
+                <span class="progress-pct" id="fin-objetivo-pct">0%</span>
+              </div>
+              <div id="fin-objetivo-meta" style="font-size:.6rem;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.04em">META ENTRADA 20% + GASTOS</div>
+            </div>
+            <div class="card fin-cuenta-card" style="border-left:3px solid #fbbf24">
+              <div class="fin-cuenta-label">Baskepensiones</div>
+              <div class="fin-cuenta-num" style="color:#fbbf24" id="fin-bp-saldo">—</div>
+            </div>
+            <div class="card fin-cuenta-card" style="border-left:3px solid var(--red)">
+              <div class="fin-cuenta-label">Deuda iPhone</div>
+              <div class="fin-cuenta-num red" id="fin-deuda-restante">—</div>
+              <div style="font-size:.7rem;color:var(--text3)" id="fin-deuda-cuotas">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="fin-tabs mt">
+          <button class="fin-tab active" data-fintab="fin-panel-resumen">Resumen</button>
+          <button class="fin-tab" data-fintab="fin-panel-txns">Transacciones</button>
+          <button class="fin-tab" data-fintab="fin-panel-sinking">Ahorro</button>
+          <button class="fin-tab" data-fintab="fin-panel-deudas">Deudas</button>
+          <button class="fin-tab" data-fintab="fin-panel-presupuesto">Presupuesto & Gastos</button>
+          <button class="fin-tab" data-fintab="fin-panel-actualizar">Actualizar</button>
+        </div>
+
+        <!-- Panel: Resumen -->
+        <div id="fin-panel-resumen" class="fin-panel active">
+          <div id="fin-resumen-content" class="mt"></div>
+        </div>
+
+        <!-- Panel: Transacciones -->
+        <div id="fin-panel-txns" class="fin-panel">
+          <div class="card mt fin-filtros-bar">
+            <select id="fin-mes-filter" class="upd-input" style="width:auto">
+              <option value="">Todos los meses</option>
+              <option value="2026-01">Enero 2026</option>
+              <option value="2026-02">Febrero 2026</option>
+              <option value="2026-03">Marzo 2026</option>
+              <option value="2026-04">Abril 2026</option>
+              <option value="2026-05">Mayo 2026</option>
+              <option value="2026-06">Junio 2026</option>
+            </select>
+            <select id="fin-cat-filter" class="upd-input" style="width:auto">
+              <option value="">Todas las categorías</option>
+              <option value="nomina">💼 Nómina</option>
+              <option value="alimentacion">🛒 Alimentación</option>
+              <option value="hosteleria">☕ Hostelería</option>
+              <option value="ropa">👗 Ropa</option>
+              <option value="suscripciones">📱 Suscripciones</option>
+              <option value="ocio">🎭 Ocio</option>
+              <option value="transporte">🚆 Transporte</option>
+              <option value="oposiciones">📚 Oposiciones</option>
+              <option value="belleza">💄 Belleza</option>
+              <option value="salud">💊 Salud</option>
+              <option value="deuda">💳 Deuda</option>
+              <option value="ahorro">🐷 Ahorro</option>
+              <option value="hogar">🏠 Hogar</option>
+              <option value="regalo">🎁 Regalos</option>
+              <option value="formacion">🎓 Formación</option>
+              <option value="compras">🛍️ Compras</option>
+              <option value="interna">🔄 Interna</option>
+              <option value="otros">• Otros</option>
+            </select>
+            <select id="fin-cta-filter" class="upd-input" style="width:auto">
+              <option value="">Todas las cuentas</option>
+              <option value="KTX">Kutxabank</option>
+              <option value="RVP">Revolut Personal</option>
+              <option value="RVC">Revolut Conjunta</option>
+            </select>
+            <input type="text" id="fin-search" class="upd-input" placeholder="🔍 Buscar…" style="min-width:140px" />
+            <label style="display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text2);cursor:pointer;white-space:nowrap">
+              <input type="checkbox" id="fin-hide-internal" checked style="accent-color:var(--accent)"> Ocultar internas
+            </label>
+          </div>
+          <div class="card mt" id="fin-txns-list"></div>
+          <!-- Añadir transacción -->
+          <div class="card mt">
+            <h3 style="margin-bottom:12px">➕ Añadir movimiento</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px">
+              <input type="date" id="fin-new-fecha" class="upd-input" />
+              <input type="number" step="0.01" id="fin-new-importe" class="upd-input" placeholder="Importe (+ ingreso / - gasto)" />
+              <input type="text" id="fin-new-sub" class="upd-input" placeholder="Descripción" />
+              <select id="fin-new-cat" class="upd-input">
+                <option value="">Categoría</option>
+                <option value="nomina">💼 Nómina</option>
+                <option value="alimentacion">🛒 Alimentación</option>
+                <option value="hosteleria">☕ Hostelería</option>
+                <option value="ropa">👗 Ropa</option>
+                <option value="suscripciones">📱 Suscripciones</option>
+                <option value="ocio">🎭 Ocio</option>
+                <option value="transporte">🚆 Transporte</option>
+                <option value="oposiciones">📚 Oposiciones</option>
+                <option value="belleza">💄 Belleza</option>
+                <option value="salud">💊 Salud</option>
+                <option value="deuda">💳 Deuda</option>
+                <option value="ahorro">🐷 Ahorro</option>
+                <option value="hogar">🏠 Hogar</option>
+                <option value="regalo">🎁 Regalos</option>
+                <option value="formacion">🎓 Formación</option>
+                <option value="compras">🛍️ Compras</option>
+                <option value="interna">🔄 Interna</option>
+                <option value="otros">• Otros</option>
+              </select>
+              <select id="fin-new-cuenta" class="upd-input">
+                <option value="">Cuenta</option>
+                <option value="KTX">Kutxabank</option>
+                <option value="RVP">Revolut Personal</option>
+                <option value="RVC">Revolut Conjunta</option>
+                <option value="CTV">CTV Vivienda</option>
+              </select>
+              <input type="text" id="fin-new-ref" class="upd-input" placeholder="Nota (opcional)" />
+              <button class="upd-btn" id="fin-add-txn" style="grid-column:span 1">Añadir</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel: Ahorro / Sinking Funds -->
+        <div id="fin-panel-sinking" class="fin-panel">
+          <div id="fin-sinking-content" class="mt"></div>
+        </div>
+
+        <!-- Panel: Deudas -->
+        <div id="fin-panel-deudas" class="fin-panel">
+          <div id="fin-deudas-content" class="mt"></div>
+        </div>
+
+        <!-- Panel: Presupuesto & Gastos Fijos (merged) -->
+        <div id="fin-panel-presupuesto" class="fin-panel">
+          <div id="fin-presupuesto-content" class="mt"></div>
+        </div>
+
+        <!-- Panel: Actualizar saldos -->
+        <div id="fin-panel-actualizar" class="fin-panel">
+          <div id="fin-actualizar-content" class="mt"></div>
+        </div>
+      </section>
+
+      <!-- CARNET -->
+      <section id="carnet" class="section">
+        <h2 class="section-title">Carnet de conducir</h2>
+
+        <!-- Stats -->
+        <div class="cards-row">
+          <div class="card"><h3>Tests hechos</h3><div class="big-number" id="car-tests">—</div></div>
+          <div class="card"><h3>Rendimiento</h3><div class="big-number" id="car-fallos">—</div></div>
+          <div class="card"><h3>Racha reciente</h3><div class="big-number" id="car-practicas" style="font-size:1.4rem">—</div></div>
+          <div class="card"><h3>Examen teórico</h3><div class="big-number" id="car-teorico-estado">—</div></div>
+          <div class="card"><h3>Próxima convocatoria</h3><div class="big-number" id="car-proxima" style="font-size:1rem">—</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="car-tabs mt">
+          <button class="car-tab active" data-cartab="car-panel-tests">Tests teóricos</button>
+          <button class="car-tab" data-cartab="car-panel-examen">Examen teórico</button>
+          <button class="car-tab" data-cartab="car-panel-practicas" style="display:none">Prácticas</button>
+        </div>
+
+        <!-- Panel Tests -->
+        <div class="car-panel active" id="car-panel-tests">
+          <div class="card mt">
+            <h3>Evolución de fallos</h3>
+            <canvas id="car-chart" height="100"></canvas>
+          </div>
+          <div class="card mt">
+            <h3>Historial de tests</h3>
+            <div id="car-tests-lista"><p style="color:var(--text3);font-size:.87rem">Sin tests registrados. Añade desde ✏️ Actualizar → Carnet.</p></div>
+          </div>
+        </div>
+
+        <!-- Panel Examen teórico -->
+        <div class="car-panel" id="car-panel-examen">
+          <div class="card mt">
+            <h3>Intentos de examen teórico</h3>
+            <div id="car-examenes-lista"><p style="color:var(--text3);font-size:.87rem">Sin intentos registrados. Añade desde ✏️ Actualizar → Carnet.</p></div>
+          </div>
+        </div>
+
+        <!-- Panel Prácticas -->
+        <div class="car-panel" id="car-panel-practicas">
+          <div class="card mt">
+            <h3>Sesiones de prácticas</h3>
+            <div id="car-practicas-lista"><p style="color:var(--text3);font-size:.87rem">Sin prácticas registradas. Añade desde ✏️ Actualizar → Carnet.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- OPOSICIONES -->
+      <section id="oposiciones" class="section">
+        <h2 class="section-title">Oposiciones</h2>
+
+        <div class="opos-stats-grid" id="opos-stats">
+          <div class="opos-stat opos-stat--total"><div class="opos-stat-value" id="opos-n-total">—</div><div class="opos-stat-label">Total</div></div>
+          <div class="opos-stat opos-stat--activa"><div class="opos-stat-value" id="opos-n-activas">—</div><div class="opos-stat-label">Apuntada / activa</div></div>
+          <div class="opos-stat opos-stat--seguimiento"><div class="opos-stat-value" id="opos-n-seguimiento">—</div><div class="opos-stat-label">En seguimiento</div></div>
+          <div class="opos-stat opos-stat--bolsa"><div class="opos-stat-value" id="opos-n-bolsa">—</div><div class="opos-stat-label">En bolsa</div></div>
+          <div class="opos-stat opos-stat--prox" style="grid-column:span 2"><div class="opos-stat-value" id="opos-prox-fecha" style="font-size:1rem;line-height:1.3">—</div><div class="opos-stat-label">Próximo examen</div></div>
+        </div>
+
+        <div class="opos-countdown" id="opos-countdown" style="display:none">
+          <div class="opos-countdown-info">
+            <div class="opos-countdown-label">PRÓXIMO EXAMEN</div>
+            <div class="opos-countdown-name" id="opos-cd-nombre">—</div>
+            <div id="opos-cd-hora" style="margin-top:4px;font-size:.82rem;color:var(--text2);min-height:1em"></div>
+            <div id="opos-cd-hito" style="margin-top:6px;font-size:.78rem;color:var(--yellow);min-height:1em"></div>
+          </div>
+          <div class="opos-countdown-num">
+            <div class="opos-countdown-days" id="opos-cd-dias">—</div>
+            <div class="opos-countdown-sub">días restantes</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Convocatorias <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:.78rem">— haz clic en una fila para ver el detalle</span></h3>
+          <div class="opos-table-wrap">
+            <table class="opos-table" id="opos-table">
+              <thead>
+                <tr>
+                  <th>Perfil</th><th>Convocatoria</th><th>Grupo</th><th>Estado</th>
+                  <th>Examen</th><th>Tasa</th><th>Bolsa</th><th>Méritos</th><th>Fase</th>
+                </tr>
+              </thead>
+              <tbody id="opos-tbody">
+                <tr><td colspan="9" class="empty-row">Cargando…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- REVISIONES DE ESTADO — oculto: usa la pestaña Historial de cada convocatoria -->
+        <div class="card mt" style="display:none">
+          <h3>Revisiones de estado</h3>
+          <div class="revision-form">
+            <select id="rev-opos-sel"><option value="">— Oposición —</option></select>
+            <select id="rev-estado-sel">
+              <option value="">— Estado encontrado —</option>
+              <option value="Sin novedades">Sin novedades</option>
+              <option value="En seguimiento">En seguimiento</option>
+              <option value="Prevista">Prevista</option>
+              <option value="Abierta">Abierta — convocatoria publicada</option>
+              <option value="Plazo abierto">Plazo de inscripción abierto</option>
+              <option value="Plazo cerrado">Plazo de inscripción cerrado</option>
+              <option value="Lista provisional">Lista provisional publicada</option>
+              <option value="Alegaciones">Período de alegaciones</option>
+              <option value="Lista definitiva">Lista definitiva publicada</option>
+              <option value="Fecha examen">Fecha de examen publicada</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Cerrada">Cerrada</option>
+            </select>
+            <input id="rev-nota" type="text" placeholder="Nota (opcional) — ej: sigue sin fecha, plazo hasta el 30…" />
+            <button class="btn-primary" id="rev-guardar">Registrar</button>
+          </div>
+          <div class="revision-log" id="rev-log">
+            <p style="color:var(--text3);font-size:.87rem">Sin revisiones registradas aún.</p>
+          </div>
+        </div>
+
+        <div class="card mt">
+          <h3>Progreso de temas</h3>
+          <div class="opos-temas-grid" id="opos-temas"></div>
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+            <input id="opos-tema-input" type="text" placeholder="Nombre del tema…" style="flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:9px 12px;font-family:inherit;outline:none;" />
+            <button class="btn-primary" id="opos-tema-add">+ Añadir tema</button>
+          </div>
+        </div>
+
+        <div class="card mt">
+          <h3>Registro de estudio</h3>
+          <div class="opos-notas-form">
+            <select id="opos-sesion-tema"><option value="">— Tema —</option></select>
+            <input id="opos-sesion-horas" type="number" min="0" max="24" step="0.5" placeholder="Horas" style="flex:0.5;min-width:80px;" />
+            <input id="opos-sesion-nota" type="text" placeholder="Nota breve (opcional)" />
+            <button class="btn-primary" id="opos-sesion-add">Registrar</button>
+          </div>
+          <ul class="list" id="opos-sesiones"></ul>
+        </div>
+      </section>
+
+      <!-- FUTURO PISO -->
+      <section id="piso" class="section">
+        <h2 class="section-title">Futuro Piso</h2>
+
+        <!-- Barra de ahorro siempre visible -->
+        <div class="card mb" id="piso-ahorro-bar"></div>
+
+        <!-- Tabs -->
+        <div class="fin-tabs">
+          <button class="fin-tab piso-tab active" data-ptab="piso-panel-calc">Calculadora</button>
+          <button class="fin-tab piso-tab" data-ptab="piso-panel-pisos">Pisos visitados</button>
+          <button class="fin-tab piso-tab" data-ptab="piso-panel-bancos">Hipotecas</button>
+        </div>
+
+        <div class="fin-panel piso-panel active" id="piso-panel-calc">
+          <div id="piso-calc-content" class="mt"></div>
+        </div>
+        <div class="fin-panel piso-panel" id="piso-panel-pisos">
+          <div id="piso-pisos-content" class="mt"></div>
+        </div>
+        <div class="fin-panel piso-panel" id="piso-panel-bancos">
+          <div id="piso-bancos-content" class="mt"></div>
+        </div>
+      </section>
+
+
+      <!-- AGENDA -->
+      <section id="agenda" class="section">
+        <h2 class="section-title">Agenda</h2>
+
+        <!-- Calendario mensual -->
+        <div class="card mt" style="margin-bottom:16px">
+          <h3>Calendario</h3>
+          <div id="age-calendario" style="margin-top:12px"></div>
+        </div>
+
+        <!-- Panel: eventos del día clicado -->
+        <div class="card mt" id="age-dia-card" style="margin-bottom:16px">
+          <h3>Eventos de hoy</h3>
+          <div id="age-dia-eventos" style="margin-top:8px"></div>
+        </div>
+
+        <!-- Listas rápidas -->
+        <div class="cards-row">
+          <div class="card"><h3>Próximos cumpleaños</h3><ul class="list" id="age-cumples"></ul></div>
+          <div class="card"><h3>Eventos y vacaciones</h3><ul class="list" id="age-eventos"></ul></div>
+          <div class="card"><h3>Vencimientos importantes</h3><ul class="list" id="age-vencimientos"></ul></div>
+        </div>
+        <!-- Gastos fijos eliminados de Agenda (están en Finanzas → Presupuesto & Gastos) -->
+        <ul id="age-gastos-fijos" style="display:none"></ul>
+      </section>
+
+      <!-- ACTUALIZAR -->
+      <section id="actualizar" class="section">
+        <h2 class="section-title">Actualizar datos</h2>
+
+        <div class="update-tabs">
+          <button class="update-tab active" data-tab="upd-oposiciones">Oposiciones</button>
+          <button class="update-tab" data-tab="upd-finanzas">Finanzas</button>
+          <button class="update-tab" data-tab="upd-carnet">Carnet</button>
+          <button class="update-tab" data-tab="upd-agenda">Agenda</button>
+          <button class="update-tab" data-tab="upd-excel">Excel</button>
+        </div>
+
+        <!-- ═══ PANEL OPOSICIONES ═══ -->
+        <div class="update-panel active" id="upd-oposiciones">
+
+          <!-- Sub-tabs del formulario -->
+          <div class="opos-form-tabs">
+            <button class="opos-form-tab active" data-ftab="ft-basico">Básico</button>
+            <button class="opos-form-tab" data-ftab="ft-fechas">Fechas</button>
+            <button class="opos-form-tab" data-ftab="ft-docs">Docs</button>
+            <button class="opos-form-tab" data-ftab="ft-meritos">Méritos</button>
+            <button class="opos-form-tab" data-ftab="ft-bolsa">Bolsa</button>
+            <button class="opos-form-tab" data-ftab="ft-enlaces">Enlaces</button>
+          </div>
+
+          <div class="card" style="border-top:2px solid var(--accent)">
+            <h3 id="upd-opos-form-title">Nueva convocatoria</h3>
+
+            <!-- TAB: Básico -->
+            <div class="opos-form-panel active" id="ft-basico">
+              <div class="update-form">
+                <div class="form-group">
+                  <label>Perfil</label>
+                  <select id="upd-opos-perfil">
+                    <option value="Yo">Yo</option>
+                    <option value="Kerman">Kerman</option>
+                    <option value="Ambos">Ambos</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Convocatoria *</label>
+                  <input type="text" id="upd-opos-conv" placeholder="Ej: Auxiliar Administrativo CAC" />
+                </div>
+                <div class="form-group">
+                  <label>Grupo / Categoría</label>
+                  <input type="text" id="upd-opos-grupo" placeholder="Ej: C1 / Grupo III" />
+                </div>
+                <div class="form-group">
+                  <label>Estado</label>
+                  <select id="upd-opos-estado">
+                    <option value="En seguimiento">👁 En seguimiento (sin apuntar)</option>
+                    <option value="Prevista">📆 Prevista (próxima convocatoria)</option>
+                    <option value="Pendiente">⏳ Pendiente</option>
+                    <option value="Abierta">✅ Abierta — apuntada</option>
+                    <option value="En proceso">🔄 En proceso</option>
+                    <option value="Cerrada">❌ Cerrada</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Tasa pagada</label>
+                  <select id="upd-opos-tasa">
+                    <option value="">—</option>
+                    <option value="SI">Sí</option>
+                    <option value="NO">No</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Fase</label>
+                  <select id="upd-opos-fase">
+                    <option value="">—</option>
+                    <option value="Oposición">Oposición</option>
+                    <option value="Concurso">Concurso</option>
+                    <option value="Concurso-oposición">Concurso-oposición</option>
+                    <option value="Méritos">Méritos</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB: Fechas -->
+            <div class="opos-form-panel" id="ft-fechas">
+              <div class="update-form">
+                <div class="form-group">
+                  <label>📅 Apertura inscripción</label>
+                  <input type="date" id="upd-opos-fecha-apertura" />
+                </div>
+                <div class="form-group">
+                  <label>🔴 Fin inscripción</label>
+                  <input type="date" id="upd-opos-fecha-fin" />
+                </div>
+                <div class="form-group">
+                  <label>📄 Lista provisional</label>
+                  <input type="date" id="upd-opos-fecha-lprov" />
+                </div>
+                <div class="form-group">
+                  <label>✍️ Alegaciones</label>
+                  <input type="date" id="upd-opos-fecha-aleg" />
+                </div>
+                <div class="form-group">
+                  <label>✅ Lista definitiva</label>
+                  <input type="date" id="upd-opos-fecha-ldef" />
+                </div>
+                <div class="form-group">
+                  <label>📝 Fecha examen</label>
+                  <input type="date" id="upd-opos-fecha-examen" />
+                </div>
+                <div class="form-group">
+                  <label>🕐 Hora examen</label>
+                  <input type="time" id="upd-opos-hora-examen" />
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB: Docs -->
+            <div class="opos-form-panel" id="ft-docs">
+              <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Marca el estado de cada documento requerido.</p>
+              <!-- Docs principales en grid compacto 3 columnas -->
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
+                <div class="form-group" style="margin:0">
+                  <label style="font-size:.72rem">Solicitud / Instancia</label>
+                  <select id="upd-opos-doc-solicitud" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+                <div class="form-group" style="margin:0">
+                  <label style="font-size:.72rem">Titulación requerida</label>
+                  <select id="upd-opos-doc-titulacion" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+                <div class="form-group" style="margin:0">
+                  <label style="font-size:.72rem">Acreditación euskera</label>
+                  <select id="upd-opos-doc-euskera" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+                <div class="form-group" style="margin:0">
+                  <label style="font-size:.72rem">DNI / NIF</label>
+                  <select id="upd-opos-doc-dni" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+                <div class="form-group" style="margin:0">
+                  <label style="font-size:.72rem">Currículum vitae</label>
+                  <select id="upd-opos-doc-cv" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+                <div class="form-group" style="margin:0">
+                  <label style="font-size:.72rem">Hoja de méritos</label>
+                  <select id="upd-opos-doc-meritos" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+                <div class="form-group" style="margin:0">
+                  <label style="font-size:.72rem">Cert. discapacidad</label>
+                  <select id="upd-opos-doc-discap" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+              </div>
+              <!-- Docs extra: colapsados por defecto -->
+              <div style="margin-top:14px">
+                <button type="button" onclick="opos_toggleDocsExtra()" id="opos-docs-extra-btn"
+                  style="background:none;border:1px dashed var(--border);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.78rem;color:var(--text3)">
+                  ＋ Añadir documento extra
+                </button>
+                <div id="opos-docs-extra" style="display:none;margin-top:12px;display:none">
+                  <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px">
+                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Nombre doc. extra 1</label><input type="text" id="upd-opos-doc-e1-nombre" placeholder="Ej: Empadronamiento" /></div>
+                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Estado</label><select id="upd-opos-doc-e1" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px">
+                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Nombre doc. extra 2</label><input type="text" id="upd-opos-doc-e2-nombre" placeholder="Ej: Vida laboral" /></div>
+                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Estado</label><select id="upd-opos-doc-e2" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end">
+                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Nombre doc. extra 3</label><input type="text" id="upd-opos-doc-e3-nombre" placeholder="Ej: Contrato de trabajo" /></div>
+                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Estado</label><select id="upd-opos-doc-e3" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB: Méritos -->
+            <div class="opos-form-panel" id="ft-meritos">
+              <p style="font-size:.8rem;color:var(--text3);margin-bottom:16px">Rellena los datos para que se calcule automáticamente la puntuación.</p>
+              <!-- Live score preview -->
+              <div id="opos-meritos-live" style="display:flex;gap:16px;align-items:center;background:var(--surface2);border-radius:10px;padding:10px 16px;margin-bottom:16px;flex-wrap:wrap">
+                <div style="font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Puntuación estimada</div>
+                <div style="display:flex;gap:12px;flex:1;flex-wrap:wrap">
+                  <span style="font-size:.78rem;color:var(--text3)">Servicios: <strong id="lm-servicios" style="color:var(--green)">0,00</strong></span>
+                  <span style="font-size:.78rem;color:var(--text3)">Formación: <strong id="lm-formacion" style="color:var(--blue)">0,00</strong></span>
+                  <span style="font-size:.78rem;color:var(--text3)">Cursos: <strong id="lm-cursos" style="color:var(--blue)">0,00</strong></span>
+                </div>
+                <div style="font-size:1.4rem;font-weight:900;color:var(--accent2)" id="lm-total">0,00 pts</div>
+              </div>
+              <div class="meritos-form-section">
+                <div class="meritos-form-titulo">💼 Servicios prestados</div>
+                <div class="update-form">
+                  <div class="form-group">
+                    <label>Meses en la misma categoría / plaza</label>
+                    <input type="number" id="upd-opos-m-misma" min="0" placeholder="0" oninput="opos_liveMeritos()" />
+                    <span style="font-size:.72rem;color:var(--text3)">0,10 pts/mes · máx 4 pts (40 meses)</span>
+                  </div>
+                  <div class="form-group">
+                    <label>Meses en otras categorías (admin. pública)</label>
+                    <input type="number" id="upd-opos-m-otras" min="0" placeholder="0" oninput="opos_liveMeritos()" />
+                    <span style="font-size:.72rem;color:var(--text3)">0,05 pts/mes · máx 2 pts</span>
+                  </div>
+                  <div class="form-group">
+                    <label>Meses en empresa privada (sector)</label>
+                    <input type="number" id="upd-opos-m-priv" min="0" placeholder="0" oninput="opos_liveMeritos()" />
+                    <span style="font-size:.72rem;color:var(--text3)">0,02 pts/mes · máx 0,50 pts</span>
+                  </div>
+                </div>
+              </div>
+              <div class="meritos-form-section" style="margin-top:16px">
+                <div class="meritos-form-titulo">🎓 Formación y titulación</div>
+                <div class="update-form">
+                  <div class="form-group">
+                    <label>Nivel de euskera</label>
+                    <select id="upd-opos-m-euskera" onchange="opos_liveMeritos()">
+                      <option value="">Sin acreditación</option>
+                      <option value="A2">A2 — 0,50 pts</option>
+                      <option value="B1">B1 — 1,00 pt</option>
+                      <option value="B2">B2 — 1,50 pts</option>
+                      <option value="EGA/C1">EGA / C1 — 2,00 pts</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Titulación adicional</label>
+                    <select id="upd-opos-m-tit" onchange="opos_liveMeritos()">
+                      <option value="">Ninguna</option>
+                      <option value="Otro">Otro título — 0,50 pts</option>
+                      <option value="Máster">Máster — 1,00 pt</option>
+                      <option value="Licenciatura/Grado">Licenciatura / Grado — 1,50 pts</option>
+                      <option value="Doctorado">Doctorado — 2,00 pts</option>
+                    </select>
+                  </div>
+                </div>
+                <div style="margin-top:14px">
+                  <p style="font-size:.76rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:10px">Cursos de formación</p>
+                  <p style="font-size:.76rem;color:var(--text3);margin-bottom:10px">10-19h=0,10 · 20-39h=0,20 · 40-79h=0,40 · 80-119h=0,60 · ≥120h=0,80 pts &nbsp;(máx 3 pts en total)</p>
+                  <div id="upd-opos-cursos-container" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+                  <button class="btn-secondary" id="upd-opos-add-curso">+ Añadir curso</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB: Bolsa -->
+            <div class="opos-form-panel" id="ft-bolsa">
+              <div class="form-group" style="margin-bottom:16px">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;font-size:.9rem;font-weight:500;color:var(--text)">
+                  <input type="checkbox" id="upd-opos-bolsa-entra" style="width:18px;height:18px;accent-color:var(--accent)" />
+                  Entré en bolsa de empleo
+                </label>
+              </div>
+              <div class="update-form">
+                <div class="form-group">
+                  <label>Fecha de entrada en bolsa</label>
+                  <input type="date" id="upd-opos-bolsa-fecha" />
+                </div>
+                <div class="form-group">
+                  <label>Posición en bolsa</label>
+                  <input type="number" id="upd-opos-bolsa-pos" min="1" placeholder="Ej: 42" />
+                </div>
+                <div class="form-group">
+                  <label>Llamadas recibidas</label>
+                  <input type="number" id="upd-opos-bolsa-llamadas" min="0" placeholder="0" />
+                </div>
+              </div>
+              <div class="form-group" style="margin-top:10px">
+                <label>Notas sobre la bolsa</label>
+                <textarea id="upd-opos-bolsa-notas" placeholder="Ej: Rechacé la primera llamada por incompatibilidad de horario…" style="min-height:80px"></textarea>
+              </div>
+            </div>
+
+            <!-- TAB: Enlaces -->
+            <div class="opos-form-panel" id="ft-enlaces">
+              <div class="update-form">
+                <div class="form-group">
+                  <label>🔗 BOE / BOPV / Boletín oficial</label>
+                  <input type="url" id="upd-opos-url-boe" placeholder="https://www.boe.es/…" />
+                </div>
+                <div class="form-group">
+                  <label>📋 Bases de la convocatoria</label>
+                  <input type="url" id="upd-opos-url-bases" placeholder="https://…" />
+                </div>
+                <div class="form-group">
+                  <label>📚 Temario oficial</label>
+                  <input type="url" id="upd-opos-url-temario" placeholder="https://…" />
+                </div>
+                <div class="form-group">
+                  <label>🔗 Enlace extra 1</label>
+                  <input type="url" id="upd-opos-url-e1" placeholder="https://…" />
+                </div>
+                <div class="form-group">
+                  <label>🔗 Enlace extra 2</label>
+                  <input type="url" id="upd-opos-url-e2" placeholder="https://…" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="form-actions" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border2)">
+              <button class="btn-primary" id="upd-opos-guardar">Guardar convocatoria</button>
+              <button class="btn-secondary" id="upd-opos-cancelar" style="display:none">Cancelar edición</button>
+              <span class="update-success" id="upd-opos-ok">✓ Guardado</span>
+            </div>
+          </div>
+
+          <div class="card mt" id="upd-opos-lista-card">
+            <h3>Convocatorias guardadas localmente</h3>
+            <div id="upd-opos-lista"></div>
+          </div>
+        </div>
+
+        <!-- ═══ PANEL FINANZAS ═══ -->
+        <div class="update-panel" id="upd-finanzas">
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start">
+
+            <!-- COLUMNA IZQUIERDA: formularios operativos -->
+            <div>
+
+              <!-- AÑADIR MOVIMIENTO — compacto en 2 filas -->
+              <div class="card" style="margin-bottom:14px">
+                <h3 style="margin-bottom:12px">➕ Añadir ingreso o gasto</h3>
+                <!-- Fila 1: Tipo + Importe | Fecha | Cuenta -->
+                <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:end;margin-bottom:8px">
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Tipo</label>
+                    <div class="ufin-tipo-toggle" style="height:38px">
+                      <button type="button" id="ufin-btn-gasto" class="ufin-tipo-btn ufin-tipo-btn--active-red" onclick="ufinSetTipo('gasto')">− Gasto</button>
+                      <button type="button" id="ufin-btn-ingreso" class="ufin-tipo-btn" onclick="ufinSetTipo('ingreso')">+ Ingreso</button>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Importe (€)</label>
+                    <input type="number" id="ufin-importe" class="upd-input" placeholder="0.00" step="0.01" min="0" style="width:100%" />
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Fecha</label>
+                    <input type="date" id="ufin-fecha" class="upd-input" style="width:100%" />
+                  </div>
+                </div>
+                <!-- Fila 2: Descripción | Categoría | Cuenta -->
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:8px">
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Descripción</label>
+                    <input type="text" id="ufin-desc" class="upd-input" placeholder="Mercadona, Nómina…" style="width:100%" />
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Categoría</label>
+                    <div style="display:flex;gap:4px">
+                      <select id="ufin-cat" class="upd-input" style="flex:1;font-size:.8rem;padding:6px 6px">
+                        <option value="alimentacion">🛒 Alimentación</option>
+                        <option value="hosteleria">☕ Hostelería</option>
+                        <option value="ropa">👗 Ropa</option>
+                        <option value="suscripciones">📱 Suscripciones</option>
+                        <option value="ocio">🎭 Ocio</option>
+                        <option value="transporte">🚆 Transporte</option>
+                        <option value="oposiciones">📚 Oposiciones</option>
+                        <option value="belleza">💄 Belleza</option>
+                        <option value="salud">💊 Salud</option>
+                        <option value="deuda">💳 Deuda</option>
+                        <option value="ahorro">🐷 Ahorro</option>
+                        <option value="hogar">🏠 Hogar</option>
+                        <option value="regalo">🎁 Regalos</option>
+                        <option value="formacion">🎓 Formación</option>
+                        <option value="compras">🛍️ Compras</option>
+                        <option value="nomina">💼 Nómina</option>
+                        <option value="otros">• Otros</option>
+                      </select>
+                      <button class="upd-btn" onclick="ufin_nuevaCat()" title="Nueva cat." style="padding:0 8px;font-size:1rem;flex-shrink:0">＋</button>
+                    </div>
+                    <div id="ufin-cats-extra" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px"></div>
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Cuenta</label>
+                    <select id="ufin-cuenta" class="upd-input" style="width:100%;font-size:.8rem;padding:6px 6px">
+                      <option value="KTX">🔵 Kutxabank</option>
+                      <option value="RVP">🟣 Revolut Personal</option>
+                      <option value="RVC">🩷 Revolut Conjunta</option>
+                      <option value="CTV">🟢 CTV</option>
+                      <option value="BP">🟡 Baskepensiones</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Nota opcional -->
+                <div id="ufin-nota-row" style="display:none;margin-bottom:8px">
+                  <input type="text" id="ufin-nota" class="upd-input" placeholder="Nota opcional…" style="width:100%" />
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                  <button class="btn-primary" onclick="ufin_guardarMovimiento()">💾 Guardar</button>
+                  <button type="button" onclick="document.getElementById('ufin-nota-row').style.display=document.getElementById('ufin-nota-row').style.display==='none'?'block':'none'"
+                    style="background:none;border:1px dashed var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.75rem;color:var(--text3)">＋ Nota</button>
+                  <span id="ufin-ok" style="color:var(--green);font-size:.85rem;display:none">✅ Guardado</span>
+                </div>
+              </div>
+
+              <!-- MOVIMIENTOS RECIENTES -->
+              <div class="card" style="margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                  <h3>📋 Movimientos manuales</h3>
+                  <button onclick="ufin_renderRecientes()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.8rem">↺</button>
+                </div>
+                <div id="ufin-recientes"><p style="color:var(--text3);font-size:.82rem">Cargando…</p></div>
+              </div>
+
+              <!-- ACTUALIZAR SALDOS -->
+              <div class="card" style="margin-bottom:14px">
+                <h3 style="margin-bottom:4px">💳 Actualizar saldos de cuentas</h3>
+                <p style="font-size:.75rem;color:var(--text3);margin-bottom:12px">Saldo real actual de cada cuenta.</p>
+                <div id="ufin-saldos-form">
+                  <div class="upd-fin-saldo-row"><label style="color:#60a5fa">● Kutxabank</label><input type="number" class="upd-input" id="ufin-s-ktx" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#a78bfa">● Revolut Personal</label><input type="number" class="upd-input" id="ufin-s-rvp" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#f472b6">● Revolut Conjunta</label><input type="number" class="upd-input" id="ufin-s-rvc" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#34d399">● CTV – Vivienda</label><input type="number" class="upd-input" id="ufin-s-ctv" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#fbbf24">● Baskepensiones</label><input type="number" class="upd-input" id="ufin-s-bp" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#818cf8">● Fondo Monetario</label><input type="number" class="upd-input" id="ufin-s-fm" step="0.01" placeholder="0.00" /></div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
+                  <button class="btn-primary" onclick="ufin_guardarSaldos()">💾 Guardar saldos</button>
+                  <button onclick="ufin_resetSaldos()" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:.8rem">↩ Restaurar</button>
+                  <span id="ufin-saldos-ok" style="color:var(--green);font-size:.85rem;display:none">✅ Guardado</span>
+                </div>
+              </div>
+
+              <!-- CUOTA IPHONE -->
+              <div class="card">
+                <h3 style="margin-bottom:10px">📅 Cuota iPhone (Cetelem)</h3>
+                <div id="ufin-iphone-info">Cargando…</div>
+              </div>
+
+            </div><!-- /columna izquierda -->
+
+            <!-- COLUMNA DERECHA: Wishlist -->
+            <div class="card" style="position:sticky;top:80px">
+              <h3 style="margin-bottom:10px">🛒 Lista de deseos</h3>
+              <p style="font-size:.75rem;color:var(--text3);margin-bottom:10px">Compras futuras planeadas</p>
+              <div class="form-group" style="margin-bottom:12px">
+                <textarea id="upd-fin-compras" rows="8" placeholder="Sofá — 800€&#10;Lavadora — 400€&#10;Garmin Forerunner 300 — 350€" style="width:100%;font-size:.82rem"></textarea>
+              </div>
+              <div class="form-actions">
+                <button class="btn-primary" id="upd-fin-guardar">Guardar</button>
+                <span class="update-success" id="upd-fin-ok">✓ Guardado</span>
+              </div>
+            </div><!-- /columna derecha -->
+
+          </div><!-- /grid dos columnas -->
+        </div>
+
+
+
+        <!-- ═══ PANEL CARNET ═══ -->
+        <div class="update-panel" id="upd-carnet">
+
+          <!-- Próxima convocatoria -->
+          <div class="card">
+            <h3>📅 Próxima convocatoria de examen</h3>
+            <div class="update-form">
+              <div class="form-group">
+                <label>Estado</label>
+                <select id="upd-car-prox-estado">
+                  <option value="">— Sin convocar —</option>
+                  <option value="pendiente">⏳ Pendiente de fecha</option>
+                  <option value="en_proceso">🔄 En proceso / Preparando</option>
+                  <option value="convocado">📅 Fecha convocada</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Fecha del examen</label>
+                <input type="date" id="upd-car-prox-fecha" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-primary" onclick="car_guardarProxima()">Guardar</button>
+              <span class="update-success" id="upd-car-prox-ok">✓ Guardado</span>
+            </div>
+          </div>
+
+          <!-- Añadir test — campos clave en una fila -->
+          <div class="card mt">
+            <h3 style="margin-bottom:12px">📝 Añadir test teórico</h3>
+            <!-- Fila principal: los 3 campos que se usan siempre -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;align-items:end;margin-bottom:10px">
+              <div class="form-group" style="margin:0">
+                <label style="font-size:.72rem">Nº de test</label>
+                <input type="number" id="upd-car-num" placeholder="Ej: 1" min="1" style="width:100%" />
+              </div>
+              <div class="form-group" style="margin:0">
+                <label style="font-size:.72rem">Fecha</label>
+                <input type="date" id="upd-car-test-fecha" style="width:100%" />
+              </div>
+              <div class="form-group" style="margin:0">
+                <label style="font-size:.72rem">Fallos</label>
+                <input type="number" id="upd-car-test-fallos" placeholder="0" min="0" max="30" style="width:100%" />
+              </div>
+            </div>
+            <!-- Campos secundarios opcionales -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+              <div class="form-group" style="margin:0">
+                <label style="font-size:.72rem">Test previo (repetir)</label>
+                <select id="upd-car-test-sel" onchange="car_onSelectTest()" style="width:100%;font-size:.82rem">
+                  <option value="">— Nuevo test —</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label style="font-size:.72rem">Categoría / Tema</label>
+                <select id="upd-car-test-cat" style="width:100%;font-size:.82rem">
+                  <option value="">— Categoría / Tema —</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px">
+              <label style="font-size:.72rem">Nota libre (opcional)</label>
+              <input type="text" id="upd-car-test-tema" placeholder="Ej: dificultad alta, muchas señales…" />
+            </div>
+            <div class="form-actions">
+              <button class="btn-primary" onclick="car_guardarTest()">Guardar test</button>
+              <span class="update-success" id="upd-car-test-ok">✓ Guardado</span>
+            </div>
+          </div>
+
+          <!-- Añadir intento de examen — resultado automático por fallos -->
+          <div class="card mt">
+            <h3 style="margin-bottom:12px">🎯 Añadir intento de examen teórico</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;align-items:end;margin-bottom:10px">
+              <div class="form-group" style="margin:0">
+                <label style="font-size:.72rem">Fecha del examen</label>
+                <input type="date" id="upd-car-exam-fecha" style="width:100%" />
+              </div>
+              <div class="form-group" style="margin:0">
+                <label style="font-size:.72rem">Resultado <span style="color:var(--text3);font-weight:400">(auto)</span></label>
+                <select id="upd-car-exam-resultado" style="width:100%">
+                  <option value="suspendido">❌ Suspendido</option>
+                  <option value="aprobado">✅ Aprobado</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label style="font-size:.72rem">Fallos</label>
+                <input type="number" id="upd-car-exam-fallos" placeholder="0" min="0" max="30" style="width:100%"
+                  oninput="document.getElementById('upd-car-exam-resultado').value=parseInt(this.value||'99')<=3?'aprobado':'suspendido'" />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px">
+              <label style="font-size:.72rem">Notas</label>
+              <input type="text" id="upd-car-exam-nota" placeholder="Ej: Fallé señales de tráfico y velocidades" />
+            </div>
+            <div class="form-actions">
+              <button class="btn-primary" onclick="car_guardarExamen()">Guardar examen</button>
+              <span class="update-success" id="upd-car-exam-ok">✓ Guardado</span>
+            </div>
+          </div>
+
+          <!-- Añadir práctica — oculto hasta aprobar el teórico -->
+          <div class="card mt" style="display:none" id="upd-car-practica-card">
+            <h3>🚘 Añadir práctica</h3>
+            <div class="update-form">
+              <div class="form-group">
+                <label>Fecha</label>
+                <input type="date" id="upd-car-prac-fecha" />
+              </div>
+              <div class="form-group">
+                <label>Duración (min)</label>
+                <input type="number" id="upd-car-prac-min" placeholder="60" min="1" />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label>Notas de la práctica</label>
+              <input type="text" id="upd-car-prac-nota" placeholder="Ej: Rotondas, aparcamiento en paralelo…" />
+            </div>
+            <div class="form-actions">
+              <button class="btn-primary" onclick="car_guardarPractica()">Guardar práctica</button>
+              <span class="update-success" id="upd-car-prac-ok">✓ Guardado</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══ PANEL AGENDA ═══ -->
+        <div class="update-panel" id="upd-agenda">
+
+          <!-- Cumpleaños -->
+          <div class="card">
+            <h3>Cumpleaños</h3>
+            <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Aparecerán en el calendario cada año en su fecha.</p>
+            <div id="age-cumples-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" id="age-new-cumple-nombre" class="upd-input" placeholder="Nombre" style="flex:2;min-width:120px" />
+              <input type="text" id="age-new-cumple-fecha" class="upd-input" placeholder="DD/MM (ej: 14/03)" style="flex:1;min-width:90px" maxlength="5" />
+              <button class="btn-primary" onclick="age_addCumple()">Añadir</button>
+            </div>
+          </div>
+
+          <!-- Eventos -->
+          <div class="card mt">
+            <h3>Eventos y vacaciones</h3>
+            <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Eventos puntuales con fecha exacta. Aparecen en el calendario.</p>
+            <div id="age-eventos-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <input type="text" id="age-new-evento-nombre" class="upd-input" placeholder="Descripción del evento" />
+              <select id="age-new-evento-cat" class="upd-input">
+                <option value="personal">💙 Personal</option>
+                <option value="oposiciones">📚 Oposiciones</option>
+                <option value="finanzas">💚 Finanzas</option>
+                <option value="carnet">🚗 Carnet</option>
+                <option value="medico">💊 Médico / Salud</option>
+                <option value="familia">👨‍👩‍👧 Familia</option>
+                <option value="ocio">🎭 Ocio</option>
+                <option value="otro">📌 Otro</option>
+              </select>
+              <input type="date" id="age-new-evento-fecha" class="upd-input" />
+              <input type="time" id="age-new-evento-hora" class="upd-input" />
+              <input type="text" id="age-new-evento-ubicacion" class="upd-input" placeholder="Ubicación / lugar (opcional)" style="grid-column:span 2" />
+              <textarea id="age-new-evento-notas" class="upd-input" placeholder="Notas (opcional)" rows="2" style="grid-column:span 2;resize:vertical;font-family:inherit"></textarea>
+            </div>
+            <button class="btn-primary" onclick="age_addEvento()">📅 Guardar evento</button>
+          </div>
+
+          <!-- Vencimientos -->
+          <div class="card mt">
+            <h3>Vencimientos importantes</h3>
+            <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Fechas límite, renovaciones, plazos. Aparecen en el calendario.</p>
+            <div id="age-venc-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" id="age-new-venc-nombre" class="upd-input" placeholder="Descripción" style="flex:2;min-width:140px" />
+              <input type="date" id="age-new-venc-fecha" class="upd-input" style="flex:1;min-width:130px" />
+              <button class="btn-primary" onclick="age_addVenc()">Añadir</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══ PANEL EXCEL ═══ -->
+        <div class="update-panel" id="upd-excel">
+          <div class="card">
+            <h3>📊 Exportar a Excel</h3>
+            <p style="color:var(--text3);font-size:.85rem;margin-bottom:10px">Descarga todos tus datos en un archivo Excel con formato profesional: encabezados coloreados, columnas ajustadas y fechas nativas.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Carnet_Tests</span>
+              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Carnet_Examenes</span>
+              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Oposiciones</span>
+              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Agenda_Cumpleanos</span>
+              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Finanzas_Saldos</span>
+              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Piso_Visitados</span>
+              <span style="font-size:.75rem;color:var(--text3);padding:3px 6px">+7 más…</span>
+            </div>
+            <div class="form-actions">
+              <button id="excel-export-btn" class="btn-primary" onclick="excel_exportar()">⬇️ Descargar Excel</button>
+            </div>
+          </div>
+          <div class="card mt">
+            <h3>📥 Importar desde Excel</h3>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
+              <p style="color:var(--text3);font-size:.85rem;margin:0">Sube el archivo Excel para actualizar los datos. <strong style="color:var(--yellow)">⚠️ Sobreescribe los datos de cada hoja importada.</strong></p>
+              <button onclick="excel_toggleAyuda()" style="white-space:nowrap;font-size:.78rem;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;flex-shrink:0">¿Cómo rellenar el Excel?</button>
+            </div>
+            <div class="form-group">
+              <label>Archivo Excel (.xlsx)</label>
+              <input type="file" id="excel-import-file" accept=".xlsx" style="color:var(--text1)" />
+            </div>
+            <div class="form-actions" style="margin-top:12px">
+              <button class="btn-primary" onclick="excel_importar(document.getElementById('excel-import-file').files[0])">⬆️ Importar Excel</button>
+            </div>
+            <div id="excel-import-progress" style="display:none;margin-top:10px;font-size:.82rem;color:var(--text2);background:var(--surface2);border-radius:8px;padding:8px 12px"></div>
+          </div>
+        </div>
+
+        <!-- Modal: ¿Cómo rellenar el Excel? -->
+        <div id="modal-excel-ayuda" onclick="if(event.target===this)excel_toggleAyuda()" style="display:none;position:fixed;inset:0;background:#00000088;z-index:9999;align-items:center;justify-content:center">
+          <div style="background:var(--surface);border-radius:16px;padding:28px 28px 24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px #0006">
+            <button onclick="excel_toggleAyuda()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:var(--text3);font-size:1.3rem;cursor:pointer;line-height:1">✕</button>
+            <h3 style="margin-bottom:6px;font-size:1rem">📋 Cómo rellenar el Excel</h3>
+            <p style="font-size:.8rem;color:var(--text3);margin-bottom:16px">Puedes editar celdas y añadir filas. Al importar, los datos de cada hoja sustituyen a los actuales.</p>
+            <div style="background:var(--bg3);border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;font-size:.82rem;color:var(--text2)">
+              <strong>Regla principal:</strong> No cambies los nombres de las pestañas (hojas). El sistema las identifica exactamente por ese nombre.
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:.8rem">
+              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
+                <strong style="color:var(--accent)">Carnet_Tests / Exámenes / Prácticas</strong><br>
+                <span style="color:var(--text3)">Fechas en formato AAAA-MM-DD (ej: 2025-03-14)</span>
+              </div>
+              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
+                <strong style="color:var(--accent)">Oposiciones</strong><br>
+                <span style="color:var(--text3)">Una fila por convocatoria. Todas las fechas en AAAA-MM-DD.</span>
+              </div>
+              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
+                <strong style="color:var(--accent)">Finanzas_Saldos</strong><br>
+                <span style="color:var(--text3)">No borres la columna "Clave" — identifica cada cuenta (ktx, rvp…)</span>
+              </div>
+              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
+                <strong style="color:var(--accent)">Agenda_Cumpleanos</strong><br>
+                <span style="color:var(--text3)">Fecha en formato DD/MM sin año (ej: 14/03)</span>
+              </div>
+              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
+                <strong style="color:var(--accent)">Piso_Bancos / Piso_Visitados</strong><br>
+                <span style="color:var(--text3)">Añade pisos o bancos al final de la tabla.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/finanzas_data.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sheets.js"></script>
+  <script src="js/modules/finanzas.js"></script>
+  <script src="js/modules/piso.js"></script>
+  <script src="js/modules/carnet.js"></script>
+  <script src="js/data/oposiciones-seed.js"></script>
+  <script src="js/modules/oposiciones.js"></script>
+  <script src="js/modules/crochet.js"></script>
+  <script src="js/modules/agenda.js"></script>
+  <script src="js/modules/excel.js"></script>
+  <script src="js/modules/actualizar.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

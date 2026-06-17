@@ -1,0 +1,15 @@
+# Datos privados y documentos financieros
+FINANZAS/
+*.xlsx
+*.pdf
+*.png
+*.jpg
+scripts/
+
+# Editor / sistema
+.DS_Store
+Thumbs.db
+*.log
+
+# Claude
+.claude/
