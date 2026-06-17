@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 6;
+const OPOS_SEED_VERSION = 7;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -159,10 +159,9 @@ const OPOS_SEED = [
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
-    fase:            'Realizado',
+    fase:            'Pendiente examen',
     fecha_apertura:  '2026-03-12',
     fecha_fin_inscr: '2026-04-15',
-    fecha_examen:    '2026-03-11',
     tasa_pagada:     'SI',
     doc_solicitud:   'Listo',
     doc_dni:         'Pendiente',
@@ -205,10 +204,9 @@ const OPOS_SEED = [
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
-    fase:            'Realizado',
+    fase:            'Pendiente examen',
     fecha_apertura:  '2026-04-20',
     fecha_fin_inscr: '2026-05-14',
-    fecha_examen:    '2026-04-19',
     tasa_pagada:     'SI',
     doc_solicitud:   'Listo',
     doc_dni:         'Pendiente',
@@ -231,10 +229,9 @@ const OPOS_SEED = [
     perfil:          'YO',
     grupo:           '',
     estado:          'EN PROCESO',
-    fase:            'Realizado',
+    fase:            'Pendiente examen',
     fecha_apertura:  '2026-04-20',
     fecha_fin_inscr: '2026-05-18',
-    fecha_examen:    '2026-04-19',
     tasa_pagada:     'SI',
     doc_solicitud:   'Listo',
     doc_dni:         'Pendiente',
@@ -257,10 +254,9 @@ const OPOS_SEED = [
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
-    fase:            'Realizado',
+    fase:            'Pendiente examen',
     fecha_apertura:  '2026-04-28',
     fecha_fin_inscr: '2026-05-27',
-    fecha_examen:    '2026-04-27',
     tasa_pagada:     'SI',
     doc_solicitud:   'Listo',
     doc_dni:         'Pendiente',
