@@ -476,7 +476,7 @@ function renderCarChart(tests) {
           ticks: { color:'#94a3b8', maxRotation:45, minRotation:0, font:{ size:10 }, autoSkip: true, maxTicksLimit: 15 },
           grid: { color:'#2d3148' },
         },
-        y: { ticks:{ color:'#94a3b8', stepSize:1 }, grid:{ color:'#2d3148' }, min:0, max: 20 },
+        y: { ticks:{ color:'#94a3b8', stepSize:1 }, grid:{ color:'#2d3148' }, min:0, max: Math.max(10, Math.ceil(Math.max(...datos.map(t => parseInt(t.fallos)||0)) / 5) * 5) },
       },
     },
   });

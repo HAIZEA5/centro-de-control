@@ -416,11 +416,17 @@ async function loadAgenda() {
     .sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
 
   if (struct.length) {
-    const futuros = struct.filter(e => daysUntilDate(e.fecha) >= -30);
-    const lista   = futuros.length ? futuros : struct.slice(-5);
-    ul2.innerHTML = lista.map(e =>
-      `<li style="opacity:${daysUntilDate(e.fecha)<0?.5:1}">${e.nombre}${e.hora ? ' · '+e.hora : ''} ${tagFecha(e.fecha)}</li>`
+    const proximos = struct.filter(e => daysUntilDate(e.fecha) >= 0);
+    const pasados  = struct.filter(e => daysUntilDate(e.fecha) < 0).reverse(); // más recientes primero
+    const liProximos = proximos.map(e =>
+      `<li>${e.nombre}${e.hora ? ' · '+e.hora : ''} ${tagFecha(e.fecha)}</li>`
     ).join('') || '<li style="color:var(--text2)">Sin eventos próximos</li>';
+    const liPasados = pasados.length
+      ? `<li style="padding:0;list-style:none"><details style="margin-top:6px"><summary style="cursor:pointer;font-size:.75rem;color:var(--text3);user-select:none">Eventos pasados (${pasados.length})</summary><ul style="margin-top:6px;padding-left:0;list-style:none">${
+          pasados.map(e => `<li style="opacity:.5">${e.nombre}${e.hora ? ' · '+e.hora : ''} ${tagFecha(e.fecha)}</li>`).join('')
+        }</ul></details></li>`
+      : '';
+    ul2.innerHTML = liProximos + liPasados;
   } else if (eventos.length) {
     ul2.innerHTML = eventos.map(e => `<li>${e.nombre} ${tagFecha(e.fecha)}</li>`).join('');
   } else if (local.eventos) {

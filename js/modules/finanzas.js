@@ -270,8 +270,8 @@ const _FIN_CAT_GF = {
 };
 
 function fin_getGastosFijos() {
-  const stored = localStorage.getItem('fin_gastos_fijos');
-  if (stored) return JSON.parse(stored);
+  const stored = Store.get('fin_gastos_fijos', null);
+  if (stored) return stored;
   // Primera vez: migrar desde FIN_DATA.presupuesto
   const p = FIN_DATA.presupuesto;
   let id = 0;
