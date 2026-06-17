@@ -441,13 +441,30 @@ async function loadAgenda() {
   const venc = rowsToObjects(vencRows);
   const ul3 = document.getElementById('age-vencimientos');
 
-  if (venc.length) {
-    ul3.innerHTML = venc.map(v => `<li>${v.item} ${tagFecha(v.fecha, 'var(--yellow)')}</li>`).join('');
+  // Plazos de inscripción de oposiciones activas (automáticos)
+  const oposVenc = (() => {
+    try {
+      return Store.get('opos_convocatorias', [])
+        .filter(o => o.fecha_fin_inscr && daysUntilDate(o.fecha_fin_inscr) >= 0)
+        .sort((a, b) => a.fecha_fin_inscr.localeCompare(b.fecha_fin_inscr))
+        .map(o => ({ item: `📚 Fin inscr. ${o.convocatoria}`, fecha: o.fecha_fin_inscr }));
+    } catch { return []; }
+  })();
+
+  const todosVenc = [
+    ...oposVenc,
+    ...(venc.length ? venc : []),
+  ];
+
+  if (todosVenc.length) {
+    ul3.innerHTML = todosVenc
+      .sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''))
+      .map(v => `<li>${v.item} ${tagFecha(v.fecha, 'var(--yellow)')}</li>`).join('');
   } else if (local.vencimientos) {
     const lineas = local.vencimientos.split('\n').filter(l => l.trim());
     ul3.innerHTML = lineas.map(l => `<li style="color:var(--yellow)">${l.trim()}</li>`).join('') || '<li style="color:var(--text2)">Sin vencimientos</li>';
   } else {
-    ul3.innerHTML = '<li style="color:var(--text2)">Sin vencimientos — añade en ✏️ Actualizar</li>';
+    ul3.innerHTML = '<li style="color:var(--text2)">Sin vencimientos próximos</li>';
   }
 
   renderAgendaCalendario();
