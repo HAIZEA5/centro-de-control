@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 8;
+const OPOS_SEED_VERSION = 9;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -76,6 +76,7 @@ const OPOS_SEED = [
     convocatoria:   'Osakidetza — Auxiliar Administrativo',
     organismo: 'Osakidetza', puesto: 'Auxiliar Administrativo',
     tipo_proceso: 'libre', req_euskera: false, nivel_euskera: '', req_titulacion: true,
+    req_it_txartelas: ['word_avanzado', 'excel_basico'],
     perfil:         'YO',
     grupo:          'OPE 23-24-25 · C2',
     estado:         'EN PROCESO',
@@ -519,7 +520,7 @@ function opos_applySeed() {
         'url_boe','url_bases','url_temario','url_extra1','url_extra2','notas',
         'doc_solicitud','doc_dni','doc_titulacion','doc_euskera','doc_cv','doc_meritos','doc_discap',
         'doc_extra1_nombre','doc_extra1','doc_extra2_nombre','doc_extra2','doc_extra3_nombre','doc_extra3',
-        'meritos_calc','tipo_proceso','tope_meritos','req_euskera','nivel_euskera','req_titulacion'];
+        'meritos_calc','tipo_proceso','tope_meritos','req_euskera','nivel_euskera','req_titulacion','req_it_txartelas'];
       seedFields.forEach(f => { if (nueva[f] !== undefined) actuales[idx][f] = nueva[f]; });
       actualizadas++;
     }
@@ -538,6 +539,7 @@ function opos_applySeed() {
     }
     if (e.req_titulacion === undefined) e.req_titulacion = true;
     if (e.tope_meritos === undefined) e.tope_meritos = null;
+    if (e.req_it_txartelas === undefined) e.req_it_txartelas = [];
   });
 
   Store.set('opos_convocatorias', actuales);

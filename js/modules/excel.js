@@ -191,6 +191,7 @@ async function excel_exportar() {
         { label: 'Doc DNI',                key: 'doc_dni' },
         { label: 'Doc CV',                 key: 'doc_cv' },
         { label: 'Doc Méritos',            key: 'doc_meritos' },
+        { label: 'IT_Txartelas_Requeridas', key: 'it_reqs' },
       ],
       getOposLocal().map(o => ({
         convocatoria:    o.convocatoria || '',
@@ -232,6 +233,7 @@ async function excel_exportar() {
         doc_dni:         o.doc_dni || '',
         doc_cv:          o.doc_cv || '',
         doc_meritos:     o.doc_meritos || '',
+        it_reqs:         (o.req_it_txartelas || []).join(', '),
       }))
     );
 
@@ -493,6 +495,7 @@ function excel_importar(file) {
             doc_solicitud: String(r['Doc Solicitud']||''), doc_titulacion: String(r['Doc Titulación']||''),
             doc_euskera: String(r['Doc Euskera']||''), doc_dni: String(r['Doc DNI']||''),
             doc_cv: String(r['Doc CV']||''), doc_meritos: String(r['Doc Méritos']||''),
+            req_it_txartelas: String(r['IT_Txartelas_Requeridas']||'').split(',').map(s=>s.trim()).filter(Boolean),
             meritos_calc: {
               meses_misma: Number(r['Meses misma categoría'])||0, meses_otras: Number(r['Meses otras admin.'])||0,
               meses_priv: Number(r['Meses sector privado'])||0,

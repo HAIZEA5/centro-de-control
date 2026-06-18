@@ -20,6 +20,8 @@ function loadAllModules() {
   loadCarnet();
   loadOposiciones();
   loadAgenda();
+  loadTareas();
+  loadItTxartelas();
   renderAgeGastosFijos();
 }
 

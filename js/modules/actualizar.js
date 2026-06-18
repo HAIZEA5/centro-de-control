@@ -33,6 +33,11 @@ function setupUpdOposiciones() {
   renderUpdOposList();
 }
 
+function opos_toggleItReqs(checked) {
+  const el = document.getElementById('upd-opos-it-modulos');
+  if (el) el.style.display = checked ? 'grid' : 'none';
+}
+
 function opos_toggleDocsExtra() {
   const el  = document.getElementById('opos-docs-extra');
   const btn = document.getElementById('opos-docs-extra-btn');
@@ -110,6 +115,11 @@ function guardarOpos() {
     req_euskera:   _reqEusk === 'true' ? true : _reqEusk === 'false' ? false : undefined,
     nivel_euskera: getv('upd-opos-nivel-euskera'),
     req_titulacion: true,
+    req_it_txartelas: (() => {
+      const cb = document.getElementById('upd-opos-req-it');
+      if (!cb?.checked) return [];
+      return [...document.querySelectorAll('.it-req-check:checked')].map(c => c.value);
+    })(),
     // Fechas
     fecha_examen:      getv('upd-opos-fecha-examen'),
     hora_examen:       getv('upd-opos-hora-examen'),
@@ -191,6 +201,8 @@ function limpiarFormOpos() {
     'upd-opos-tope-meritos','upd-opos-nivel-euskera'];
   campos.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const cb = document.getElementById('upd-opos-bolsa-entra'); if (cb) cb.checked = false;
+  const itCb = document.getElementById('upd-opos-req-it'); if (itCb) { itCb.checked = false; opos_toggleItReqs(false); }
+  document.querySelectorAll('.it-req-check').forEach(c => { c.checked = false; });
   document.getElementById('upd-opos-cursos-container').innerHTML = '';
 }
 
@@ -216,6 +228,11 @@ function editarOpos(i) {
   set('upd-opos-tope-meritos',  r.tope_meritos != null ? String(r.tope_meritos) : '');
   set('upd-opos-req-euskera',   r.req_euskera === true ? 'true' : r.req_euskera === false ? 'false' : '');
   set('upd-opos-nivel-euskera', r.nivel_euskera);
+  // IT Txartelas
+  const itReqs = r.req_it_txartelas || [];
+  const itCb = document.getElementById('upd-opos-req-it');
+  if (itCb) { itCb.checked = itReqs.length > 0; opos_toggleItReqs(itReqs.length > 0); }
+  document.querySelectorAll('.it-req-check').forEach(c => { c.checked = itReqs.includes(c.value); });
   set('upd-opos-fecha-examen', r.fecha_examen);
   set('upd-opos-hora-examen',  r.hora_examen);
   set('upd-opos-fecha-apertura',r.fecha_apertura);

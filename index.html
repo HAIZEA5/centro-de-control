@@ -28,6 +28,7 @@
       <li><a href="#carnet"      class="nav-link" data-section="carnet">🚗 Carnet</a></li>
       <li><a href="#oposiciones" class="nav-link" data-section="oposiciones">📚 Oposiciones</a></li>
       <li><a href="#agenda"      class="nav-link" data-section="agenda">📅 Agenda</a></li>
+      <li><a href="#tareas"      class="nav-link" data-section="tareas">📋 Tareas</a></li>
       <li><a href="#actualizar"  class="nav-link" data-section="actualizar">✏️ Actualizar</a></li>
     </ul>
     <div class="sidebar-footer"><span class="version">v1.0</span></div>
@@ -422,6 +423,7 @@
           <button class="update-tab active" data-tab="upd-oposiciones">Oposiciones</button>
           <button class="update-tab" data-tab="upd-finanzas">Finanzas</button>
           <button class="update-tab" data-tab="upd-carnet">Carnet</button>
+          <button class="update-tab" data-tab="upd-it-txartelas">IT Txartelas</button>
           <button class="update-tab" data-tab="upd-agenda">Agenda</button>
           <button class="update-tab" data-tab="upd-excel">Excel</button>
         </div>
@@ -561,6 +563,25 @@
             <!-- TAB: Docs -->
             <div class="opos-form-panel" id="ft-docs">
               <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Marca el estado de cada documento requerido.</p>
+              <!-- IT Txartelas -->
+              <div style="margin-bottom:16px;padding:12px 14px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+                <div style="font-weight:700;font-size:.82rem;color:var(--accent2);margin-bottom:10px">🖥️ IT Txartela requerida</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--text);margin-bottom:10px;cursor:pointer">
+                  <input type="checkbox" id="upd-opos-req-it" onchange="opos_toggleItReqs(this.checked)"
+                    style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer" />
+                  Esta convocatoria exige IT Txartela
+                </label>
+                <div id="upd-opos-it-modulos" style="display:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" value="windows"       class="it-req-check" style="accent-color:var(--accent)"> Windows</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" value="internet"      class="it-req-check" style="accent-color:var(--accent)"> Internet</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" value="word_basico"   class="it-req-check" style="accent-color:var(--accent)"> Word Básico</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" value="word_avanzado" class="it-req-check" style="accent-color:var(--accent)"> Word Avanzado</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" value="excel_basico"  class="it-req-check" style="accent-color:var(--accent)"> Excel Básico</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" value="excel_avanzado" class="it-req-check" style="accent-color:var(--accent)"> Excel Avanzado</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" value="powerpoint"    class="it-req-check" style="accent-color:var(--accent)"> PowerPoint</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" value="access"        class="it-req-check" style="accent-color:var(--accent)"> Access</label>
+                </div>
+              </div>
               <!-- Docs principales en grid compacto 3 columnas -->
               <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
                 <div class="form-group" style="margin:0">
@@ -1008,6 +1029,17 @@
 
         </div>
 
+        <!-- ═══ PANEL IT TXARTELAS ═══ -->
+        <div class="update-panel" id="upd-it-txartelas">
+          <div class="card">
+            <h3>🖥️ Mis IT Txartelas (IVAP)</h3>
+            <p style="color:var(--text3);font-size:.83rem;margin-bottom:16px">
+              Registra los módulos del certificado IT Txartela que tienes aprobados. El sistema comparará automáticamente con los requisitos de cada oposición.
+            </p>
+            <div id="it-lista"></div>
+          </div>
+        </div>
+
         <!-- ═══ PANEL EXCEL ═══ -->
         <div class="update-panel" id="upd-excel">
           <div class="card">
@@ -1079,30 +1111,82 @@
 
       </section>
 
+      <!-- ══════════════════════════════════════════════════════ -->
+      <!-- TAREAS                                                  -->
+      <!-- ══════════════════════════════════════════════════════ -->
+      <section id="tareas" class="section">
+        <h2 class="section-title">📋 Tareas</h2>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;align-items:start">
+
+          <!-- Bandeja de entrada -->
+          <div class="card">
+            <h3 style="margin-bottom:12px">📝 Bandeja de entrada</h3>
+            <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Apunta cualquier idea antes de olvidarla. Luego transfiere a la lista adecuada o a la Agenda.</p>
+            <textarea id="tar-notas-txt" rows="10"
+              placeholder="Escribe aquí lo que sea… apuntes, ideas, recordatorios sueltos…"
+              style="width:100%;resize:vertical;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:.85rem;font-family:inherit;line-height:1.6;box-sizing:border-box"></textarea>
+            <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
+              <button class="btn-primary" onclick="tareas_guardarNotas()" style="padding:8px 20px">💾 Guardar nota</button>
+              <span id="tar-notas-ok" style="display:none;color:var(--green);font-size:.82rem">✓ Guardado</span>
+            </div>
+          </div>
+
+          <!-- Corto plazo -->
+          <div class="card">
+            <h3 style="margin-bottom:4px">⚡ A corto plazo</h3>
+            <p style="font-size:.8rem;color:var(--text3);margin-bottom:14px">Tareas del día o la semana. Se eliminan al marcarlas.</p>
+            <div style="display:flex;gap:8px;margin-bottom:14px">
+              <input type="text" id="tar-corto-input" placeholder="Nueva tarea… (Intro para añadir)"
+                onkeydown="tareas_addCorto(event)"
+                style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:.85rem;font-family:inherit" />
+              <button class="btn-primary" onclick="tareas_addCorto()" style="padding:8px 14px">＋</button>
+            </div>
+            <div id="tar-corto-lista"></div>
+          </div>
+
+          <!-- Largo plazo -->
+          <div class="card">
+            <h3 style="margin-bottom:4px">🎯 A largo plazo</h3>
+            <p style="font-size:.8rem;color:var(--text3);margin-bottom:14px">Objetivos y proyectos grandes. Siempre a la vista.</p>
+            <div style="display:flex;gap:8px;margin-bottom:14px">
+              <input type="text" id="tar-largo-input" placeholder="Nuevo objetivo… (Intro para añadir)"
+                onkeydown="tareas_addLargo(event)"
+                style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:.85rem;font-family:inherit" />
+              <button class="btn-primary" onclick="tareas_addLargo()" style="padding:8px 14px">＋</button>
+            </div>
+            <div id="tar-largo-lista"></div>
+          </div>
+
+        </div>
+      </section>
+
     </div>
   </main>
 
-  <script src="js/data/supabase-sync.js?v=20260619"></script>
-  <script src="js/utils/store.js?v=20260619"></script>
-  <script src="js/utils/fmt.js?v=20260619"></script>
+  <script src="js/data/supabase-sync.js?v=20260620"></script>
+  <script src="js/utils/store.js?v=20260620"></script>
+  <script src="js/utils/fmt.js?v=20260620"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-  <script src="js/config.js?v=20260619"></script>
-  <script src="js/finanzas_data.js?v=20260619"></script>
-  <script src="js/auth.js?v=20260619"></script>
-  <script src="js/sheets.js?v=20260619"></script>
-  <script src="js/modules/finanzas.js?v=20260619"></script>
-  <script src="js/modules/piso.js?v=20260619"></script>
-  <script src="js/modules/carnet.js?v=20260619"></script>
-  <script src="js/data/oposiciones-seed.js?v=20260619"></script>
-  <script src="js/modules/oposiciones.js?v=20260619"></script>
-  <script src="js/modules/crochet.js?v=20260619"></script>
-  <script src="js/modules/agenda.js?v=20260619"></script>
-  <script src="js/modules/excel.js?v=20260619"></script>
-  <script src="js/modules/actualizar.js?v=20260619"></script>
-  <script src="js/dashboard.js?v=20260619"></script>
-  <script src="js/app.js?v=20260619"></script>
+  <script src="js/config.js?v=20260620"></script>
+  <script src="js/finanzas_data.js?v=20260620"></script>
+  <script src="js/auth.js?v=20260620"></script>
+  <script src="js/sheets.js?v=20260620"></script>
+  <script src="js/modules/finanzas.js?v=20260620"></script>
+  <script src="js/modules/piso.js?v=20260620"></script>
+  <script src="js/modules/carnet.js?v=20260620"></script>
+  <script src="js/data/oposiciones-seed.js?v=20260620"></script>
+  <script src="js/modules/oposiciones.js?v=20260620"></script>
+  <script src="js/modules/crochet.js?v=20260620"></script>
+  <script src="js/modules/agenda.js?v=20260620"></script>
+  <script src="js/modules/it-txartelas.js?v=20260620"></script>
+  <script src="js/modules/tareas.js?v=20260620"></script>
+  <script src="js/modules/excel.js?v=20260620"></script>
+  <script src="js/modules/actualizar.js?v=20260620"></script>
+  <script src="js/dashboard.js?v=20260620"></script>
+  <script src="js/app.js?v=20260620"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

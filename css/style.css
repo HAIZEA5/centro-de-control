@@ -1746,3 +1746,29 @@ body::before {
     text-align: center;
   }
 }
+
+/* ══ IT TXARTELAS ══ */
+.it-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.it-card {
+  padding: 12px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color .2s;
+}
+
+/* ══ TAREAS ══ */
+.tar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--border2);
+}
+.tar-item:last-child { border-bottom: none; }
+.tar-item--done { opacity: .55; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }

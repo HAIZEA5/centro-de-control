@@ -235,6 +235,13 @@ function opos_renderFiltered() {
     const realIdx = all.indexOf(r);
     const { org, pto } = _oposOrgPuesto(r);
     const meritosTotal = calcMeritosTotal(r);
+    const itCheck = (typeof it_validarRequisitos === 'function' && r.req_it_txartelas?.length)
+      ? it_validarRequisitos(r.req_it_txartelas) : null;
+    const itBadge = itCheck
+      ? (itCheck.ok
+          ? '<span title="IT Txartela: requisitos cumplidos" style="color:var(--green);font-size:.8rem;margin-left:4px">🖥️✅</span>'
+          : `<span title="IT Txartela: faltan ${itCheck.nombres.join(', ')}" style="color:var(--red);font-size:.8rem;margin-left:4px" onclick="event.stopPropagation()">🖥️⚠️</span>`)
+      : '';
     const tipoBadge = r.tipo_proceso === 'libre'
       ? '<span class="badge badge--blue" style="font-size:.7rem">Libre</span>'
       : r.tipo_proceso === 'concurso'
@@ -244,7 +251,7 @@ function opos_renderFiltered() {
     <tr class="opos-row" onclick="toggleOposDetalle(${realIdx}, this)" data-idx="${realIdx}" style="cursor:pointer">
       <td data-label="Perfil">${badgePerfil(r.perfil)}</td>
       <td data-label="Convocatoria">
-        <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'}</div>
+        <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'} ${itBadge}</div>
         <div style="font-size:.74rem;color:var(--text3);margin-top:2px">${org || ''} ${tipoBadge}</div>
       </td>
       <td data-label="Grupo">${r.grupo || '—'}</td>
@@ -459,7 +466,23 @@ function renderDocsPanel(r) {
       </div>`;
     }).join('')}
   </div>
-  <p style="font-size:.75rem;color:var(--text3);margin-top:12px">Edita los estados en ✏️ Actualizar → Oposiciones → editar</p>`;
+  <p style="font-size:.75rem;color:var(--text3);margin-top:12px">Edita los estados en ✏️ Actualizar → Oposiciones → editar</p>
+  ${(() => {
+    if (!r.req_it_txartelas?.length || typeof it_validarRequisitos !== 'function') return '';
+    const check = it_validarRequisitos(r.req_it_txartelas);
+    const allNames = r.req_it_txartelas.map(id => typeof it_getNombreModulo === 'function' ? it_getNombreModulo(id) : id);
+    if (check.ok) return `
+      <div style="margin-top:12px;padding:10px 14px;background:#00ff0010;border:1px solid var(--green);border-radius:8px;font-size:.82rem;color:var(--green)">
+        🖥️ ✅ IT Txartela: requisitos cumplidos (${allNames.join(', ')})
+      </div>`;
+    return `
+      <div style="margin-top:12px;padding:10px 14px;background:#ff000010;border:1px solid var(--red);border-radius:8px;font-size:.82rem">
+        <div style="color:var(--red);font-weight:600;margin-bottom:6px">🖥️ ⚠️ IT Txartela: faltan módulos</div>
+        ${check.nombres.map(n => `<div style="color:var(--red);margin-top:4px">▸ Pendiente: <strong>${n}</strong> — Actualiza en ✏️ Actualizar → IT Txartelas</div>`).join('')}
+        <div style="color:var(--text2);margin-top:4px;font-size:.75rem">Requeridos: ${allNames.join(', ')}</div>
+      </div>`;
+  })()}
+  `;
 }
 
 /* ── Panel: Méritos ── */
