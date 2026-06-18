@@ -106,29 +106,6 @@ async function excel_exportar() {
     }
 
     // ────────────────────────────────────────────────────────
-    // ── Carnet: Tests ──
-    addSheet('Carnet_Tests',
-      [
-        { label: 'Número Test', key: 'num' },
-        { label: 'Fecha',       key: 'fecha',  isDate: true },
-        { label: 'Fallos',      key: 'fallos' },
-        { label: 'Categoría',   key: 'cat' },
-        { label: 'Notas',       key: 'tema' },
-      ],
-      car_getTests().map(t => ({ num: t.num, fecha: t.fecha, fallos: t.fallos, cat: t.cat || '', tema: t.tema || '' }))
-    );
-
-    // ── Carnet: Exámenes ──
-    addSheet('Carnet_Examenes',
-      [
-        { label: 'Fecha',     key: 'fecha',     isDate: true },
-        { label: 'Resultado', key: 'resultado' },
-        { label: 'Fallos',    key: 'fallos' },
-        { label: 'Notas',     key: 'nota' },
-      ],
-      car_getExamenes().map(e => ({ fecha: e.fecha, resultado: e.resultado, fallos: e.fallos, nota: e.nota || '' }))
-    );
-
     // ── Carnet: Prácticas ──
     addSheet('Carnet_Practicas',
       [
