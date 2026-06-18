@@ -99,16 +99,13 @@ function _dashCarnet() {
   const el = document.getElementById('dash-car-content');
   if (!el) return;
 
-  const tests     = Store.get('car_tests', []);
   const examenes  = Store.get('car_examenes', []);
   const practicas = Store.get('car_practicas', []);
   const cfg       = Store.get('car_config');
 
   const estadoLabel = { pendiente:'⏳ Pendiente de fecha', en_proceso:'🔄 En proceso', convocado:'📅 Convocado' };
   const aprobado    = examenes.some(e => e.resultado === 'aprobado');
-  const mediaFallos = tests.length ? (tests.reduce((s,t) => s + t.fallos, 0) / tests.length).toFixed(1) : null;
 
-  // Próxima convocatoria con días restantes y color urgencia
   let proximaStr = '';
   let diasColor  = 'var(--accent2)';
   if (cfg.prox_fecha) {
@@ -127,22 +124,22 @@ function _dashCarnet() {
   }
 
   const totalMin = practicas.reduce((s,p) => s + (p.min || 0), 0);
+  const horas = Math.floor(totalMin / 60), mins = totalMin % 60;
+  const pracStr = practicas.length
+    ? `${practicas.length} sesiones · ${horas}h${mins > 0 ? ` ${mins}min` : ''}`
+    : 'Sin sesiones aún';
 
   el.innerHTML = `
     <div class="dash-row">
-      <span class="dash-row-label">Tests realizados</span>
-      <span class="dash-row-val">${tests.length ? `${tests.length}${mediaFallos ? ` · media ${mediaFallos} fallos` : ''}` : 'Sin tests aún'}</span>
+      <span class="dash-row-label">Examen teórico</span>
+      <span class="dash-row-val ${aprobado ? 'green' : examenes.length ? 'red' : ''}">${aprobado ? '✅ Aprobado' : examenes.length ? `❌ ${examenes.length} intento${examenes.length!==1?'s':''}` : 'Pendiente'}</span>
     </div>
     <div class="dash-row">
       <span class="dash-row-label">Prácticas</span>
-      <span class="dash-row-val">${practicas.length ? `${practicas.length} sesiones · ${totalMin} min` : 'Sin sesiones'}</span>
-    </div>
-    <div class="dash-row">
-      <span class="dash-row-label">Examen teórico</span>
-      <span class="dash-row-val ${aprobado ? 'green' : examenes.length ? 'red' : ''}">${aprobado ? '✅ Aprobado' : examenes.length ? `❌ ${examenes.length} intento${examenes.length!==1?'s':''}` : 'Pendiente de convocatoria'}</span>
+      <span class="dash-row-val">${pracStr}</span>
     </div>
     <div class="dash-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
-      <span class="dash-row-label" style="font-weight:600">Próxima convocatoria</span>
+      <span class="dash-row-label" style="font-weight:600">Próximo examen práctico</span>
       <span class="dash-row-val" style="color:${diasColor};font-weight:700">${proximaStr}</span>
     </div>`;
 }

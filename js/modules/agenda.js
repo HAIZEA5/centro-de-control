@@ -451,7 +451,18 @@ async function loadAgenda() {
     } catch { return []; }
   })();
 
+  // Examen práctico de carnet (automático si tiene fecha futura)
+  const carnetVenc = (() => {
+    try {
+      const cfg = Store.get('car_config');
+      if (cfg.prox_fecha && daysUntilDate(cfg.prox_fecha) >= 0)
+        return [{ item: '🚗 Examen práctico carnet', fecha: cfg.prox_fecha }];
+    } catch { /* noop */ }
+    return [];
+  })();
+
   const todosVenc = [
+    ...carnetVenc,
     ...oposVenc,
     ...(venc.length ? venc : []),
   ];
