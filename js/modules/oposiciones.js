@@ -244,7 +244,7 @@ function opos_renderFiltered() {
       : '';
     const tipoBadge = r.tipo_proceso === 'libre'
       ? '<span class="badge badge--blue" style="font-size:.7rem">Libre</span>'
-      : r.tipo_proceso === 'concurso'
+      : (r.tipo_proceso === 'concurso' || r.tipo_proceso === 'concurso-oposicion')
         ? '<span class="badge badge--yellow" style="font-size:.7rem">C-O</span>'
         : '';
     return `
@@ -385,7 +385,13 @@ function renderFechasPanel(r) {
     }).join('')}
   </div>
 
-  <div style="margin-top:18px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+  ${r.notas ? `
+  <div style="margin-top:14px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+    <div style="font-weight:700;font-size:.82rem;color:var(--accent2);margin-bottom:8px">📋 Bases / Baremo</div>
+    <div style="font-size:.81rem;color:var(--text2);line-height:1.55">${r.notas}</div>
+  </div>` : ''}
+
+  <div style="margin-top:14px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
     <div style="font-weight:700;font-size:.82rem;color:var(--accent2);margin-bottom:10px">📍 Ubicación el día del examen</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div class="form-group" style="margin:0">
@@ -428,7 +434,7 @@ function renderDocsPanel(r) {
     { key: 'doc_euskera',    label: `Acreditación euskera${nivelEusk}`, show: reqEusk },
     { key: 'doc_dni',        label: 'DNI / NIF', show: true },
     { key: 'doc_cv',         label: 'Currículum vitae', show: true },
-    { key: 'doc_meritos',    label: 'Hoja de méritos / autobaremo', show: r.tipo_proceso === 'concurso' },
+    { key: 'doc_meritos',    label: 'Hoja de méritos / autobaremo', show: r.tipo_proceso === 'concurso' || r.tipo_proceso === 'concurso-oposicion' },
     { key: 'doc_discap',     label: 'Certificado discapacidad', show: true },
     { key: 'doc_extra1',     label: r.doc_extra1_nombre || 'Documento extra 1', show: !!r.doc_extra1 },
     { key: 'doc_extra2',     label: r.doc_extra2_nombre || 'Documento extra 2', show: !!r.doc_extra2 },
@@ -579,8 +585,12 @@ function renderMeritosPanel(r, i) {
       <div style="margin-top:16px;font-size:.75rem;color:var(--text3);text-align:center">Edita los datos en ✏️ Actualizar</div>
     </div>
   </div>
-  <div style="margin-top:12px;padding:10px 14px;background:var(--bg4);border-radius:8px;font-size:.76rem;color:var(--text3)">
-    ℹ️ Baremo orientativo basado en convocatorias de Administración Pública vasca. Verifica siempre las bases de la convocatoria concreta.
+  ${r.notas ? `
+  <div style="margin-top:12px;padding:12px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);font-size:.78rem;color:var(--text2);line-height:1.55">
+    <strong style="color:var(--accent2);display:block;margin-bottom:5px">📋 Bases oficiales</strong>${r.notas}
+  </div>` : ''}
+  <div style="margin-top:10px;padding:10px 14px;background:var(--bg4);border-radius:8px;font-size:.76rem;color:var(--text3)">
+    ℹ️ Los puntos calculados arriba son estimaciones. Las bases oficiales prevalecen siempre.
   </div>`;
 }
 
