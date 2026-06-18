@@ -650,7 +650,32 @@ function renderFinSinking() {
 
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">
-        <h3>Revolut – Fondo Monetario Flexible</h3>
+        <div>
+          <h3 style="margin-bottom:4px">Revolut – Fondo Monetario Flexible</h3>
+          ${(() => {
+            const sal = Store.get('fin_saldos', {});
+            const ts = sal.fm_ts || sal._ts;
+            if (!ts) return '<div style="font-size:.72rem;color:var(--yellow)">⚠️ Sin fecha de actualización — actualiza el saldo manualmente</div>';
+            const d = new Date(ts);
+            const ahora = new Date();
+            const diffMs = ahora - d;
+            const diffMin = Math.floor(diffMs / 60000);
+            const diffH   = Math.floor(diffMs / 3600000);
+            const diffD   = Math.floor(diffMs / 86400000);
+            let hace = diffMin < 2 ? 'hace un momento'
+              : diffMin < 60 ? `hace ${diffMin} min`
+              : diffH < 24 ? `hace ${diffH}h`
+              : diffD === 1 ? 'ayer'
+              : `hace ${diffD} días`;
+            const color = diffD >= 7 ? 'var(--red)' : diffD >= 3 ? 'var(--yellow)' : 'var(--green)';
+            const fecha = d.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+            const hora  = d.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+            return `<div style="font-size:.72rem;color:${color};display:flex;align-items:center;gap:6px">
+              <span>🕐 Última actualización: <strong>${fecha} ${hora}</strong> · <em>${hace}</em></span>
+              ${diffD >= 7 ? '<span style="background:#ff000020;border:1px solid var(--red);border-radius:5px;padding:1px 7px;font-size:.65rem;font-weight:700">DESACTUALIZADO</span>' : ''}
+            </div>`;
+          })()}
+        </div>
         <a href="#" onclick="event.preventDefault();document.querySelector('[data-section=actualizar]')?.click();setTimeout(()=>document.querySelector('[data-tab=upd-finanzas]')?.click(),150)" style="font-size:.75rem;color:var(--accent2)">✏️ Actualizar datos</a>
       </div>
 
@@ -1339,6 +1364,7 @@ function addFMDiario() {
   // Actualiza también el saldo FM actual
   const saldos = Store.get('fin_saldos');
   saldos.fm = saldo;
+  saldos.fm_ts = Date.now();
   saldos._ts = Date.now();
   Store.set('fin_saldos', saldos);
   document.getElementById('fin-fmd-saldo').value = '';
