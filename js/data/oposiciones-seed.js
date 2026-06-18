@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 12;
+const OPOS_SEED_VERSION = 13;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -234,7 +234,7 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '1 plaza de Administrativo de Servicios Generales. Concurso-oposición. BOE 20/04/2026. Plazo inscripción cerrado (14/05/2026). BOB nº 201 de 21/10/2025.',
+    notas: '1 plaza de Administrativo de Servicios Generales. Concurso-oposición libre. BOE 20/04/2026. Plazo cerrado 14/05/2026. Bases BOB nº 57 de 25/03/2026. ⚠️ Baremo méritos: consultar bases en BOB nº 57/2026.',
     url_boe:   'https://www.preparaoposiciones.com/blog/convocatorias/oposicion-administrativo-ayuntamiento-valle-de-trapaga-trapagaran-2026/',
     url_bases: 'https://www.canaloposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_valle_de_trapaga_trapagaran-2ala7536ap1.htm',
     // Concurso-oposición: baremo experiencia + euskera + formación
@@ -261,7 +261,7 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '2 plazas de Conserje. Concurso-oposición. BOE publicado 20/04/2026. Plazo inscripción cerrado (18/05/2026).',
+    notas: '2 plazas de Conserje. Concurso-oposición libre. BOE 20/04/2026. Plazo cerrado 18/05/2026. Bases BOB nº 201 de 21/10/2025. ⚠️ Baremo méritos: consultar bases en BOB nº 201/2025.',
     url_boe:   'https://www.preparaoposiciones.com/blog/convocatorias/oposicion-conserje-valle-de-trapaga-2026-2-plazas-concurso-oposicion/',
     url_bases: 'https://www.canaloposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_valle_de_trapaga_trapagaran-2ala7536ap1.htm',
     // Concurso-oposición. Experiencia admin. local puede computar como servicios en AA.PP.
@@ -318,7 +318,7 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '9 plazas (8 libre + 1 discapacidad). Personal laboral fijo. Concurso-oposición. BOE-A-2026-9991 (08/05/2026). Bases BOB nº 246 de 26/12/2025. Plazo cerrado el 05/06/2026.',
+    notas: '9 plazas (8 libre + 1 discapacidad). Personal laboral fijo. Concurso-oposición libre. BOE-A-2026-9991 (08/05/2026). Bases BOB nº 246 de 26/12/2025. Plazo cerrado 05/06/2026. ⚠️ Baremo méritos: consultar bases en BOB nº 246/2025.',
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-9991',
     url_bases: 'https://www.preparaoposiciones.com/blog/convocatorias/oposiciones-ayuntamiento-de-portugalete-2026-22-plazas-convocadas/',
     url_extra1:'https://www.portugalete.org/es-ES/Tramites/Paginas/ope-administrativo-oiac.aspx',
@@ -345,7 +345,7 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '2 plazas de Administrativo. Concurso-oposición libre/estabilización. BOE-A-2026-9924 (07/05/2026). Bases BOB 22/12/2025. Plazo cerrado el 04/06/2026.',
+    notas: '2 plazas de Administrativo. Concurso-oposición libre. BOE-A-2026-9924 (07/05/2026). Bases BOB nº 248 de 30/12/2022 (modificadas 22/12/2025). Plazo cerrado 04/06/2026. ⚠️ Baremo méritos: consultar bases modificadas BOB 22/12/2025.',
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-9924',
     url_bases: 'https://www.canaloposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_orozko-2ala7531ap1.htm',
     url_extra1:'http://www.orozkoudala.com/es-ES/Ayuntamiento/Paginas/default.aspx',
