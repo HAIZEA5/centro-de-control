@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 10;
+const OPOS_SEED_VERSION = 11;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -168,7 +168,7 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Güeñes — Administrativo',
     organismo: 'Ayto. Güeñes', puesto: 'Administrativo',
-    tipo_proceso: 'concurso', tope_meritos: 35, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', tope_meritos: 35, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -195,7 +195,7 @@ const OPOS_SEED = [
   {
     convocatoria:  'Ayto. Larrabetzu — Administrativo',
     organismo: 'Ayto. Larrabetzu', puesto: 'Administrativo',
-    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:        'YO',
     grupo:         'C2',
     estado:        'EN SEGUIMIENTO',
@@ -217,7 +217,7 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Trapagaran — Administrativo',
     organismo: 'Ayto. Trapagaran', puesto: 'Administrativo',
-    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -244,7 +244,7 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Trapagaran — Conserje',
     organismo: 'Ayto. Trapagaran', puesto: 'Conserje',
-    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           '',
     estado:          'EN PROCESO',
@@ -271,7 +271,7 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Sopela — Aux. Biblioteca',
     organismo: 'Ayto. Sopela', puesto: 'Aux. Biblioteca',
-    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -301,7 +301,7 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Portugalete — Administrativo',
     organismo: 'Ayto. Portugalete', puesto: 'Administrativo',
-    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -328,7 +328,7 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Orozko — Administrativo',
     organismo: 'Ayto. Orozko', puesto: 'Administrativo',
-    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -355,7 +355,7 @@ const OPOS_SEED = [
   {
     convocatoria:    'Getxo Kultura — Admvo. Biblioteca',
     organismo: 'Getxo Kultura', puesto: 'Admvo. Biblioteca',
-    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C1',
     estado:          'EN PROCESO',
