@@ -261,29 +261,13 @@
         <!-- Stats -->
         <div class="cards-row">
           <div class="card"><h3>Examen teórico</h3><div class="big-number" id="car-teorico-estado">—</div></div>
-          <div class="card"><h3>Próxima convocatoria</h3><div class="big-number" id="car-proxima" style="font-size:1rem">—</div></div>
+          <div class="card"><h3>Examen práctico</h3><div class="big-number" id="car-proxima" style="font-size:1rem">—</div></div>
         </div>
 
-        <!-- Tabs -->
-        <div class="car-tabs mt">
-          <button class="car-tab active" data-cartab="car-panel-examen">Examen teórico</button>
-          <button class="car-tab" data-cartab="car-panel-practicas">Prácticas</button>
-        </div>
-
-        <!-- Panel Examen teórico -->
-        <div class="car-panel active" id="car-panel-examen">
-          <div class="card mt">
-            <h3>Intentos de examen teórico</h3>
-            <div id="car-examenes-lista"><p style="color:var(--text3);font-size:.87rem">Sin intentos registrados. Añade desde ✏️ Actualizar → Carnet.</p></div>
-          </div>
-        </div>
-
-        <!-- Panel Prácticas -->
-        <div class="car-panel" id="car-panel-practicas">
-          <div class="card mt">
-            <h3>Sesiones de prácticas</h3>
-            <div id="car-practicas-lista"><p style="color:var(--text3);font-size:.87rem">Sin prácticas registradas. Añade desde ✏️ Actualizar → Carnet.</p></div>
-          </div>
+        <!-- Prácticas -->
+        <div class="card mt">
+          <h3>🚘 Clases prácticas</h3>
+          <div id="car-practicas-lista"><p style="color:var(--text3);font-size:.87rem">Sin clases registradas. Añade desde ✏️ Actualizar → Carnet.</p></div>
         </div>
       </section>
 
@@ -890,9 +874,9 @@
             </div>
           </div>
 
-          <!-- Próxima convocatoria -->
-          <div class="card">
-            <h3>📅 Próxima convocatoria de examen</h3>
+          <!-- Examen práctico -->
+          <div class="card mt">
+            <h3>🚗 Examen práctico</h3>
             <div class="update-form">
               <div class="form-group">
                 <label>Estado</label>
@@ -914,40 +898,9 @@
             </div>
           </div>
 
-          <!-- Añadir intento de examen — resultado automático por fallos -->
+          <!-- Añadir clase práctica -->
           <div class="card mt">
-            <h3 style="margin-bottom:12px">🎯 Añadir intento de examen teórico</h3>
-            <div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;align-items:end;margin-bottom:10px">
-              <div class="form-group" style="margin:0">
-                <label style="font-size:.72rem">Fecha del examen</label>
-                <input type="date" id="upd-car-exam-fecha" style="width:100%" />
-              </div>
-              <div class="form-group" style="margin:0">
-                <label style="font-size:.72rem">Resultado <span style="color:var(--text3);font-weight:400">(auto)</span></label>
-                <select id="upd-car-exam-resultado" style="width:100%">
-                  <option value="suspendido">❌ Suspendido</option>
-                  <option value="aprobado">✅ Aprobado</option>
-                </select>
-              </div>
-              <div class="form-group" style="margin:0">
-                <label style="font-size:.72rem">Fallos</label>
-                <input type="number" id="upd-car-exam-fallos" placeholder="0" min="0" max="30" style="width:100%"
-                  oninput="document.getElementById('upd-car-exam-resultado').value=parseInt(this.value||'99')<=3?'aprobado':'suspendido'" />
-              </div>
-            </div>
-            <div class="form-group" style="margin-bottom:12px">
-              <label style="font-size:.72rem">Notas</label>
-              <input type="text" id="upd-car-exam-nota" placeholder="Ej: Fallé señales de tráfico y velocidades" />
-            </div>
-            <div class="form-actions">
-              <button class="btn-primary" onclick="car_guardarExamen()">Guardar examen</button>
-              <span class="update-success" id="upd-car-exam-ok">✓ Guardado</span>
-            </div>
-          </div>
-
-          <!-- Añadir práctica — oculto hasta aprobar el teórico -->
-          <div class="card mt" style="display:none" id="upd-car-practica-card">
-            <h3>🚘 Añadir práctica</h3>
+            <h3>🚘 Añadir clase práctica</h3>
             <div class="update-form">
               <div class="form-group">
                 <label>Fecha</label>
@@ -959,11 +912,11 @@
               </div>
             </div>
             <div class="form-group" style="margin-bottom:14px">
-              <label>Notas de la práctica</label>
+              <label>Notas</label>
               <input type="text" id="upd-car-prac-nota" placeholder="Ej: Rotondas, aparcamiento en paralelo…" />
             </div>
             <div class="form-actions">
-              <button class="btn-primary" onclick="car_guardarPractica()">Guardar práctica</button>
+              <button class="btn-primary" onclick="car_guardarPractica()">Guardar clase</button>
               <span class="update-success" id="upd-car-prac-ok">✓ Guardado</span>
             </div>
           </div>

@@ -99,12 +99,11 @@ function _dashCarnet() {
   const el = document.getElementById('dash-car-content');
   if (!el) return;
 
-  const examenes  = Store.get('car_examenes', []);
   const practicas = Store.get('car_practicas', []);
   const cfg       = Store.get('car_config');
 
   const estadoLabel = { pendiente:'⏳ Pendiente de fecha', en_proceso:'🔄 En proceso', convocado:'📅 Convocado' };
-  const aprobado    = cfg.teorico_estado === 'aprobado' || examenes.some(e => e.resultado === 'aprobado');
+  const aprobado    = cfg.teorico_estado === 'aprobado';
 
   let proximaStr = '';
   let diasColor  = 'var(--accent2)';
@@ -132,7 +131,7 @@ function _dashCarnet() {
   el.innerHTML = `
     <div class="dash-row">
       <span class="dash-row-label">Examen teórico</span>
-      <span class="dash-row-val ${aprobado ? 'green' : examenes.length ? 'red' : ''}">${aprobado ? '✅ Aprobado' : examenes.length ? `❌ ${examenes.length} intento${examenes.length!==1?'s':''}` : 'Pendiente'}</span>
+      <span class="dash-row-val ${aprobado ? 'green' : cfg.teorico_estado === 'suspendido' ? 'red' : ''}">${aprobado ? '✅ Aprobado' : cfg.teorico_estado === 'suspendido' ? '❌ Suspendido' : 'Pendiente'}</span>
     </div>
     <div class="dash-row">
       <span class="dash-row-label">Prácticas</span>
