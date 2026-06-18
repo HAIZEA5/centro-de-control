@@ -1483,7 +1483,6 @@ function ctv_simularCrecimiento(saldoInicial, metaTotal) {
 
   return [
     { label: 'Menor de 36 años', deduccion: 0.23 },
-    { label: '36 años o más',    deduccion: 0.18 },
   ].map(esc => {
     let saldo = saldoInicial;
     let pendienteHacienda = 0; // devolución pendiente de recibir el siguiente año
