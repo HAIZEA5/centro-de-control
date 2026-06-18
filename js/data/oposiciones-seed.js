@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 9;
+const OPOS_SEED_VERSION = 10;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -51,7 +51,7 @@ const OPOS_SEED = [
     estado:         'EN PROCESO',
     fase:           'Fase Oposición',
     fecha_examen:   '2026-06-20',
-    hora_examen:    '13:30',
+    hora_examen:    '17:30',
     tasa_pagada:    'SI',
     doc_solicitud:  'Listo',
     doc_dni:        'Pendiente',
