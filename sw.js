@@ -1,5 +1,5 @@
 // ─── SERVICE WORKER — Centro de Control ───
-const CACHE = 'cdc-v1';
+const CACHE = 'cdc-v3';
 
 const SHELL = [
   '/',
@@ -12,13 +12,19 @@ const SHELL = [
   '/js/dashboard.js',
   '/js/finanzas_data.js',
   '/js/sheets.js',
+  '/js/utils/store.js',
+  '/js/utils/fmt.js',
+  '/js/data/supabase-sync.js',
+  '/js/data/oposiciones-seed.js',
   '/js/modules/actualizar.js',
   '/js/modules/agenda.js',
   '/js/modules/carnet.js',
   '/js/modules/excel.js',
   '/js/modules/finanzas.js',
+  '/js/modules/it-txartelas.js',
   '/js/modules/oposiciones.js',
   '/js/modules/piso.js',
+  '/js/modules/tareas.js',
   '/icons/icon.svg',
   '/icons/icon-maskable.svg',
 ];
@@ -56,12 +62,11 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Static assets: cache first, update in background
+  // Static assets: network first, fall back to cache
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      const fresh = fetch(e.request).then(res => { updateCache(e.request, res.clone()); return res; });
-      return cached || fresh;
-    })
+    fetch(e.request)
+      .then(res => { updateCache(e.request, res.clone()); return res; })
+      .catch(() => caches.match(e.request))
   );
 });
 
