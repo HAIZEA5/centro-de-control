@@ -1,5 +1,14 @@
 // ─── MÓDULO CARNET ───
 
+// Inicializar estado teórico como aprobado si aún no está definido
+(function _carnetInit() {
+  const cfg = Store.get('car_config');
+  if (!cfg.teorico_estado) {
+    cfg.teorico_estado = 'aprobado';
+    Store.set('car_config', cfg);
+  }
+})();
+
 function _fmtFecha(f) {
   if (!f) return '—';
   const num = parseFloat(f);
