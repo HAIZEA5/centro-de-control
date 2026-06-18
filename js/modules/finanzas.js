@@ -1772,17 +1772,13 @@ function ctv_addAportacion() {
   Store.set('ctv_aportaciones', lista);
   document.getElementById('ctv-apt-importe').value = '';
   document.getElementById('ctv-apt-nota').value = '';
-  // Refresca lista y tarjeta
-  const listEl = document.getElementById('ctv-apt-lista');
-  if (listEl) listEl.innerHTML = ctv_renderAportaciones(lista, anio);
   renderFinStats();
+  renderFinCTVSimulador();
 }
 
 function ctv_delAportacion(ts) {
   const lista = Store.get('ctv_aportaciones', []).filter(a => a.ts !== ts);
   Store.set('ctv_aportaciones', lista);
-  const anio = new Date().getFullYear();
-  const listEl = document.getElementById('ctv-apt-lista');
-  if (listEl) listEl.innerHTML = ctv_renderAportaciones(lista, anio);
   renderFinStats();
+  renderFinCTVSimulador();
 }
