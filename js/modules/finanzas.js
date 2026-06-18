@@ -1660,61 +1660,81 @@ function renderFinCTVSimulador() {
 
     <!-- Proyecciones con gráfico visual -->
     <div style="font-weight:700;font-size:.9rem;color:var(--text1);margin-bottom:12px">📈 Simulación de crecimiento año a año</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">
+    <div style="display:flex;flex-direction:column;gap:14px">
       ${sims.map((sim, si) => {
         const c = colorSim[si];
         const lastRow = sim.rows[sim.rows.length - 1];
         const aniosSim = lastRow.alcanzado ? lastRow.anio : '—';
         const devAnual = fmt(LIMITE_ANUAL * sim.deduccion);
+        const totalHacienda = sim.rows.reduce((a,r) => a + r.haciendaRecibida, 0);
         const maxSaldo = Math.max(...sim.rows.map(r => r.saldo), metaTotal);
+        const CHART_H = 110;
         return `
-        <div class="card" style="border-top:3px solid ${c};padding:14px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div class="card" style="border-top:3px solid ${c};padding:20px">
+          <!-- Cabecera -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
             <div>
-              <div style="font-weight:700;color:${c};font-size:.88rem">${sim.label}</div>
-              <div style="font-size:.7rem;color:var(--text3)">Deducción ${(sim.deduccion*100).toFixed(0)}% · ${devAnual}/año de Hacienda</div>
+              <div style="font-weight:800;color:${c};font-size:1rem">${sim.label}</div>
+              <div style="font-size:.75rem;color:var(--text3);margin-top:2px">Deducción ${(sim.deduccion*100).toFixed(0)}% · Hacienda devuelve <strong style="color:#34d399">${devAnual}/año</strong></div>
             </div>
-            <div style="text-align:right">
-              <div style="font-size:2rem;font-weight:900;color:${c};line-height:1">${aniosSim}</div>
-              <div style="font-size:.63rem;color:var(--text3)">${typeof aniosSim==='number'?'años para la meta':''}</div>
-            </div>
-          </div>
-          <!-- Stats -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">
-            <div style="background:var(--bg4);border-radius:7px;padding:7px 8px;text-align:center">
-              <div style="font-size:.6rem;color:var(--text3)">Intereses</div>
-              <div style="font-weight:700;color:#34d399;font-size:.82rem">${fmt(sim.totalIntereses)}</div>
-            </div>
-            <div style="background:var(--bg4);border-radius:7px;padding:7px 8px;text-align:center">
-              <div style="font-size:.6rem;color:var(--text3)">Hacienda total</div>
-              <div style="font-weight:700;color:#34d399;font-size:.82rem">+${fmt(sim.rows.reduce((a,r)=>a+r.haciendaRecibida,0))}</div>
-            </div>
-            <div style="background:var(--bg4);border-radius:7px;padding:7px 8px;text-align:center">
-              <div style="font-size:.6rem;color:var(--text3)">Bonus KTX</div>
-              <div style="font-weight:700;color:${c};font-size:.82rem">${fmt(sim.bonusFinal)}</div>
+            <div style="text-align:right;background:${c}18;border:1px solid ${c}44;border-radius:10px;padding:8px 16px">
+              <div style="font-size:2.4rem;font-weight:900;color:${c};line-height:1">${aniosSim}</div>
+              <div style="font-size:.68rem;color:var(--text3);margin-top:2px">${typeof aniosSim==='number'?'años para la meta':''}</div>
             </div>
           </div>
-          <!-- Gráfico de barras -->
-          <div style="margin-bottom:12px">
-            <div style="display:flex;align-items:flex-end;gap:3px;height:60px;padding:0 2px">
-              ${sim.rows.slice(0,10).map(r => {
-                const h = Math.max(4, Math.round((r.saldo / maxSaldo) * 56));
-                const metaH = Math.round((metaTotal / maxSaldo) * 56);
-                const superado = r.saldo >= metaTotal;
-                return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" title="Año ${r.anio}: ${fmt(r.saldo)}">
-                  <div style="width:100%;height:${h}px;background:${superado ? c : c+'66'};border-radius:3px 3px 0 0;position:relative;transition:height .3s">
-                    ${superado ? `<div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:8px">✓</div>` : ''}
-                  </div>
-                  <div style="font-size:.56rem;color:var(--text3);white-space:nowrap">${r.anio}</div>
-                </div>`;
-              }).join('')}
-              ${sim.rows.length > 10 ? `<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--text3)">…</div>` : ''}
+          <!-- Stats 4 columnas -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:20px">
+            <div style="background:var(--bg4);border-radius:10px;padding:10px 14px">
+              <div style="font-size:.65rem;color:var(--text3);margin-bottom:4px">Saldo inicial</div>
+              <div style="font-weight:700;color:var(--text1);font-size:.95rem">${fmt(ctv)}</div>
             </div>
-            <div style="font-size:.63rem;color:var(--text3);margin-top:2px;text-align:center">Primeros ${Math.min(10, sim.rows.length)} años — barra llena = meta alcanzada</div>
+            <div style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:10px 14px">
+              <div style="font-size:.65rem;color:var(--text3);margin-bottom:4px">Intereses CTV</div>
+              <div style="font-weight:700;color:#34d399;font-size:.95rem">${fmt(sim.totalIntereses)}</div>
+            </div>
+            <div style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:10px 14px">
+              <div style="font-size:.65rem;color:var(--text3);margin-bottom:4px">Hacienda total</div>
+              <div style="font-weight:700;color:#34d399;font-size:.95rem">+${fmt(totalHacienda)}</div>
+            </div>
+            <div style="background:${c}12;border:1px solid ${c}33;border-radius:10px;padding:10px 14px">
+              <div style="font-size:.65rem;color:var(--text3);margin-bottom:4px">Bonus Kutxabank</div>
+              <div style="font-weight:700;color:${c};font-size:.95rem">${fmt(sim.bonusFinal)}</div>
+            </div>
+          </div>
+          <!-- Gráfico de barras mejorado -->
+          <div style="margin-bottom:8px">
+            <div style="position:relative;padding-top:24px">
+              <!-- Línea de meta -->
+              <div style="position:absolute;top:0;left:0;right:0;border-top:1px dashed ${c}88;display:flex;align-items:center;padding-left:4px">
+                <span style="font-size:.6rem;color:${c};background:var(--surface);padding:0 4px;white-space:nowrap">Meta ${fmt(metaTotal)}</span>
+              </div>
+              <!-- Barras -->
+              <div style="display:flex;align-items:flex-end;gap:4px;height:${CHART_H}px">
+                ${sim.rows.map(r => {
+                  const h = Math.max(6, Math.round((r.saldo / maxSaldo) * CHART_H));
+                  const superado = r.saldo >= metaTotal;
+                  const bg = superado
+                    ? `linear-gradient(180deg,${c},${c}bb)`
+                    : `linear-gradient(180deg,${c}77,${c}44)`;
+                  return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:0;cursor:default" title="${fmt(r.saldo)}">
+                    <div style="font-size:.58rem;color:${superado?c:'var(--text3)'};font-weight:${superado?700:400};margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center">
+                      ${r.saldo >= 1000 ? (r.saldo/1000).toFixed(1)+'k' : fmt(r.saldo)}
+                    </div>
+                    <div style="width:100%;height:${h}px;background:${bg};border-radius:4px 4px 0 0;position:relative;transition:height .4s">
+                      ${superado ? `<div style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:10px">✅</div>` : ''}
+                    </div>
+                    <div style="font-size:.62rem;color:var(--text3);margin-top:4px;font-weight:${superado?700:400};color:${superado?c:'var(--text3)'}">${r.anio}</div>
+                  </div>`;
+                }).join('')}
+              </div>
+            </div>
+            <div style="font-size:.65rem;color:var(--text3);margin-top:6px;text-align:center">
+              Cada barra = saldo CTV a fin de año · ✅ = meta alcanzada · ${sim.rows.length} años simulados
+            </div>
           </div>
           <!-- Tabla detallada colapsable -->
-          <details style="font-size:.75rem">
-            <summary style="cursor:pointer;color:var(--text3);font-size:.73rem;margin-bottom:6px;list-style:none;display:flex;align-items:center;gap:6px">
+          <details style="font-size:.75rem;margin-top:8px">
+            <summary style="cursor:pointer;color:var(--text3);font-size:.75rem;margin-bottom:6px;list-style:none;display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid var(--border2)">
               <span style="color:${c}">▸</span> Ver tabla año a año
             </summary>
             <div style="overflow-x:auto;margin-top:8px">
