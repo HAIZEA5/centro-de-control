@@ -1578,7 +1578,7 @@ function renderFinCTVSimulador() {
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
         <div style="font-size:.63rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Año estimado compra</div>
         <div style="font-size:1.45rem;font-weight:900;color:var(--accent);line-height:1">${anioCompra ? anioCompra : '—'}</div>
-        <div style="font-size:.65rem;color:var(--text3);margin-top:4px">${filaMeta ? `en ${filaMeta.anio} ${filaMeta.anio===1?'año':'años'} (esc. 23%)` : 'más de 25 años'}</div>
+        <div style="font-size:.65rem;color:var(--text3);margin-top:4px">${filaMeta ? `en ${filaMeta.anio} ${filaMeta.anio===1?'año':'años'} (esc. 23%)` : '—'}</div>
       </div>
       <div style="background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(99,102,241,.05));border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:12px 14px">
         <div style="font-size:.63rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Total beneficios fiscales</div>
@@ -1665,7 +1665,7 @@ function renderFinCTVSimulador() {
       ${sims.map((sim, si) => {
         const c = colorSim[si];
         const lastRow = sim.rows[sim.rows.length - 1];
-        const aniosSim = lastRow.alcanzado ? lastRow.anio : '> 25';
+        const aniosSim = lastRow.alcanzado ? lastRow.anio : '—';
         const devAnual = fmt(LIMITE_ANUAL * sim.deduccion);
         const maxSaldo = Math.max(...sim.rows.map(r => r.saldo), metaTotal);
         return `
