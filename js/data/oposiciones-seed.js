@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 13;
+const OPOS_SEED_VERSION = 14;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -217,9 +217,9 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Trapagaran — Administrativo',
     organismo: 'Ayto. Trapagaran', puesto: 'Administrativo',
-    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', tope_meritos: 27, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
-    grupo:           'C2',
+    grupo:           'C1',
     estado:          'EN PROCESO',
     fase:            'Pendiente examen',
     fecha_apertura:  '2026-04-20',
@@ -234,7 +234,7 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '1 plaza de Administrativo de Servicios Generales. Concurso-oposición libre. BOE 20/04/2026. Plazo cerrado 14/05/2026. Bases BOB nº 57 de 25/03/2026. ⚠️ Baremo méritos: consultar bases en BOB nº 57/2026.',
+    notas: '1 plaza de Administrativo de Servicios Generales. Grupo C1, PL2 preceptivo. Concurso-oposición libre. BOE 20/04/2026. Plazo cerrado 14/05/2026. Bases BOB nº 57 de 25/03/2026. Oposición (60 pts): test general 0-10 mín 5 + test específico 0-20 mín 10 + práctico 0-30 mín 15 + euskera eliminatorio. Baremo concurso (máx 27 pts): experiencia AAPP C1 últimos 10 años 0,175 pts/mes máx 14 pts + formación máx 13 pts (licenciatura 4pts, FP sup 3pts, cursos por horas, IT Txartela 0,50 pts/certif máx 2pts, idiomas UE) + euskera NO puntúa (suprimido por Decreto 375/2026). Sin puntuación por experiencia privada.',
     url_boe:   'https://www.preparaoposiciones.com/blog/convocatorias/oposicion-administrativo-ayuntamiento-valle-de-trapaga-trapagaran-2026/',
     url_bases: 'https://www.canaloposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_valle_de_trapaga_trapagaran-2ala7536ap1.htm',
     // Concurso-oposición: baremo experiencia + euskera + formación
@@ -244,9 +244,9 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Trapagaran — Conserje',
     organismo: 'Ayto. Trapagaran', puesto: 'Conserje',
-    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', tope_meritos: 12, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
-    grupo:           '',
+    grupo:           'AGR',
     estado:          'EN PROCESO',
     fase:            'Pendiente examen',
     fecha_apertura:  '2026-04-20',
@@ -261,7 +261,7 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '2 plazas de Conserje. Concurso-oposición libre. BOE 20/04/2026. Plazo cerrado 18/05/2026. Bases BOB nº 201 de 21/10/2025. ⚠️ Baremo méritos: consultar bases en BOB nº 201/2025.',
+    notas: '2 plazas de Conserje (Colegio RPT23.1 + Palacio RPT24.1). Grupo AGR, PL2 preceptivo. Concurso-oposición libre. BOB nº 57 de 25/03/2026. BOE 20/04/2026. Plazo cerrado 18/05/2026. Oposición: 2 test teórico (15 pts c/u, mín 7.5) + euskera apto/no apto. Baremo méritos (máx 12 pts): experiencia AAPP conserje 0,138 pts/mes (máx 10 pts) + IT Txartela 0,50 pts/certificación (Outlook/Word av/Excel av/Internet av) máx 2 pts. Sin puntuación por experiencia privada ni euskera superior.',
     url_boe:   'https://www.preparaoposiciones.com/blog/convocatorias/oposicion-conserje-valle-de-trapaga-2026-2-plazas-concurso-oposicion/',
     url_bases: 'https://www.canaloposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_valle_de_trapaga_trapagaran-2ala7536ap1.htm',
     // Concurso-oposición. Experiencia admin. local puede computar como servicios en AA.PP.
@@ -301,9 +301,9 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Portugalete — Administrativo',
     organismo: 'Ayto. Portugalete', puesto: 'Administrativo',
-    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', tope_meritos: 6, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
-    grupo:           'C2',
+    grupo:           'C1',
     estado:          'EN PROCESO',
     fase:            'Pendiente examen',
     fecha_apertura:  '2026-05-08',
@@ -318,7 +318,7 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '9 plazas (8 libre + 1 discapacidad). Personal laboral fijo. Concurso-oposición libre. BOE-A-2026-9991 (08/05/2026). Bases BOB nº 246 de 26/12/2025. Plazo cerrado 05/06/2026. ⚠️ Baremo méritos: consultar bases en BOB nº 246/2025.',
+    notas: '9 plazas (6 libre PL2 preceptivo + 2 libre PL2 no preceptivo + 1 discapacidad). Grupo C1. Personal laboral fijo. Concurso-oposición libre. BOE-A-2026-9991 (08/05/2026). Bases BOB nº 246 de 26/12/2025. Plazo cerrado 05/06/2026. Oposición (20 pts): test 110 preg 0-10 mín 4 + test práctico 25 preg 0-10 mín 4 (suma mín 10 pts) + euskera eliminatorio (plazas preceptivo). Baremo concurso: exp AAPP C1 0,1 pts/mes máx 3 pts + formación 0,02 pts/hora máx 2,3 pts + IT Txartela 0,05 pts básico / 0,10 pts avanzado máx 0,3 pts + euskera solo plazas no preceptivo (PL1=1,4 PL2=2,4 pts). Tope preceptivo: 5,6 pts; no preceptivo: 8 pts.',
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-9991',
     url_bases: 'https://www.preparaoposiciones.com/blog/convocatorias/oposiciones-ayuntamiento-de-portugalete-2026-22-plazas-convocadas/',
     url_extra1:'https://www.portugalete.org/es-ES/Tramites/Paginas/ope-administrativo-oiac.aspx',
@@ -330,7 +330,7 @@ const OPOS_SEED = [
     organismo: 'Ayto. Orozko', puesto: 'Administrativo',
     tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
-    grupo:           'C2',
+    grupo:           'C1',
     estado:          'EN PROCESO',
     fase:            'Pendiente examen',
     fecha_apertura:  '2026-05-07',
@@ -345,7 +345,7 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '2 plazas de Administrativo. Concurso-oposición libre. BOE-A-2026-9924 (07/05/2026). Bases BOB nº 248 de 30/12/2022 (modificadas 22/12/2025). Plazo cerrado 04/06/2026. ⚠️ Baremo méritos: consultar bases modificadas BOB 22/12/2025.',
+    notas: '2 plazas de Administrativo (ampliadas de 1). Grupo C1, PL2 preceptivo. Concurso-oposición libre. Bases BOB nº 248 de 30/12/2022 (ampliación BOB nº 244 de 22/12/2025). BOE-A-2026-9924 (07/05/2026). Plazo cerrado 04/06/2026. ⚠️ Baremo méritos: consultar bases originales BOB nº 248/2022.',
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-9924',
     url_bases: 'https://www.canaloposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_orozko-2ala7531ap1.htm',
     url_extra1:'http://www.orozkoudala.com/es-ES/Ayuntamiento/Paginas/default.aspx',
