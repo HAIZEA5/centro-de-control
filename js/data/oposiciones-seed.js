@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 11;
+const OPOS_SEED_VERSION = 12;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -271,7 +271,7 @@ const OPOS_SEED = [
   {
     convocatoria:    'Ayto. Sopela — Aux. Biblioteca',
     organismo: 'Ayto. Sopela', puesto: 'Aux. Biblioteca',
-    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', tope_meritos: 15, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -290,7 +290,7 @@ const OPOS_SEED = [
     doc_extra1:      'Listo',
     doc_extra2_nombre: 'Hoja de méritos / autobaremo',
     doc_extra2:      'Pendiente',
-    notas: '1 plaza de Auxiliar de Biblioteca. Concurso-oposición libre. Grupo C2 nivel 19. Requiere: Graduado escolar/FP2 + PL2 euskera. BOE-A-2026-9252 (28/04/2026). Bases BOB nº 212 de 04/11/2024.',
+    notas: '1 plaza de Auxiliar de Biblioteca. Concurso-oposición libre. Grupo C2 nivel 19. Requiere: Graduado escolar/FP2 + PL2 euskera (ejercicio eliminatorio). BOE-A-2026-9252 (28/04/2026). Bases BOB nº 212 de 04/11/2024. Baremo méritos: experiencia en AAPP (aux. biblioteca) 3 pts/año — máx 15 pts.',
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-9252',
     url_bases: 'https://www.preparaoposiciones.com/blog/convocatorias/oposicion-auxiliar-biblioteca-sopela-2026-1-plaza-por-concurso-oposicion/',
     url_extra1:'https://www.bibliopos.es/1-plaza-de-auxiliar-de-biblioteca-ayuntamiento-de-sopela-bizkaia-2026/',
@@ -355,7 +355,7 @@ const OPOS_SEED = [
   {
     convocatoria:    'Getxo Kultura — Admvo. Biblioteca',
     organismo: 'Getxo Kultura', puesto: 'Admvo. Biblioteca',
-    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    tipo_proceso: 'concurso-oposicion', tope_meritos: 30, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C1',
     estado:          'EN PROCESO',
@@ -374,9 +374,9 @@ const OPOS_SEED = [
     doc_extra1:      'Listo',
     doc_extra2_nombre: 'Hoja de méritos / autobaremo',
     doc_extra2:      'Pendiente',
-    notas: '6 plazas de Administrativo/a de Biblioteca (C1). Personal laboral fijo. Concurso-oposición libre. Requiere: Bachiller/técnico + PL2 euskera. BOE-A-2026-10456 + BOE-A-2026-11105 (23/05/2026). Bases BOP Bizkaia nº 73 de 21/04/2026. Organismo Autónomo Local Getxo Kultura.',
+    notas: '6 plazas de Administrativo/a de Biblioteca (C1). Personal laboral fijo. Concurso-oposición libre. 3 ejercicios eliminatorios + méritos. Requiere: Bachiller/técnico + PL2 euskera. BOE-A-2026-10456 + BOE-A-2026-11105 (23/05/2026). Bases BOB nº 73 de 21/04/2026. Organismo Autónomo Local Getxo Kultura. Baremo méritos: 30 pts total (18 experiencia AAPP + 12 formación/idiomas/informática). ⚠️ INSCRIPCIÓN CIERRA 19/06/2026.',
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-10456',
-    url_bases: 'https://www.preparaoposiciones.com/blog/convocatorias/6-plazas-de-administrativoa-de-biblioteca-en-getxo-bizkaia-2026/',
+    url_bases: 'https://www.bizkaia.eus/lehendakaritza/Bao_bob/2026/04/21/II-1905_cas.pdf',
     url_extra1:'https://www.bibliopos.es/6-plazas-de-administrativo-a-de-biblioteca-ayuntamiento-de-getxo-bizkaia-2026-2/',
     url_extra2:'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-11105',
     // C1 concurso-oposición: experiencia admin local puntúa + B2=PL2 requerido y puntúa
