@@ -129,10 +129,10 @@ function renderFinStats() {
   const haciendaTip = document.getElementById('fin-ctv-hacienda-tip');
   if (anualBar) anualBar.style.width = pctAnual.toFixed(1) + '%';
   if (anualPct) anualPct.textContent = pctAnual.toFixed(0) + '%';
-  if (anualInfo) anualInfo.textContent = `${fmt(aportadoAnio)} / ${fmt(LIMITE_ANUAL)} — quedan ${fmt(LIMITE_ANUAL - aportadoAnio)}`;
+  if (anualInfo) anualInfo.textContent = `${fmt(aportadoAnio)} / ${fmt(LIMITE_ANUAL)} año`;
   if (haciendaTip) {
     const devolucion = Math.min(aportadoAnio, LIMITE_ANUAL) * 0.23;
-    haciendaTip.textContent = devolucion > 0 ? `🏦 Devolución estimada IRPF: +${fmt(devolucion)}` : '';
+    haciendaTip.textContent = devolucion > 0 ? `🏦 IRPF: +${fmt(devolucion)}` : '';
   }
 }
 
