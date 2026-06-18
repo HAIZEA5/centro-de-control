@@ -121,23 +121,15 @@
             <div class="card fin-cuenta-card" style="border-left:3px solid #34d399">
               <div class="fin-cuenta-label">CTV – Vivienda</div>
               <div class="fin-cuenta-num green" id="fin-ctv-saldo">—</div>
-              <!-- Barra meta piso -->
               <div class="progress-wrap" style="margin-top:6px">
                 <div class="progress-bar"><div class="progress-fill" id="fin-objetivo-bar" style="width:0%"></div></div>
                 <span class="progress-pct" id="fin-objetivo-pct">0%</span>
               </div>
-              <div style="font-size:.6rem;color:var(--text3);margin-top:2px">Meta piso</div>
-              <!-- Barra aportación anual -->
-              <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border2)">
-                <div style="display:flex;align-items:center;gap:5px">
-                  <div style="flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden">
-                    <div id="fin-ctv-anual-bar" style="height:100%;background:#34d399;border-radius:2px;width:0%;transition:width .4s"></div>
-                  </div>
-                  <span id="fin-ctv-anual-pct" style="font-size:.62rem;color:#34d399;font-weight:700;white-space:nowrap">0%</span>
-                </div>
-                <div id="fin-ctv-anual-info" style="font-size:.6rem;color:var(--text3);margin-top:2px">0 € / 8.500 € año</div>
-              </div>
-              <div id="fin-ctv-hacienda-tip" style="margin-top:4px;font-size:.6rem;color:#34d399;font-weight:600"></div>
+              <div style="font-size:.6rem;color:var(--text3);margin-top:2px">Meta entrada piso</div>
+              <div id="fin-ctv-anual-bar" style="display:none"></div>
+              <div id="fin-ctv-anual-pct" style="display:none"></div>
+              <div id="fin-ctv-anual-info" style="display:none"></div>
+              <div id="fin-ctv-hacienda-tip" style="display:none"></div>
             </div>
             <div class="card fin-cuenta-card" style="border-left:3px solid #fbbf24">
               <div class="fin-cuenta-label">Baskepensiones</div>
