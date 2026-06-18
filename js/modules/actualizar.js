@@ -61,14 +61,20 @@ function opos_liveMeritos() {
   }, 0));
 
   const ptsForm  = ptsEusk + ptsTit;
-  const total    = ptsServ + ptsForm + ptsCursos;
+  const rawTotal = ptsServ + ptsForm + ptsCursos;
+  const tipo  = document.getElementById('upd-opos-tipo-proceso')?.value || '';
+  const topeV = parseFloat(document.getElementById('upd-opos-tope-meritos')?.value || '') || null;
+  const total = tipo === 'libre' ? 0 : (topeV != null ? Math.min(topeV, rawTotal) : rawTotal);
   const fmt = v => v.toFixed(2).replace('.',',');
 
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set('lm-servicios', fmt(ptsServ));
   set('lm-formacion', fmt(ptsForm));
   set('lm-cursos',    fmt(ptsCursos));
-  set('lm-total',     fmt(total) + ' pts');
+  const topeWarn = tipo !== 'libre' && topeV != null && rawTotal > topeV
+    ? ` <span style="color:var(--red);font-size:.75rem">(tope ${topeV})</span>` : '';
+  const totalEl = document.getElementById('lm-total');
+  if (totalEl) totalEl.innerHTML = fmt(total) + ' pts' + topeWarn;
 }
 
 function _opos_setListaVisible(visible) {
@@ -88,14 +94,22 @@ function guardarOpos() {
     if (nombre || horas) cursos.push({ nombre: nombre||'', horas: horas||'0' });
   });
 
+  const _reqEusk = getv('upd-opos-req-euskera');
+  const _tope    = get('upd-opos-tope-meritos');
+
   const entry = {
     // Básico
-    perfil:       getv('upd-opos-perfil'),
-    convocatoria: get('upd-opos-conv'),
-    grupo:        get('upd-opos-grupo'),
-    estado:       getv('upd-opos-estado'),
-    tasa_pagada:  getv('upd-opos-tasa'),
-    fase:         getv('upd-opos-fase'),
+    perfil:        getv('upd-opos-perfil'),
+    convocatoria:  get('upd-opos-conv'),
+    grupo:         get('upd-opos-grupo'),
+    estado:        getv('upd-opos-estado'),
+    tasa_pagada:   getv('upd-opos-tasa'),
+    fase:          getv('upd-opos-fase'),
+    tipo_proceso:  getv('upd-opos-tipo-proceso'),
+    tope_meritos:  _tope ? parseFloat(_tope) : null,
+    req_euskera:   _reqEusk === 'true' ? true : _reqEusk === 'false' ? false : undefined,
+    nivel_euskera: getv('upd-opos-nivel-euskera'),
+    req_titulacion: true,
     // Fechas
     fecha_examen:      getv('upd-opos-fecha-examen'),
     hora_examen:       getv('upd-opos-hora-examen'),
@@ -173,7 +187,8 @@ function limpiarFormOpos() {
     'upd-opos-doc-e1-nombre','upd-opos-doc-e2-nombre','upd-opos-doc-e3-nombre',
     'upd-opos-m-misma','upd-opos-m-otras','upd-opos-m-priv',
     'upd-opos-bolsa-pos','upd-opos-bolsa-llamadas','upd-opos-bolsa-notas','upd-opos-bolsa-fecha',
-    'upd-opos-url-boe','upd-opos-url-bases','upd-opos-url-temario','upd-opos-url-e1','upd-opos-url-e2'];
+    'upd-opos-url-boe','upd-opos-url-bases','upd-opos-url-temario','upd-opos-url-e1','upd-opos-url-e2',
+    'upd-opos-tope-meritos','upd-opos-nivel-euskera'];
   campos.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const cb = document.getElementById('upd-opos-bolsa-entra'); if (cb) cb.checked = false;
   document.getElementById('upd-opos-cursos-container').innerHTML = '';
@@ -191,12 +206,16 @@ function editarOpos(i) {
   document.getElementById('upd-opos-cancelar').style.display = 'inline-flex';
 
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val||''; };
-  set('upd-opos-perfil',       r.perfil);
-  set('upd-opos-conv',         r.convocatoria);
-  set('upd-opos-grupo',        r.grupo);
-  set('upd-opos-estado',       r.estado);
-  set('upd-opos-tasa',         r.tasa_pagada);
-  set('upd-opos-fase',         r.fase);
+  set('upd-opos-perfil',        r.perfil);
+  set('upd-opos-conv',          r.convocatoria);
+  set('upd-opos-grupo',         r.grupo);
+  set('upd-opos-estado',        r.estado);
+  set('upd-opos-tasa',          r.tasa_pagada);
+  set('upd-opos-fase',          r.fase);
+  set('upd-opos-tipo-proceso',  r.tipo_proceso);
+  set('upd-opos-tope-meritos',  r.tope_meritos != null ? String(r.tope_meritos) : '');
+  set('upd-opos-req-euskera',   r.req_euskera === true ? 'true' : r.req_euskera === false ? 'false' : '');
+  set('upd-opos-nivel-euskera', r.nivel_euskera);
   set('upd-opos-fecha-examen', r.fecha_examen);
   set('upd-opos-hora-examen',  r.hora_examen);
   set('upd-opos-fecha-apertura',r.fecha_apertura);

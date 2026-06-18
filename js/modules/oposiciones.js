@@ -137,7 +137,14 @@ function renderOposCountdown(data) {
 
 /* ── Tabla principal ── */
 // Filtros activos (persisten mientras la sección está abierta)
-window._oposFiltros = window._oposFiltros || { texto: '', fase: '', perfil: '' };
+window._oposFiltros = window._oposFiltros || { texto: '', fase: '', perfil: '', organismo: '' };
+
+// Devuelve organismo y puesto derivados del campo convocatoria si no están explícitos
+function _oposOrgPuesto(r) {
+  const org = r.organismo || (r.convocatoria || '').split(' — ')[0]?.trim() || '';
+  const pto = r.puesto    || (r.convocatoria || '').split(' — ')[1]?.trim() || '';
+  return { org, pto };
+}
 
 function renderOposTable(data) {
   window._oposData = data;
@@ -145,15 +152,21 @@ function renderOposTable(data) {
   // ── Barra de filtros (se inyecta una sola vez) ──
   const wrap = document.getElementById('opos-table')?.closest('.card');
   if (wrap && !document.getElementById('opos-filtros-bar')) {
-    const fases   = [...new Set(data.map(r => r.fase).filter(Boolean))].sort();
-    const perfiles = [...new Set(data.map(r => r.perfil).filter(Boolean))].sort();
+    const fases     = [...new Set(data.map(r => r.fase).filter(Boolean))].sort();
+    const perfiles  = [...new Set(data.map(r => r.perfil).filter(Boolean))].sort();
+    const organismos = [...new Set(data.map(r => _oposOrgPuesto(r).org).filter(Boolean))].sort();
     const bar = document.createElement('div');
     bar.id = 'opos-filtros-bar';
     bar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center';
     bar.innerHTML = `
-      <input id="opos-f-texto" type="text" placeholder="🔍 Buscar convocatoria…"
-        style="flex:1;min-width:160px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:.83rem;font-family:inherit"
+      <input id="opos-f-texto" type="text" placeholder="🔍 Buscar…"
+        style="flex:1;min-width:140px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:.83rem;font-family:inherit"
         oninput="opos_aplicarFiltros()" value="${window._oposFiltros.texto}">
+      <select id="opos-f-organismo" onchange="opos_aplicarFiltros()"
+        style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:.83rem;font-family:inherit">
+        <option value="">Todos los organismos</option>
+        ${organismos.map(o => `<option value="${o}" ${window._oposFiltros.organismo===o?'selected':''}>${o}</option>`).join('')}
+      </select>
       <select id="opos-f-fase" onchange="opos_aplicarFiltros()"
         style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text1);font-size:.83rem;font-family:inherit">
         <option value="">Todas las fases</option>
@@ -176,27 +189,32 @@ function renderOposTable(data) {
 }
 
 function opos_aplicarFiltros() {
-  window._oposFiltros.texto  = document.getElementById('opos-f-texto')?.value.trim().toLowerCase() || '';
-  window._oposFiltros.fase   = document.getElementById('opos-f-fase')?.value || '';
-  window._oposFiltros.perfil = document.getElementById('opos-f-perfil')?.value || '';
+  window._oposFiltros.texto     = document.getElementById('opos-f-texto')?.value.trim().toLowerCase() || '';
+  window._oposFiltros.fase      = document.getElementById('opos-f-fase')?.value || '';
+  window._oposFiltros.perfil    = document.getElementById('opos-f-perfil')?.value || '';
+  window._oposFiltros.organismo = document.getElementById('opos-f-organismo')?.value || '';
   opos_renderFiltered();
 }
 
 function opos_limpiarFiltros() {
-  window._oposFiltros = { texto: '', fase: '', perfil: '' };
-  const t = document.getElementById('opos-f-texto');   if (t) t.value = '';
-  const f = document.getElementById('opos-f-fase');    if (f) f.value = '';
-  const p = document.getElementById('opos-f-perfil');  if (p) p.value = '';
+  window._oposFiltros = { texto: '', fase: '', perfil: '', organismo: '' };
+  const t = document.getElementById('opos-f-texto');     if (t) t.value = '';
+  const f = document.getElementById('opos-f-fase');      if (f) f.value = '';
+  const p = document.getElementById('opos-f-perfil');    if (p) p.value = '';
+  const o = document.getElementById('opos-f-organismo'); if (o) o.value = '';
   opos_renderFiltered();
 }
 
 function opos_renderFiltered() {
   const all   = window._oposData || [];
-  const { texto, fase, perfil } = window._oposFiltros;
+  const { texto, fase, perfil, organismo } = window._oposFiltros;
   const filtered = all.filter(r => {
-    if (texto  && !(r.convocatoria || '').toLowerCase().includes(texto)) return false;
-    if (fase   && r.fase   !== fase)   return false;
-    if (perfil && r.perfil !== perfil) return false;
+    const { org, pto } = _oposOrgPuesto(r);
+    if (texto  && !(r.convocatoria || '').toLowerCase().includes(texto) &&
+                  !org.toLowerCase().includes(texto) && !pto.toLowerCase().includes(texto)) return false;
+    if (fase      && r.fase   !== fase)     return false;
+    if (perfil    && r.perfil !== perfil)   return false;
+    if (organismo && org      !== organismo) return false;
     return true;
   });
 
@@ -215,16 +233,26 @@ function opos_renderFiltered() {
 
   tbody.innerHTML = filtered.map((r, i) => {
     const realIdx = all.indexOf(r);
+    const { org, pto } = _oposOrgPuesto(r);
+    const meritosTotal = calcMeritosTotal(r);
+    const tipoBadge = r.tipo_proceso === 'libre'
+      ? '<span class="badge badge--blue" style="font-size:.7rem">Libre</span>'
+      : r.tipo_proceso === 'concurso'
+        ? '<span class="badge badge--yellow" style="font-size:.7rem">C-O</span>'
+        : '';
     return `
     <tr class="opos-row" onclick="toggleOposDetalle(${realIdx}, this)" data-idx="${realIdx}" style="cursor:pointer">
       <td data-label="Perfil">${badgePerfil(r.perfil)}</td>
-      <td data-label="Convocatoria"><strong>${r.convocatoria || '—'}</strong></td>
+      <td data-label="Convocatoria">
+        <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'}</div>
+        <div style="font-size:.74rem;color:var(--text3);margin-top:2px">${org || ''} ${tipoBadge}</div>
+      </td>
       <td data-label="Grupo">${r.grupo || '—'}</td>
       <td data-label="Estado">${badgeEstado(r.estado)}</td>
       <td data-label="Examen">${r.fecha_examen ? formatFecha(r.fecha_examen) : '—'}</td>
       <td data-label="Tasa">${r.tasa_pagada === 'SI' ? '<span class="badge badge--green">✓ Pagada</span>' : r.tasa_pagada === 'NO' ? '<span class="badge badge--red">✗ No</span>' : '—'}</td>
       <td data-label="Bolsa">${r.bolsa_entrada === true || r.bolsa_entrada === 'true' ? `<span class="badge badge--green">Sí ${r.bolsa_posicion ? '#'+r.bolsa_posicion : ''}</span>` : '<span class="badge badge--yellow">—</span>'}</td>
-      <td data-label="Méritos">${calcMeritosTotal(r) > 0 ? `<span style="color:var(--accent2);font-weight:700">${calcMeritosTotal(r).toFixed(2)} pts</span>` : '—'}</td>
+      <td data-label="Méritos">${meritosTotal > 0 ? `<span style="color:var(--accent2);font-weight:700">${meritosTotal.toFixed(2)} pts</span>` : r.tipo_proceso === 'libre' ? '<span style="color:var(--text3);font-size:.75rem">Libre</span>' : '—'}</td>
       <td data-label="Fase">${r.fase ? `<span class="chip">${r.fase}</span>` : '—'}</td>
     </tr>
     <tr class="opos-detalle-row hidden" id="opos-det-${realIdx}">
@@ -384,18 +412,21 @@ function renderFechasPanel(r) {
 
 /* ── Panel: Documentación ── */
 function renderDocsPanel(r) {
+  const reqEusk = r.req_euskera !== false; // mostrar por defecto si no está definido
+  const reqTit  = r.req_titulacion !== false;
+  const nivelEusk = r.nivel_euskera ? ` (${r.nivel_euskera})` : '';
   const docs = [
-    { key: 'doc_solicitud',  label: 'Solicitud / Instancia' },
-    { key: 'doc_titulacion', label: 'Titulación requerida' },
-    { key: 'doc_euskera',    label: 'Acreditación euskera' },
-    { key: 'doc_dni',        label: 'DNI / NIF' },
-    { key: 'doc_cv',         label: 'Currículum vitae' },
-    { key: 'doc_meritos',    label: 'Hoja de méritos / autobaremo' },
-    { key: 'doc_discap',     label: 'Certificado discapacidad' },
-    { key: 'doc_extra1',     label: r.doc_extra1_nombre || 'Documento extra 1' },
-    { key: 'doc_extra2',     label: r.doc_extra2_nombre || 'Documento extra 2' },
-    { key: 'doc_extra3',     label: r.doc_extra3_nombre || 'Documento extra 3' },
-  ];
+    { key: 'doc_solicitud',  label: 'Solicitud / Instancia', show: true },
+    { key: 'doc_titulacion', label: 'Titulación requerida', show: reqTit },
+    { key: 'doc_euskera',    label: `Acreditación euskera${nivelEusk}`, show: reqEusk },
+    { key: 'doc_dni',        label: 'DNI / NIF', show: true },
+    { key: 'doc_cv',         label: 'Currículum vitae', show: true },
+    { key: 'doc_meritos',    label: 'Hoja de méritos / autobaremo', show: r.tipo_proceso === 'concurso' },
+    { key: 'doc_discap',     label: 'Certificado discapacidad', show: true },
+    { key: 'doc_extra1',     label: r.doc_extra1_nombre || 'Documento extra 1', show: !!r.doc_extra1 },
+    { key: 'doc_extra2',     label: r.doc_extra2_nombre || 'Documento extra 2', show: !!r.doc_extra2 },
+    { key: 'doc_extra3',     label: r.doc_extra3_nombre || 'Documento extra 3', show: !!r.doc_extra3 },
+  ].filter(d => d.show);
   const colorEstado = { 'Listo': 'badge--green', 'Pendiente': 'badge--yellow', 'No aplica': 'badge--red', '': 'badge--blue' };
   const ckKey = 'opos_checklist_' + (r.convocatoria || '').replace(/\s+/g,'_');
   const ck = Store.get(ckKey);
@@ -456,9 +487,30 @@ function renderMeritosPanel(r, i) {
     else if (h >= 10) p = 0.10;
     return acc + p;
   }, 0));
-  const total = ptsMisma + ptsOtras + ptsPriv + ptsEusk + ptsTit + ptsCursos;
+  const rawTotal = ptsMisma + ptsOtras + ptsPriv + ptsEusk + ptsTit + ptsCursos;
+  const tope  = r.tope_meritos != null ? parseFloat(r.tope_meritos) : null;
+  const total = (r.tipo_proceso === 'libre') ? 0 : (tope != null ? Math.min(tope, rawTotal) : rawTotal);
+  const esLibre = r.tipo_proceso === 'libre';
+
+  if (esLibre) return `
+  <div style="padding:20px;text-align:center;color:var(--text3)">
+    <div style="font-size:2rem;margin-bottom:8px">📋</div>
+    <div style="font-size:.9rem;font-weight:600;color:var(--text2)">Proceso selectivo — Oposición libre</div>
+    <div style="font-size:.82rem;margin-top:6px">No hay fase de concurso de méritos. La puntuación final se obtiene únicamente del examen.</div>
+  </div>`;
 
   return `
+  <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap">
+    <span style="font-size:.78rem;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:4px 12px;color:var(--text2)">
+      🏛 <strong>Concurso-oposición</strong>
+    </span>
+    ${tope != null ? `<span style="font-size:.78rem;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:4px 12px;color:var(--yellow)">
+      🎯 Tope méritos: <strong>${tope} pts</strong>
+    </span>` : ''}
+    ${tope != null && rawTotal > tope ? `<span style="font-size:.78rem;background:#ff000015;border:1px solid var(--red);border-radius:8px;padding:4px 12px;color:var(--red)">
+      ⚠️ Tus ${rawTotal.toFixed(2)} pts se recortan al tope
+    </span>` : ''}
+  </div>
   <div class="meritos-layout">
     <div class="meritos-calc">
       <div class="meritos-bloque">
@@ -510,6 +562,7 @@ function renderMeritosPanel(r, i) {
 }
 
 function calcMeritosTotal(r) {
+  if (r.tipo_proceso === 'libre') return 0;
   const m = r.meritos_calc || {};
   const ptsMisma  = Math.min(4.00, parseFloat(m.meses_misma ||0) * 0.10);
   const ptsOtras  = Math.min(2.00, parseFloat(m.meses_otras ||0) * 0.05);
@@ -520,7 +573,8 @@ function calcMeritosTotal(r) {
     const h = parseInt(c.horas||0);
     return acc + (h>=120?.8:h>=80?.6:h>=40?.4:h>=20?.2:h>=10?.1:0);
   }, 0));
-  return ptsMisma + ptsOtras + ptsPriv + ptsEusk + ptsTit + ptsCursos;
+  const total = ptsMisma + ptsOtras + ptsPriv + ptsEusk + ptsTit + ptsCursos;
+  return r.tope_meritos != null ? Math.min(r.tope_meritos, total) : total;
 }
 
 /* ── Panel: Bolsa ── */

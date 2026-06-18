@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 7;
+const OPOS_SEED_VERSION = 8;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -10,6 +10,8 @@ const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
   {
     convocatoria:   'Osakidetza — Celador/a',
+    organismo: 'Osakidetza', puesto: 'Celador/a',
+    tipo_proceso: 'libre', req_euskera: false, nivel_euskera: '', req_titulacion: true,
     perfil:         'AMBOS',
     grupo:          'OPE 23-24-25 · Grupo D',
     estado:         'EN PROCESO',
@@ -42,6 +44,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:   'Osakidetza — Operario de Servicios',
+    organismo: 'Osakidetza', puesto: 'Operario de Servicios',
+    tipo_proceso: 'libre', req_euskera: false, nivel_euskera: '', req_titulacion: true,
     perfil:         'AMBOS',
     grupo:          'OPE 23-24-25 · Grupo D',
     estado:         'EN PROCESO',
@@ -70,6 +74,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:   'Osakidetza — Auxiliar Administrativo',
+    organismo: 'Osakidetza', puesto: 'Auxiliar Administrativo',
+    tipo_proceso: 'libre', req_euskera: false, nivel_euskera: '', req_titulacion: true,
     perfil:         'YO',
     grupo:          'OPE 23-24-25 · C2',
     estado:         'EN PROCESO',
@@ -100,6 +106,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:   'Osakidetza — Administrativo',
+    organismo: 'Osakidetza', puesto: 'Administrativo',
+    tipo_proceso: 'libre', req_euskera: false, nivel_euskera: '', req_titulacion: true,
     perfil:         'YO',
     grupo:          'OPE 23-24-25 · C1',
     estado:         'EN PROCESO',
@@ -128,6 +136,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Osakidetza — Bibliotecario/Documentalista',
+    organismo: 'Osakidetza', puesto: 'Bibliotecario/Documentalista',
+    tipo_proceso: 'libre', req_euskera: false, nivel_euskera: '', req_titulacion: true,
     perfil:          'YO',
     grupo:           'OPE 23-24-25',
     estado:          'EN PROCESO',
@@ -156,6 +166,8 @@ const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
   {
     convocatoria:    'Ayto. Güeñes — Administrativo',
+    organismo: 'Ayto. Güeñes', puesto: 'Administrativo',
+    tipo_proceso: 'concurso', tope_meritos: 35, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -181,6 +193,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:  'Ayto. Larrabetzu — Administrativo',
+    organismo: 'Ayto. Larrabetzu', puesto: 'Administrativo',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:        'YO',
     grupo:         'C2',
     estado:        'EN SEGUIMIENTO',
@@ -201,6 +215,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Ayto. Trapagaran — Administrativo',
+    organismo: 'Ayto. Trapagaran', puesto: 'Administrativo',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -226,6 +242,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Ayto. Trapagaran — Conserje',
+    organismo: 'Ayto. Trapagaran', puesto: 'Conserje',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           '',
     estado:          'EN PROCESO',
@@ -251,6 +269,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Ayto. Sopela — Aux. Biblioteca',
+    organismo: 'Ayto. Sopela', puesto: 'Aux. Biblioteca',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -279,6 +299,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Ayto. Portugalete — Administrativo',
+    organismo: 'Ayto. Portugalete', puesto: 'Administrativo',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -304,6 +326,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Ayto. Orozko — Administrativo',
+    organismo: 'Ayto. Orozko', puesto: 'Administrativo',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
@@ -329,6 +353,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Getxo Kultura — Admvo. Biblioteca',
+    organismo: 'Getxo Kultura', puesto: 'Admvo. Biblioteca',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C1',
     estado:          'EN PROCESO',
@@ -362,6 +388,8 @@ const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
   {
     convocatoria:    'Ayto. Getxo — Administrativo',
+    organismo: 'Ayto. Getxo', puesto: 'Administrativo',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN SEGUIMIENTO',
@@ -380,6 +408,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Ayto. Arrigorriaga — Administrativo',
+    organismo: 'Ayto. Arrigorriaga', puesto: 'Administrativo',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN SEGUIMIENTO',
@@ -398,6 +428,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Ayto. Santurtzi — Administrativo',
+    organismo: 'Ayto. Santurtzi', puesto: 'Administrativo',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN SEGUIMIENTO',
@@ -416,6 +448,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Ayto. Santurtzi — Ayudante de Bibliotecario',
+    organismo: 'Ayto. Santurtzi', puesto: 'Ayudante de Bibliotecario',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN SEGUIMIENTO',
@@ -434,6 +468,8 @@ const OPOS_SEED = [
   },
   {
     convocatoria:    'Ayto. Leioa — Administrativo',
+    organismo: 'Ayto. Leioa', puesto: 'Administrativo',
+    tipo_proceso: 'concurso', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN SEGUIMIENTO',
@@ -479,16 +515,29 @@ function opos_applySeed() {
       actuales.push(nueva);
       añadidas++;
     } else {
-      // Actualiza solo campos del seed que no haya modificado el usuario manualmente
-      // (campos estructurales: fase, grupo, estado, fechas, urls, notas, docs)
       const seedFields = ['fase','grupo','estado','fecha_examen','hora_examen','fecha_apertura','fecha_fin_inscr',
         'url_boe','url_bases','url_temario','url_extra1','url_extra2','notas',
         'doc_solicitud','doc_dni','doc_titulacion','doc_euskera','doc_cv','doc_meritos','doc_discap',
         'doc_extra1_nombre','doc_extra1','doc_extra2_nombre','doc_extra2','doc_extra3_nombre','doc_extra3',
-        'meritos_calc'];
+        'meritos_calc','tipo_proceso','tope_meritos','req_euskera','nivel_euskera','req_titulacion'];
       seedFields.forEach(f => { if (nueva[f] !== undefined) actuales[idx][f] = nueva[f]; });
       actualizadas++;
     }
+  });
+
+  // Migración v8: rellenar campos nuevos en entradas existentes que no los tengan
+  actuales.forEach(e => {
+    if (e.tipo_proceso === undefined) {
+      e.tipo_proceso = (e.convocatoria || '').startsWith('Osakidetza') ? 'libre' : 'concurso';
+    }
+    if (e.req_euskera === undefined) {
+      e.req_euskera = e.doc_euskera !== 'No aplica' && !!e.doc_euskera;
+    }
+    if (e.nivel_euskera === undefined) {
+      e.nivel_euskera = e.req_euskera ? 'PL2' : '';
+    }
+    if (e.req_titulacion === undefined) e.req_titulacion = true;
+    if (e.tope_meritos === undefined) e.tope_meritos = null;
   });
 
   Store.set('opos_convocatorias', actuales);

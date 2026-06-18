@@ -490,6 +490,37 @@
                     <option value="Méritos">Méritos</option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label>Tipo de proceso</label>
+                  <select id="upd-opos-tipo-proceso" onchange="opos_liveMeritos()">
+                    <option value="">—</option>
+                    <option value="libre">Libre (solo oposición)</option>
+                    <option value="concurso">Concurso-oposición (con méritos)</option>
+                  </select>
+                </div>
+                <div class="form-group" id="upd-opos-tope-wrap">
+                  <label>Tope de méritos (pts)</label>
+                  <input type="number" id="upd-opos-tope-meritos" min="0" step="0.5" placeholder="Ej: 35" oninput="opos_liveMeritos()" />
+                  <span style="font-size:.72rem;color:var(--text3)">Máximo de puntos que puede aportar el concurso</span>
+                </div>
+                <div class="form-group">
+                  <label>¿Requiere acreditación de euskera?</label>
+                  <select id="upd-opos-req-euskera">
+                    <option value="">—</option>
+                    <option value="true">Sí</option>
+                    <option value="false">No (No aplica)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Nivel euskera requerido</label>
+                  <select id="upd-opos-nivel-euskera">
+                    <option value="">—</option>
+                    <option value="PL1">PL1 (A2)</option>
+                    <option value="PL2">PL2 (B2)</option>
+                    <option value="PL3">PL3 (C1)</option>
+                    <option value="PL4">PL4 (C2)</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -1051,27 +1082,27 @@
     </div>
   </main>
 
-  <script src="js/data/supabase-sync.js?v=20260618"></script>
-  <script src="js/utils/store.js?v=20260618"></script>
-  <script src="js/utils/fmt.js?v=20260618"></script>
+  <script src="js/data/supabase-sync.js?v=20260619"></script>
+  <script src="js/utils/store.js?v=20260619"></script>
+  <script src="js/utils/fmt.js?v=20260619"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-  <script src="js/config.js?v=20260618"></script>
-  <script src="js/finanzas_data.js?v=20260618"></script>
-  <script src="js/auth.js?v=20260618"></script>
-  <script src="js/sheets.js?v=20260618"></script>
-  <script src="js/modules/finanzas.js?v=20260618"></script>
-  <script src="js/modules/piso.js?v=20260618"></script>
-  <script src="js/modules/carnet.js?v=20260618"></script>
-  <script src="js/data/oposiciones-seed.js?v=20260618"></script>
-  <script src="js/modules/oposiciones.js?v=20260618"></script>
-  <script src="js/modules/crochet.js?v=20260618"></script>
-  <script src="js/modules/agenda.js?v=20260618"></script>
-  <script src="js/modules/excel.js?v=20260618"></script>
-  <script src="js/modules/actualizar.js?v=20260618"></script>
-  <script src="js/dashboard.js?v=20260618"></script>
-  <script src="js/app.js?v=20260618"></script>
+  <script src="js/config.js?v=20260619"></script>
+  <script src="js/finanzas_data.js?v=20260619"></script>
+  <script src="js/auth.js?v=20260619"></script>
+  <script src="js/sheets.js?v=20260619"></script>
+  <script src="js/modules/finanzas.js?v=20260619"></script>
+  <script src="js/modules/piso.js?v=20260619"></script>
+  <script src="js/modules/carnet.js?v=20260619"></script>
+  <script src="js/data/oposiciones-seed.js?v=20260619"></script>
+  <script src="js/modules/oposiciones.js?v=20260619"></script>
+  <script src="js/modules/crochet.js?v=20260619"></script>
+  <script src="js/modules/agenda.js?v=20260619"></script>
+  <script src="js/modules/excel.js?v=20260619"></script>
+  <script src="js/modules/actualizar.js?v=20260619"></script>
+  <script src="js/dashboard.js?v=20260619"></script>
+  <script src="js/app.js?v=20260619"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
