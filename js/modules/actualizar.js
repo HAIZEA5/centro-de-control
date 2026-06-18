@@ -579,7 +579,7 @@ function aplicarFinanzasLocales(datos) {
 ════════════════════════════════ */
 function setupUpdCarnet() {
   const _d = new Date(); const hoy = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
-  ['upd-car-test-fecha','upd-car-exam-fecha','upd-car-prac-fecha'].forEach(id => {
+  ['upd-car-exam-fecha','upd-car-prac-fecha'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = hoy;
   });
 }

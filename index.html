@@ -260,34 +260,18 @@
 
         <!-- Stats -->
         <div class="cards-row">
-          <div class="card"><h3>Tests hechos</h3><div class="big-number" id="car-tests">—</div></div>
-          <div class="card"><h3>Rendimiento</h3><div class="big-number" id="car-fallos">—</div></div>
-          <div class="card"><h3>Racha reciente</h3><div class="big-number" id="car-practicas" style="font-size:1.4rem">—</div></div>
           <div class="card"><h3>Examen teórico</h3><div class="big-number" id="car-teorico-estado">—</div></div>
           <div class="card"><h3>Próxima convocatoria</h3><div class="big-number" id="car-proxima" style="font-size:1rem">—</div></div>
         </div>
 
         <!-- Tabs -->
         <div class="car-tabs mt">
-          <button class="car-tab active" data-cartab="car-panel-tests">Tests teóricos</button>
-          <button class="car-tab" data-cartab="car-panel-examen">Examen teórico</button>
-          <button class="car-tab" data-cartab="car-panel-practicas" style="display:none">Prácticas</button>
-        </div>
-
-        <!-- Panel Tests -->
-        <div class="car-panel active" id="car-panel-tests">
-          <div class="card mt">
-            <h3>Evolución de fallos</h3>
-            <canvas id="car-chart" height="100"></canvas>
-          </div>
-          <div class="card mt">
-            <h3>Historial de tests</h3>
-            <div id="car-tests-lista"><p style="color:var(--text3);font-size:.87rem">Sin tests registrados. Añade desde ✏️ Actualizar → Carnet.</p></div>
-          </div>
+          <button class="car-tab active" data-cartab="car-panel-examen">Examen teórico</button>
+          <button class="car-tab" data-cartab="car-panel-practicas">Prácticas</button>
         </div>
 
         <!-- Panel Examen teórico -->
-        <div class="car-panel" id="car-panel-examen">
+        <div class="car-panel active" id="car-panel-examen">
           <div class="card mt">
             <h3>Intentos de examen teórico</h3>
             <div id="car-examenes-lista"><p style="color:var(--text3);font-size:.87rem">Sin intentos registrados. Añade desde ✏️ Actualizar → Carnet.</p></div>
@@ -904,49 +888,6 @@
             <div class="form-actions">
               <button class="btn-primary" onclick="car_guardarProxima()">Guardar</button>
               <span class="update-success" id="upd-car-prox-ok">✓ Guardado</span>
-            </div>
-          </div>
-
-          <!-- Añadir test — campos clave en una fila -->
-          <div class="card mt">
-            <h3 style="margin-bottom:12px">📝 Añadir test teórico</h3>
-            <!-- Fila principal: los 3 campos que se usan siempre -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;align-items:end;margin-bottom:10px">
-              <div class="form-group" style="margin:0">
-                <label style="font-size:.72rem">Nº de test</label>
-                <input type="number" id="upd-car-num" placeholder="Ej: 1" min="1" style="width:100%" />
-              </div>
-              <div class="form-group" style="margin:0">
-                <label style="font-size:.72rem">Fecha</label>
-                <input type="date" id="upd-car-test-fecha" style="width:100%" />
-              </div>
-              <div class="form-group" style="margin:0">
-                <label style="font-size:.72rem">Fallos</label>
-                <input type="number" id="upd-car-test-fallos" placeholder="0" min="0" max="30" style="width:100%" />
-              </div>
-            </div>
-            <!-- Campos secundarios opcionales -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-              <div class="form-group" style="margin:0">
-                <label style="font-size:.72rem">Test previo (repetir)</label>
-                <select id="upd-car-test-sel" onchange="car_onSelectTest()" style="width:100%;font-size:.82rem">
-                  <option value="">— Nuevo test —</option>
-                </select>
-              </div>
-              <div class="form-group" style="margin:0">
-                <label style="font-size:.72rem">Categoría / Tema</label>
-                <select id="upd-car-test-cat" style="width:100%;font-size:.82rem">
-                  <option value="">— Categoría / Tema —</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group" style="margin-bottom:12px">
-              <label style="font-size:.72rem">Nota libre (opcional)</label>
-              <input type="text" id="upd-car-test-tema" placeholder="Ej: dificultad alta, muchas señales…" />
-            </div>
-            <div class="form-actions">
-              <button class="btn-primary" onclick="car_guardarTest()">Guardar test</button>
-              <span class="update-success" id="upd-car-test-ok">✓ Guardado</span>
             </div>
           </div>
 
