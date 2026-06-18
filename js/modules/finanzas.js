@@ -21,6 +21,17 @@ const CAT_META = {
   otros:        { label:'Otros',            icon:'•',  color:'var(--text3)' },
 };
 
+function _fmtEdad(ts) {
+  if (!ts) return null;
+  const days = Math.floor((Date.now() - ts) / 86400000);
+  if (days === 0) return { txt: 'Actualizado hoy', color: 'var(--green)' };
+  if (days === 1) return { txt: 'Actualizado ayer', color: 'var(--text3)' };
+  if (days < 7)  return { txt: `Actualizado hace ${days} días`, color: 'var(--text3)' };
+  if (days < 15) return { txt: `Actualizado hace ${Math.round(days/7)} sem.`, color: 'var(--text3)' };
+  if (days < 30) return { txt: `Hace ${days} días — ¡toca revisar!`, color: 'var(--orange)' };
+  return { txt: `Hace ${Math.round(days/30)} mes${Math.round(days/30)>1?'es':''} — ¡actualiza!`, color: 'var(--red)' };
+}
+
 function loadFinanzas() {
   renderFinStats();
   setupFinTabs();
@@ -71,6 +82,16 @@ function renderFinStats() {
   set('fin-bp-saldo',   fmt(s.bp));
   set('dash-ahorro',    fmt(saldoTotal));
 
+  // Timestamps por cuenta
+  const sal = Store.get('fin_saldos', {});
+  ['ktx','rvp','rvc','ctv','bp','fm'].forEach(id => {
+    const el = document.getElementById('fin-'+id+'-ts');
+    if (!el) return;
+    const edad = _fmtEdad(sal[id+'_ts']);
+    el.textContent = edad ? edad.txt : '';
+    el.style.color = edad ? edad.color : '';
+  });
+
   // Deuda restante iPhone — calculada desde transacciones reales
   const cuotasTxns = getFilteredReal().filter(t =>
     t.d?.toLowerCase().includes('cetelem') && t.i < 0 && t.ct === deuda.cuenta
@@ -95,6 +116,24 @@ function renderFinStats() {
   const bar = document.getElementById('fin-objetivo-bar'); if (bar) bar.style.width = pct.toFixed(1) + '%';
   const lbl = document.getElementById('fin-objetivo-pct'); if (lbl) lbl.textContent = pct.toFixed(1) + '%';
   const lblMeta = document.getElementById('fin-objetivo-meta'); if (lblMeta) lblMeta.textContent = 'META ENTRADA 20% + GASTOS';
+
+  // CTV — aportaciones del año en curso
+  const anoActual = new Date().getFullYear();
+  const ctvAports = Store.get('ctv_aportaciones', []);
+  const aportadoAnio = ctvAports.filter(a => a.anio === anoActual).reduce((s, a) => s + (parseFloat(a.importe) || 0), 0);
+  const LIMITE_ANUAL = 8500;
+  const pctAnual = Math.min(100, (aportadoAnio / LIMITE_ANUAL) * 100);
+  const anualBar = document.getElementById('fin-ctv-anual-bar');
+  const anualPct = document.getElementById('fin-ctv-anual-pct');
+  const anualInfo = document.getElementById('fin-ctv-anual-info');
+  const haciendaTip = document.getElementById('fin-ctv-hacienda-tip');
+  if (anualBar) anualBar.style.width = pctAnual.toFixed(1) + '%';
+  if (anualPct) anualPct.textContent = pctAnual.toFixed(0) + '%';
+  if (anualInfo) anualInfo.textContent = `${fmt(aportadoAnio)} / ${fmt(LIMITE_ANUAL)} — quedan ${fmt(LIMITE_ANUAL - aportadoAnio)}`;
+  if (haciendaTip) {
+    const devolucion = Math.min(aportadoAnio, LIMITE_ANUAL) * 0.23;
+    haciendaTip.textContent = devolucion > 0 ? `🏦 Devolución estimada IRPF: +${fmt(devolucion)}` : '';
+  }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1484,8 +1523,9 @@ function renderFinCTVSimulador() {
 
   const s = getSaldosActuales();
   const ctv = s.ctv;
+  const anoActual = new Date().getFullYear();
 
-  // Calcular meta desde config de piso si existe
+  // Meta desde config de piso
   let metaTotal = 51500;
   const pisoCfg = Store.get('piso_config');
   if (pisoCfg.precio_ref) {
@@ -1499,131 +1539,251 @@ function renderFinCTVSimulador() {
 
   const falta = Math.max(0, metaTotal - ctv);
   const sims  = ctv_simularCrecimiento(ctv, metaTotal);
-  const colorSim = ['var(--green)', 'var(--accent)'];
-
-  // Beneficios fiscales País Vasco menores de 36
+  const colorSim = ['#34d399', 'var(--accent)'];
   const precio = pisoCfg.precio_ref || 180000;
-  const itpNormal = precio * 0.05;
-  const itpReducido = precio * 0.025;
-  const ahorroITP = itpNormal - itpReducido;
+  const ahorroITP = precio * 0.025;
 
-  // Tiempo estimado para alcanzar la meta basado en ahorro mensual neto
-  const gastosFijos = fin_getGastosFijos ? fin_getGastosFijos() : [];
-  const totalFijo = gastosFijos.filter(g => g.activo && g.tipo === 'personal').reduce((a, g) => a + g.importe, 0);
-  const totalSubs = gastosFijos.filter(g => g.activo && g.tipo === 'suscripcion').reduce((a, g) => a + g.importe, 0);
-  const sueldo = FIN_DATA.presupuesto.sueldo;
-  const disponible = sueldo - totalFijo - totalSubs;
-  const aportacionCTVAnual = 8500;
-  const aportacionCTVMensual = aportacionCTVAnual / 12;
+  // Aportaciones del año
+  const ctvAports = Store.get('ctv_aportaciones', []);
+  const LIMITE_ANUAL = 8500;
+  const aportadoAnio = ctvAports.filter(a => a.anio === anoActual).reduce((s, a) => s + (parseFloat(a.importe) || 0), 0);
+  const pctAnual = Math.min(100, (aportadoAnio / LIMITE_ANUAL) * 100);
+  const libreAnio = Math.max(0, LIMITE_ANUAL - aportadoAnio);
+  const devolucionEstimada = Math.min(aportadoAnio, LIMITE_ANUAL) * 0.23;
+
+  // Año estimado de compra (escenario 23%)
+  const sim23 = sims[0];
+  const filaMeta = sim23?.rows.find(r => r.alcanzado);
+  const anioCompra = filaMeta ? anoActual + filaMeta.anio - 1 : null;
+  const totalBeneficios = (sim23?.totalIntereses || 0) + (sim23?.bonusFinal || 0) + ahorroITP + (sim23?.rows.reduce((a, r) => a + r.haciendaRecibida, 0) || 0);
+
+  // Días restantes del año fiscal
+  const finAnio = new Date(anoActual, 11, 31);
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const diasRestAnio = Math.ceil((finAnio - hoy) / 86400000);
 
   el.innerHTML = `
-    <!-- Beneficios fiscales PV <36 -->
-    <div style="background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(99,102,241,.05));border:1px solid rgba(52,211,153,.3);border-radius:10px;padding:12px 16px;margin-bottom:16px">
-      <div style="font-size:.78rem;font-weight:700;color:var(--green);margin-bottom:8px">🎁 Beneficios fiscales — Menores de 36 años en País Vasco</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
-        <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
-          <div style="font-size:.65rem;color:var(--text3)">ITP reducido (2,5% vs 5%)</div>
-          <div style="font-weight:700;color:var(--green)">Ahorras ${fmt(ahorroITP)}</div>
-          <div style="font-size:.65rem;color:var(--text3)">sobre precio ref. ${fmt(precio)}</div>
+    <!-- KPIs principales -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:18px">
+      <div style="background:linear-gradient(135deg,rgba(52,211,153,.12),rgba(52,211,153,.04));border:1px solid rgba(52,211,153,.35);border-radius:10px;padding:12px 14px">
+        <div style="font-size:.63rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Saldo actual</div>
+        <div style="font-size:1.45rem;font-weight:900;color:#34d399;line-height:1">${fmt(ctv)}</div>
+        <div style="font-size:.65rem;color:var(--text3);margin-top:4px">${(ctv/metaTotal*100).toFixed(1)}% de la meta</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+        <div style="font-size:.63rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Meta entrada piso</div>
+        <div style="font-size:1.45rem;font-weight:900;color:var(--accent2);line-height:1">${fmt(metaTotal)}</div>
+        <div style="font-size:.65rem;color:var(--red);margin-top:4px">Falta ${fmt(falta)}</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+        <div style="font-size:.63rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Año estimado compra</div>
+        <div style="font-size:1.45rem;font-weight:900;color:var(--accent);line-height:1">${anioCompra ? anioCompra : '—'}</div>
+        <div style="font-size:.65rem;color:var(--text3);margin-top:4px">${filaMeta ? `en ${filaMeta.anio} ${filaMeta.anio===1?'año':'años'} (esc. 23%)` : 'más de 25 años'}</div>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(99,102,241,.05));border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:12px 14px">
+        <div style="font-size:.63rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Total beneficios fiscales</div>
+        <div style="font-size:1.45rem;font-weight:900;color:#34d399;line-height:1">${fmt(totalBeneficios)}</div>
+        <div style="font-size:.65rem;color:var(--text3);margin-top:4px">Hacienda + intereses + bonus + ITP</div>
+      </div>
+    </div>
+
+    <!-- Aportaciones del año -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="font-weight:700;font-size:.87rem;color:var(--accent2)">📥 Aportaciones CTV — ${anoActual}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:.75rem;color:#34d399;font-weight:700">${fmt(aportadoAnio)} aportado</span>
+          <span style="font-size:.72rem;color:var(--text3)">· libre: ${fmt(libreAnio)}</span>
+          ${diasRestAnio < 60 ? `<span style="font-size:.7rem;background:#ff000018;color:var(--red);padding:2px 8px;border-radius:6px;font-weight:600">⚡ ${diasRestAnio}d para cierre IRPF</span>` : `<span style="font-size:.7rem;color:var(--text3)">${diasRestAnio}d para cierre fiscal</span>`}
         </div>
-        <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
-          <div style="font-size:.65rem;color:var(--text3)">Deducción CTV IRPF anual (<36)</div>
-          <div style="font-weight:700;color:var(--green)">+${fmt(8500 * 0.23)}/año Hacienda</div>
-          <div style="font-size:.65rem;color:var(--text3)">23% sobre 8.500€ aportados</div>
+      </div>
+      <!-- Barra anual -->
+      <div style="margin-bottom:10px">
+        <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden;position:relative">
+          <div style="height:100%;background:linear-gradient(90deg,#34d399,#10b981);border-radius:5px;width:${pctAnual.toFixed(1)}%;transition:width .5s"></div>
         </div>
-        <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
-          <div style="font-size:.65rem;color:var(--text3)">Bonus Kutxabank hipoteca</div>
-          <div style="font-weight:700;color:var(--accent)">hasta 1.000€</div>
-          <div style="font-size:.65rem;color:var(--text3)">40% intereses acum. en CTV</div>
+        <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text3);margin-top:4px">
+          <span>${pctAnual.toFixed(0)}% del límite anual</span>
+          <span>Límite: ${fmt(LIMITE_ANUAL)}/año</span>
         </div>
-        <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
-          <div style="font-size:.65rem;color:var(--text3)">Tiempo estimado (${fmt(aportacionCTVMensual)}/mes CTV)</div>
-          <div style="font-weight:700;color:var(--accent2)">${falta <= 0 ? '¡Meta alcanzada!' : `${Math.ceil(falta / aportacionCTVMensual)} meses`}</div>
-          <div style="font-size:.65rem;color:var(--text3)">sin contar devolución Hacienda</div>
+      </div>
+      ${devolucionEstimada > 0 ? `<div style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:8px;padding:8px 12px;font-size:.78rem;color:#34d399;margin-bottom:12px">
+        🏦 Devolución IRPF estimada este año: <strong>+${fmt(devolucionEstimada)}</strong> (23% × ${fmt(aportadoAnio)})
+      </div>` : ''}
+      <!-- Registro de aportaciones -->
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <input id="ctv-apt-importe" type="number" placeholder="Importe €" min="0" step="0.01"
+          style="width:120px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;font-family:inherit;font-size:.82rem;outline:none" />
+        <input id="ctv-apt-nota" type="text" placeholder="Nota (opcional)"
+          style="flex:1;min-width:120px;background:var(--bg4);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;font-family:inherit;font-size:.82rem;outline:none" />
+        <button onclick="ctv_addAportacion()" class="btn-primary" style="padding:7px 14px;font-size:.82rem">+ Añadir</button>
+      </div>
+      <div id="ctv-apt-lista" style="display:flex;flex-direction:column;gap:5px">
+        ${ctv_renderAportaciones(ctvAports, anoActual)}
+      </div>
+    </div>
+
+    <!-- Beneficios fiscales resumen -->
+    <div style="background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(99,102,241,.05));border:1px solid rgba(52,211,153,.3);border-radius:12px;padding:14px 16px;margin-bottom:18px">
+      <div style="font-size:.82rem;font-weight:700;color:#34d399;margin-bottom:10px">🎁 Beneficios fiscales — Menores de 36 en País Vasco</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+          <div style="font-size:.63rem;color:var(--text3)">Deducción IRPF anual</div>
+          <div style="font-weight:700;color:#34d399;font-size:1.05rem">+${fmt(LIMITE_ANUAL * 0.23)}/año</div>
+          <div style="font-size:.63rem;color:var(--text3)">23% sobre 8.500 € aportados</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+          <div style="font-size:.63rem;color:var(--text3)">ITP reducido (2,5% vs 5%)</div>
+          <div style="font-weight:700;color:#34d399;font-size:1.05rem">-${fmt(ahorroITP)}</div>
+          <div style="font-size:.63rem;color:var(--text3)">sobre precio ref. ${fmt(precio)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+          <div style="font-size:.63rem;color:var(--text3)">Bonus Kutxabank hipoteca</div>
+          <div style="font-weight:700;color:var(--accent);font-size:1.05rem">hasta 1.000 €</div>
+          <div style="font-size:.63rem;color:var(--text3)">40% intereses acumulados en CTV</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:10px 12px">
+          <div style="font-size:.63rem;color:var(--text3)">Interés CTV (60% Euríbor 1a)</div>
+          <div style="font-weight:700;color:var(--accent2);font-size:1.05rem">~1,33% TIN</div>
+          <div style="font-size:.63rem;color:var(--text3)">500€ al 0,01% + resto variable</div>
         </div>
       </div>
     </div>
 
-    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-bottom:14px">
-      <div>
-        <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Saldo CTV actual</div>
-        <div style="font-size:1.5rem;font-weight:900;color:var(--green)">${fmt(ctv)}</div>
-      </div>
-      <div style="display:flex;align-items:center;color:var(--text3);font-size:1.2rem;padding-top:12px">→</div>
-      <div>
-        <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Objetivo piso (entrada + ITP + gastos)</div>
-        <div style="font-size:1.5rem;font-weight:900;color:var(--accent2)">${fmt(metaTotal)}</div>
-      </div>
-      <div>
-        <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Falta</div>
-        <div style="font-size:1.5rem;font-weight:900;color:var(--red)">${fmt(falta)}</div>
-      </div>
-    </div>
-
-    <div style="background:var(--bg3);border-radius:10px;padding:10px 14px;border:1px solid var(--border);margin-bottom:16px;font-size:.76rem;color:var(--text2);line-height:1.6">
-      <strong style="color:var(--accent2)">Cuenta Vivienda Kutxabank · condiciones reales:</strong><br>
+    <!-- Condiciones reales -->
+    <div style="background:var(--bg3);border-radius:10px;padding:10px 14px;border:1px solid var(--border);margin-bottom:18px;font-size:.76rem;color:var(--text2);line-height:1.6">
+      <strong style="color:var(--accent2)">Cuenta Vivienda Kutxabank · condiciones:</strong>
       Aportación óptima <strong>8.500 €/año</strong> (base máxima desgravable en Euskadi) ·
       Primeros 500 € al 0,01% TIN · Resto al ~1,33% TIN (60% Euríbor 1a de 2,223%) ·
       Sin comisiones · La devolución de Hacienda se reinvierte el año siguiente ·
       <strong>Bonus Kutxabank al contratar hipoteca: 40% de intereses acumulados (máx 1.000 €)</strong>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px">
+    <!-- Proyecciones con gráfico visual -->
+    <div style="font-weight:700;font-size:.9rem;color:var(--text1);margin-bottom:12px">📈 Simulación de crecimiento año a año</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">
       ${sims.map((sim, si) => {
         const c = colorSim[si];
         const lastRow = sim.rows[sim.rows.length - 1];
-        const anios = lastRow.alcanzado ? lastRow.anio : '> 25';
-        const devAnual = fmt(8500 * sim.deduccion);
+        const aniosSim = lastRow.alcanzado ? lastRow.anio : '> 25';
+        const devAnual = fmt(LIMITE_ANUAL * sim.deduccion);
+        const maxSaldo = Math.max(...sim.rows.map(r => r.saldo), metaTotal);
         return `
         <div class="card" style="border-top:3px solid ${c};padding:14px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
             <div>
-              <div style="font-weight:700;color:${c};font-size:.85rem">${sim.label}</div>
-              <div style="font-size:.7rem;color:var(--text3)">
-                Deducción ${(sim.deduccion*100).toFixed(0)}% · ${devAnual}/año devuelve Hacienda
-              </div>
+              <div style="font-weight:700;color:${c};font-size:.88rem">${sim.label}</div>
+              <div style="font-size:.7rem;color:var(--text3)">Deducción ${(sim.deduccion*100).toFixed(0)}% · ${devAnual}/año de Hacienda</div>
             </div>
             <div style="text-align:right">
-              <div style="font-size:2rem;font-weight:900;color:${c};line-height:1">${anios}</div>
-              <div style="font-size:.63rem;color:var(--text3)">${typeof anios==='number'?'años para la meta':''}</div>
+              <div style="font-size:2rem;font-weight:900;color:${c};line-height:1">${aniosSim}</div>
+              <div style="font-size:.63rem;color:var(--text3)">${typeof aniosSim==='number'?'años para la meta':''}</div>
             </div>
           </div>
-          <div style="display:flex;gap:8px;margin-bottom:12px">
-            <div style="flex:1;background:var(--surface2);border-radius:8px;padding:7px 10px">
-              <div style="font-size:.63rem;color:var(--text3)">Intereses CTV totales</div>
-              <div style="font-weight:700;color:var(--green)">${fmt(sim.totalIntereses)}</div>
+          <!-- Stats -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px">
+            <div style="background:var(--bg4);border-radius:7px;padding:7px 8px;text-align:center">
+              <div style="font-size:.6rem;color:var(--text3)">Intereses</div>
+              <div style="font-weight:700;color:#34d399;font-size:.82rem">${fmt(sim.totalIntereses)}</div>
             </div>
-            <div style="flex:1;background:var(--surface2);border-radius:8px;padding:7px 10px">
-              <div style="font-size:.63rem;color:var(--text3)">Bonus Kutxabank</div>
-              <div style="font-weight:700;color:${c}">${fmt(sim.bonusFinal)}</div>
+            <div style="background:var(--bg4);border-radius:7px;padding:7px 8px;text-align:center">
+              <div style="font-size:.6rem;color:var(--text3)">Hacienda total</div>
+              <div style="font-weight:700;color:#34d399;font-size:.82rem">+${fmt(sim.rows.reduce((a,r)=>a+r.haciendaRecibida,0))}</div>
+            </div>
+            <div style="background:var(--bg4);border-radius:7px;padding:7px 8px;text-align:center">
+              <div style="font-size:.6rem;color:var(--text3)">Bonus KTX</div>
+              <div style="font-weight:700;color:${c};font-size:.82rem">${fmt(sim.bonusFinal)}</div>
             </div>
           </div>
-          <div style="overflow-x:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:.73rem">
-              <thead>
-                <tr style="background:var(--bg3)">
-                  <th style="padding:4px 6px;text-align:center;color:var(--text3);font-weight:600">Año</th>
-                  <th style="padding:4px 6px;text-align:right;color:var(--text3);font-weight:600">Aportas</th>
-                  <th style="padding:4px 6px;text-align:right;color:var(--green);font-weight:600">+ Hacienda</th>
-                  <th style="padding:4px 6px;text-align:right;color:var(--accent2);font-weight:600">Interés</th>
-                  <th style="padding:4px 6px;text-align:right;font-weight:700">Saldo CTV</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${sim.rows.map(r => `
-                <tr style="border-bottom:1px solid var(--border);${r.alcanzado?'background:'+c+'18;':''}">
-                  <td style="padding:4px 6px;text-align:center;color:var(--text3)">${r.anio}</td>
-                  <td style="padding:4px 6px;text-align:right">${fmt(8500)}</td>
-                  <td style="padding:4px 6px;text-align:right;color:var(--green)">${r.haciendaRecibida>0?'+'+fmt(r.haciendaRecibida):'—'}</td>
-                  <td style="padding:4px 6px;text-align:right;color:var(--accent2)">+${fmt(r.interes)}</td>
-                  <td style="padding:4px 6px;text-align:right;font-weight:${r.alcanzado?700:400};color:${r.alcanzado?c:'var(--text)'}">
-                    ${fmt(r.saldo)}${r.alcanzado?' ✓':''}
-                  </td>
-                </tr>`).join('')}
-              </tbody>
-            </table>
+          <!-- Gráfico de barras -->
+          <div style="margin-bottom:12px">
+            <div style="display:flex;align-items:flex-end;gap:3px;height:60px;padding:0 2px">
+              ${sim.rows.slice(0,10).map(r => {
+                const h = Math.max(4, Math.round((r.saldo / maxSaldo) * 56));
+                const metaH = Math.round((metaTotal / maxSaldo) * 56);
+                const superado = r.saldo >= metaTotal;
+                return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px" title="Año ${r.anio}: ${fmt(r.saldo)}">
+                  <div style="width:100%;height:${h}px;background:${superado ? c : c+'66'};border-radius:3px 3px 0 0;position:relative;transition:height .3s">
+                    ${superado ? `<div style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:8px">✓</div>` : ''}
+                  </div>
+                  <div style="font-size:.56rem;color:var(--text3);white-space:nowrap">${r.anio}</div>
+                </div>`;
+              }).join('')}
+              ${sim.rows.length > 10 ? `<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--text3)">…</div>` : ''}
+            </div>
+            <div style="font-size:.63rem;color:var(--text3);margin-top:2px;text-align:center">Primeros ${Math.min(10, sim.rows.length)} años — barra llena = meta alcanzada</div>
           </div>
+          <!-- Tabla detallada colapsable -->
+          <details style="font-size:.75rem">
+            <summary style="cursor:pointer;color:var(--text3);font-size:.73rem;margin-bottom:6px;list-style:none;display:flex;align-items:center;gap:6px">
+              <span style="color:${c}">▸</span> Ver tabla año a año
+            </summary>
+            <div style="overflow-x:auto;margin-top:8px">
+              <table style="width:100%;border-collapse:collapse;font-size:.72rem">
+                <thead>
+                  <tr style="background:var(--bg3)">
+                    <th style="padding:4px 6px;text-align:center;color:var(--text3)">Año</th>
+                    <th style="padding:4px 6px;text-align:right;color:var(--text3)">Aportas</th>
+                    <th style="padding:4px 6px;text-align:right;color:#34d399">+Hacienda</th>
+                    <th style="padding:4px 6px;text-align:right;color:var(--accent2)">Interés</th>
+                    <th style="padding:4px 6px;text-align:right;font-weight:700">Saldo CTV</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${sim.rows.map(r => `
+                  <tr style="border-bottom:1px solid var(--border2);${r.alcanzado?'background:'+c+'15;':''}">
+                    <td style="padding:4px 6px;text-align:center;color:var(--text3)">${r.anio}</td>
+                    <td style="padding:4px 6px;text-align:right">${fmt(LIMITE_ANUAL)}</td>
+                    <td style="padding:4px 6px;text-align:right;color:#34d399">${r.haciendaRecibida>0?'+'+fmt(r.haciendaRecibida):'—'}</td>
+                    <td style="padding:4px 6px;text-align:right;color:var(--accent2)">+${fmt(r.interes)}</td>
+                    <td style="padding:4px 6px;text-align:right;font-weight:${r.alcanzado?700:400};color:${r.alcanzado?c:'var(--text)'}">
+                      ${fmt(r.saldo)}${r.alcanzado?' ✓':''}
+                    </td>
+                  </tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </details>
         </div>`;
       }).join('')}
     </div>`;
+}
+
+function ctv_renderAportaciones(lista, anio) {
+  const deAnio = lista.filter(a => a.anio === anio).sort((a, b) => b.ts - a.ts);
+  if (!deAnio.length) return `<div style="font-size:.78rem;color:var(--text3);padding:6px 0">Sin aportaciones registradas este año. Añade la primera arriba.</div>`;
+  return deAnio.map((a, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg4);border-radius:8px;font-size:.8rem">
+      <span style="color:var(--text3);font-size:.7rem;min-width:70px">${a.fecha || '—'}</span>
+      <span style="font-weight:700;color:#34d399;min-width:80px;text-align:right">${fmt(parseFloat(a.importe))}</span>
+      <span style="flex:1;color:var(--text2);padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.nota || '—'}</span>
+      <button onclick="ctv_delAportacion(${a.ts})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.8rem;padding:2px 5px;line-height:1" title="Eliminar">✕</button>
+    </div>`).join('');
+}
+
+function ctv_addAportacion() {
+  const importe = parseFloat(document.getElementById('ctv-apt-importe')?.value || 0);
+  const nota    = document.getElementById('ctv-apt-nota')?.value.trim() || '';
+  if (!importe || importe <= 0) return;
+  const anio = new Date().getFullYear();
+  const fecha = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+  const ts = Date.now();
+  const lista = Store.get('ctv_aportaciones', []);
+  lista.push({ importe, nota, anio, fecha, ts });
+  Store.set('ctv_aportaciones', lista);
+  document.getElementById('ctv-apt-importe').value = '';
+  document.getElementById('ctv-apt-nota').value = '';
+  // Refresca lista y tarjeta
+  const listEl = document.getElementById('ctv-apt-lista');
+  if (listEl) listEl.innerHTML = ctv_renderAportaciones(lista, anio);
+  renderFinStats();
+}
+
+function ctv_delAportacion(ts) {
+  const lista = Store.get('ctv_aportaciones', []).filter(a => a.ts !== ts);
+  Store.set('ctv_aportaciones', lista);
+  const anio = new Date().getFullYear();
+  const listEl = document.getElementById('ctv-apt-lista');
+  if (listEl) listEl.innerHTML = ctv_renderAportaciones(lista, anio);
+  renderFinStats();
 }
