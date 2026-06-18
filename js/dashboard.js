@@ -104,7 +104,7 @@ function _dashCarnet() {
   const cfg       = Store.get('car_config');
 
   const estadoLabel = { pendiente:'⏳ Pendiente de fecha', en_proceso:'🔄 En proceso', convocado:'📅 Convocado' };
-  const aprobado    = examenes.some(e => e.resultado === 'aprobado');
+  const aprobado    = cfg.teorico_estado === 'aprobado' || examenes.some(e => e.resultado === 'aprobado');
 
   let proximaStr = '';
   let diasColor  = 'var(--accent2)';

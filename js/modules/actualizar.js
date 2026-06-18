@@ -785,12 +785,16 @@ function cargarValoresGuardados() {
     if (comprasEl && fin.compras) comprasEl.value = fin.compras;
     aplicarFinanzasLocales(fin);
   }
-  // Restaurar próxima convocatoria de carnet desde car_config
-  const carCfg   = Store.get('car_config');
-  const selEstado = document.getElementById('upd-car-prox-estado');
-  const inpFecha  = document.getElementById('upd-car-prox-fecha');
-  if (selEstado && carCfg.prox_estado) selEstado.value = carCfg.prox_estado;
-  if (inpFecha  && carCfg.prox_fecha)  inpFecha.value  = carCfg.prox_fecha;
+  // Restaurar estado carnet desde car_config
+  const carCfg        = Store.get('car_config');
+  const selTeorico    = document.getElementById('upd-car-teorico-estado');
+  const inpTeoricoF   = document.getElementById('upd-car-teorico-fecha');
+  const selEstado     = document.getElementById('upd-car-prox-estado');
+  const inpFecha      = document.getElementById('upd-car-prox-fecha');
+  if (selTeorico  && carCfg.teorico_estado) selTeorico.value  = carCfg.teorico_estado;
+  if (inpTeoricoF && carCfg.teorico_fecha)  inpTeoricoF.value = carCfg.teorico_fecha;
+  if (selEstado   && carCfg.prox_estado)    selEstado.value   = carCfg.prox_estado;
+  if (inpFecha    && carCfg.prox_fecha)     inpFecha.value    = carCfg.prox_fecha;
   // Cargar listas de agenda
   age_renderCumplesList();
   age_renderEventosList();

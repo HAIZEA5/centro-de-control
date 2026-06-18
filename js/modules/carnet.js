@@ -20,6 +20,18 @@ function car_getConfig()    { return Store.get('car_config'); }
 function car_saveExamenes(d)  { Store.set('car_examenes', d); }
 function car_savePracticas(d) { Store.set('car_practicas', d); }
 
+// ── Guardar estado examen teórico ──
+function car_guardarTeoricoEstado() {
+  const estado = document.getElementById('upd-car-teorico-estado')?.value;
+  const fecha  = document.getElementById('upd-car-teorico-fecha')?.value;
+  const cfg = car_getConfig();
+  cfg.teorico_estado = estado;
+  cfg.teorico_fecha  = fecha;
+  Store.set('car_config', cfg);
+  mostrarOk('upd-car-teorico-ok');
+  loadCarnet();
+}
+
 // ── Guardar próxima convocatoria ──
 function car_guardarProxima() {
   const estado = document.getElementById('upd-car-prox-estado')?.value;
@@ -78,6 +90,12 @@ function loadCarnet() {
   const practicas = car_getPracticas().sort((a,b) => a.fecha.localeCompare(b.fecha));
   const cfg       = car_getConfig();
 
+  // Rellenar inputs de estado teórico
+  const selTeorico     = document.getElementById('upd-car-teorico-estado');
+  const inpTeoricoFech = document.getElementById('upd-car-teorico-fecha');
+  if (selTeorico     && cfg.teorico_estado !== undefined) selTeorico.value     = cfg.teorico_estado;
+  if (inpTeoricoFech && cfg.teorico_fecha)                inpTeoricoFech.value = cfg.teorico_fecha;
+
   // Rellenar inputs de próxima convocatoria
   const selEstado = document.getElementById('upd-car-prox-estado');
   const inpFecha  = document.getElementById('upd-car-prox-fecha');
@@ -94,14 +112,22 @@ function loadCarnet() {
 function renderCarStats(examenes, practicas, cfg = {}) {
   const estadoEl = document.getElementById('car-teorico-estado');
   if (estadoEl) {
-    if (examenes.length) {
-      const ultimo = examenes[examenes.length - 1];
-      estadoEl.textContent = ultimo.resultado === 'aprobado' ? '✅ Aprobado' : '❌ Suspendido';
-      estadoEl.style.color = ultimo.resultado === 'aprobado' ? 'var(--green)' : 'var(--red)';
+    const ts = cfg.teorico_estado;
+    if (ts === 'aprobado') {
+      const fechaStr = cfg.teorico_fecha
+        ? ' · ' + new Date(cfg.teorico_fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' })
+        : '';
+      estadoEl.innerHTML = `✅ Aprobado<div style="font-size:.7rem;color:var(--text3);font-weight:400;margin-top:3px">${fechaStr}</div>`;
+      estadoEl.style.color = 'var(--green)';
+      estadoEl.style.fontSize = '1rem';
+    } else if (ts === 'suspendido') {
+      estadoEl.textContent = '❌ Suspendido';
+      estadoEl.style.color = 'var(--red)';
       estadoEl.style.fontSize = '1rem';
     } else {
       estadoEl.textContent = '—';
       estadoEl.style.color = '';
+      estadoEl.style.fontSize = '';
     }
   }
 
