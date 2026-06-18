@@ -1,14 +1,14 @@
 // ─── MÓDULO IT TXARTELAS ───
 
 const IT_MODULOS = [
-  { id: 'windows',       nombre: 'Windows',           desc: 'Entorno de escritorio' },
-  { id: 'internet',      nombre: 'Internet',          desc: 'Navegación y correo electrónico' },
-  { id: 'word_basico',   nombre: 'Word Básico',       desc: 'Tratamiento de textos nivel básico' },
-  { id: 'word_avanzado', nombre: 'Word Avanzado',     desc: 'Tratamiento de textos nivel avanzado' },
-  { id: 'excel_basico',  nombre: 'Excel Básico',      desc: 'Hojas de cálculo nivel básico' },
-  { id: 'excel_avanzado',nombre: 'Excel Avanzado',    desc: 'Hojas de cálculo nivel avanzado' },
-  { id: 'powerpoint',    nombre: 'PowerPoint',        desc: 'Presentaciones multimedia' },
-  { id: 'access',        nombre: 'Access',            desc: 'Base de datos nivel básico' },
+  { id: 'windows',       nombre: 'Windows 7',          desc: 'Microsoft Windows 7 — Sistema Operativo' },
+  { id: 'internet',      nombre: 'Internet Avanzado',  desc: 'Internet y correo electrónico avanzado' },
+  { id: 'word_basico',   nombre: 'Word 2010 Básico',   desc: 'Ofimática Microsoft — nivel básico' },
+  { id: 'word_avanzado', nombre: 'Word 2010 Avanzado', desc: 'Ofimática Microsoft — nivel avanzado' },
+  { id: 'excel_basico',  nombre: 'Excel 2010 Básico',  desc: 'Hoja de cálculo Microsoft — nivel básico' },
+  { id: 'excel_avanzado',nombre: 'Excel 2010 Avanzado',desc: 'Hoja de cálculo Microsoft — nivel avanzado' },
+  { id: 'powerpoint',    nombre: 'PowerPoint 2010',    desc: 'Presentaciones multimedia — nivel único' },
+  { id: 'access',        nombre: 'Access 2010',        desc: 'Base de datos Microsoft — nivel único' },
 ];
 
 // ── Storage ──

@@ -29,7 +29,6 @@ function loadFinanzas() {
   renderFinSinking();
   renderFinDeudas();
   renderFinPresupuestoYGastos();
-  renderFinActualizar();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -613,13 +612,7 @@ function renderFinSinking() {
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px">
         <h3>Revolut – Fondo Monetario Flexible</h3>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <input type="date" id="rv-fecha" value="${(() => { const _d=new Date(); return `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`; })()}" style="font-size:.78rem;padding:4px 8px;width:130px">
-          <input type="number" id="rv-importe" step="0.01" min="0" placeholder="Interés ganado €"
-            style="font-size:.82rem;width:130px;padding:4px 8px" onkeydown="if(event.key==='Enter') rv_anadir()">
-          <button onclick="rv_anadir()" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:5px 14px;cursor:pointer;font-weight:700;font-size:.8rem">+ Añadir interés</button>
-          <span id="fin-fmd-ok" class="update-success" style="display:none;font-size:.78rem">✓</span>
-        </div>
+        <a href="#" onclick="event.preventDefault();document.querySelector('[data-section=actualizar]')?.click();setTimeout(()=>document.querySelector('[data-tab=upd-finanzas]')?.click(),150)" style="font-size:.75rem;color:var(--accent2)">✏️ Actualizar datos</a>
       </div>
 
       <div class="fin-year-stats" style="margin-bottom:14px">
@@ -650,6 +643,8 @@ function renderFinSinking() {
         </table>
       </div>
     </div>
+
+    ${_renderFMProyeccion(s.fm)}
 
     <div class="card" style="margin-bottom:16px">
       <h3 style="margin-bottom:12px">🏠 Simulador — Cuenta Vivienda Kutxabank</h3>
@@ -723,41 +718,214 @@ function _renderFMChart(fmHistorial, fmExtra, saldoActual, objetivo) {
 }
 
 /* ══════════════════════════════════════════════════════
-   PANEL: DEUDAS
+   FONDO MONETARIO — PROYECCIÓN A FUTURO
 ══════════════════════════════════════════════════════ */
+function _renderFMProyeccion(saldoActual) {
+  const aportacion = parseFloat(Store.get('fin_fm_aportacion', 50));
+  const APY = 0.035;
+  const r = Math.pow(1 + APY, 1/12) - 1;
+
+  function proyectar(meses) {
+    let s = saldoActual;
+    for (let i = 0; i < meses; i++) s = (s + aportacion) * (1 + r);
+    return s;
+  }
+
+  const p1 = proyectar(12);
+  const p3 = proyectar(36);
+  const p5 = proyectar(60);
+  const p10 = proyectar(120);
+  const soloInteres5 = (() => {
+    let s = saldoActual; for (let i=0;i<60;i++) s = s*(1+r); return s;
+  })();
+
+  return `
+  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--accent2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <h3>📈 Proyección Fondo Monetario (~3.5% TAE)</h3>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label style="font-size:.75rem;color:var(--text3)">Aportación/mes:</label>
+        <input type="number" id="fin-fm-apor-input" value="${aportacion}" min="0" step="5"
+          style="width:80px;font-size:.82rem;padding:4px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)"
+          onchange="Store.set('fin_fm_aportacion', parseFloat(this.value)||0); renderFinSinking();" />
+        <span style="font-size:.75rem;color:var(--text3)">€</span>
+      </div>
+    </div>
+    <div class="fin-year-stats">
+      <div class="fin-year-card">
+        <div class="fin-year-label">En 1 año</div>
+        <div class="fin-year-val accent2">${fmt(p1)}</div>
+        <div style="font-size:.63rem;color:var(--green)">+${fmt(p1-saldoActual)}</div>
+      </div>
+      <div class="fin-year-card">
+        <div class="fin-year-label">En 3 años</div>
+        <div class="fin-year-val accent2">${fmt(p3)}</div>
+        <div style="font-size:.63rem;color:var(--green)">+${fmt(p3-saldoActual)}</div>
+      </div>
+      <div class="fin-year-card" style="border:1px solid var(--accent2)">
+        <div class="fin-year-label">En 5 años</div>
+        <div class="fin-year-val accent2">${fmt(p5)}</div>
+        <div style="font-size:.63rem;color:var(--green)">+${fmt(p5-saldoActual)}</div>
+      </div>
+      <div class="fin-year-card">
+        <div class="fin-year-label">En 10 años</div>
+        <div class="fin-year-val accent2">${fmt(p10)}</div>
+        <div style="font-size:.63rem;color:var(--green)">+${fmt(p10-saldoActual)}</div>
+      </div>
+    </div>
+    <div style="font-size:.72rem;color:var(--text3);margin-top:10px">
+      Saldo base: <strong style="color:var(--text2)">${fmt(saldoActual)}</strong> ·
+      Sin aportaciones a 5 años: <strong>${fmt(soloInteres5)}</strong> ·
+      TAE estimada Revolut Money Market ~3.5%
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   PANEL: DEUDAS — CRUD DINÁMICO
+══════════════════════════════════════════════════════ */
+function fin_getDeudas() {
+  if (localStorage.getItem('fin_deudas') !== null) return Store.get('fin_deudas', []);
+  // Migrar iPhone de FIN_DATA en el primer acceso
+  const deudas = [];
+  (FIN_DATA.deudas || []).forEach(d => {
+    const extra = parseInt(localStorage.getItem('fin_cuotas_extra') || '0');
+    deudas.push({
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      nombre: d.nombre,
+      cantidad_total: Math.round(d.cuotas_total * d.importe_cuota * 100) / 100,
+      cuotas_pagadas: d.cuotas_pagadas + extra,
+      cuotas_total: d.cuotas_total,
+      tae: 0,
+      cuenta: d.cuenta || 'KTX',
+      nota: d.nota || '',
+    });
+  });
+  Store.set('fin_deudas', deudas);
+  return deudas;
+}
+
+function fin_calcCuota(cantidad, cuotas, tae) {
+  if (!tae || tae <= 0) return cantidad / cuotas;
+  const r = Math.pow(1 + tae / 100, 1 / 12) - 1;
+  return (cantidad * r) / (1 - Math.pow(1 + r, -cuotas));
+}
+
+function finDeudaBorrar(id) {
+  if (!confirm('¿Eliminar esta deuda?')) return;
+  Store.set('fin_deudas', fin_getDeudas().filter(d => d.id !== id));
+  renderFinDeudas();
+  renderFinStats();
+}
+
+function finDeudaMarcarCuota(id, delta) {
+  const deudas = fin_getDeudas();
+  const d = deudas.find(x => x.id === id);
+  if (!d) return;
+  d.cuotas_pagadas = Math.max(0, Math.min(d.cuotas_total, d.cuotas_pagadas + delta));
+  Store.set('fin_deudas', deudas);
+  renderFinDeudas();
+  renderFinStats();
+}
+
+function finDeudaAnadir() {
+  const nombre = document.getElementById('fin-deuda-nombre')?.value?.trim();
+  const cantidad = parseFloat(document.getElementById('fin-deuda-cantidad')?.value);
+  const cuotas = parseInt(document.getElementById('fin-deuda-cuotas')?.value);
+  const tae = parseFloat(document.getElementById('fin-deuda-tae')?.value) || 0;
+  const cuenta = document.getElementById('fin-deuda-cuenta')?.value || 'KTX';
+  const nota = document.getElementById('fin-deuda-nota')?.value?.trim() || '';
+  if (!nombre || isNaN(cantidad) || isNaN(cuotas) || cuotas < 1) {
+    alert('Rellena nombre, cantidad y plazo (meses).'); return;
+  }
+  const deudas = fin_getDeudas();
+  deudas.push({ id: Date.now(), nombre, cantidad_total: cantidad, cuotas_pagadas: 0, cuotas_total: cuotas, tae, cuenta, nota });
+  Store.set('fin_deudas', deudas);
+  renderFinDeudas();
+  renderFinStats();
+}
+
 function renderFinDeudas() {
   const el = document.getElementById('fin-deudas-content');
   if (!el) return;
+  const deudas = fin_getDeudas();
+  const totalPendiente = deudas.reduce((a, d) => {
+    const cuota = fin_calcCuota(d.cantidad_total, d.cuotas_total, d.tae);
+    return a + Math.max(0, d.cuotas_total - d.cuotas_pagadas) * cuota;
+  }, 0);
 
-  const cuotasExtra = parseInt(localStorage.getItem('fin_cuotas_extra') || '0');
-  el.innerHTML = FIN_DATA.deudas.map(d => {
-    const pagadas = d.cuotas_pagadas + cuotasExtra;
-    const restantes = d.cuotas_total - pagadas;
-    const pct = (pagadas / d.cuotas_total) * 100;
-    const totalPagado  = pagadas * d.importe_cuota;
-    const totalPendiente = restantes * d.importe_cuota;
-    return `
-    <div class="card" style="margin-bottom:12px">
-      <div class="fin-sf-header">
-        <div>
-          <div class="fin-sf-nombre">${d.nombre}</div>
-          <div class="fin-sf-meta">${fmt(d.importe_cuota)}/mes · Inicio: ${d.fecha_inicio} · Fin: <strong>${d.fecha_fin}</strong></div>
-          <div style="font-size:.72rem;color:var(--text3);margin-top:3px">${d.nota}</div>
+  el.innerHTML = `
+  ${deudas.length === 0 ? '<div class="card" style="text-align:center;color:var(--text3);padding:32px">Sin deudas registradas 🎉</div>' :
+    deudas.map(d => {
+      const cuota = fin_calcCuota(d.cantidad_total, d.cuotas_total, d.tae);
+      const restantes = Math.max(0, d.cuotas_total - d.cuotas_pagadas);
+      const pendiente = restantes * cuota;
+      const pagado = d.cuotas_pagadas * cuota;
+      const pct = d.cuotas_total > 0 ? (d.cuotas_pagadas / d.cuotas_total) * 100 : 0;
+      return `
+      <div class="card" style="margin-bottom:12px">
+        <div class="fin-sf-header">
+          <div style="flex:1">
+            <div class="fin-sf-nombre">${d.nombre}</div>
+            <div class="fin-sf-meta">
+              ${fmt(cuota)}/mes · ${d.cuotas_total} cuotas
+              ${d.tae > 0 ? ` · TAE ${d.tae}%` : ' · Sin interés'}
+              ${d.cuenta ? ` · <span style="color:var(--accent2)">${d.cuenta}</span>` : ''}
+            </div>
+            ${d.nota ? `<div style="font-size:.72rem;color:var(--text3);margin-top:3px">${d.nota}</div>` : ''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:1.4rem;font-weight:800;color:var(--red)">${fmt(pendiente)}</div>
+            <div style="font-size:.73rem;color:var(--text3)">pendiente</div>
+          </div>
         </div>
-        <div style="text-align:right">
-          <div style="font-size:1.4rem;font-weight:800;color:var(--red)">${fmt(totalPendiente)}</div>
-          <div style="font-size:.73rem;color:var(--text3)">pendiente</div>
+        <div style="margin:12px 0">
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct.toFixed(1)}%;background:var(--green)"></div></div>
         </div>
+        <div class="fin-sf-footer">
+          <span>Pagado: <strong>${fmt(pagado)}</strong> (${d.cuotas_pagadas}/${d.cuotas_total} cuotas)</span>
+          <span style="display:flex;gap:6px;align-items:center">
+            <button onclick="finDeudaMarcarCuota(${d.id}, -1)" title="Desmarcar cuota" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:2px 7px;cursor:pointer;color:var(--text2);font-size:.85rem">−</button>
+            <button onclick="finDeudaMarcarCuota(${d.id}, 1)" title="Marcar cuota pagada" style="background:var(--green);border:none;border-radius:5px;padding:2px 7px;cursor:pointer;color:#fff;font-size:.85rem">✓ cuota</button>
+            <button onclick="finDeudaBorrar(${d.id})" title="Eliminar" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:.85rem">🗑</button>
+          </span>
+        </div>
+      </div>`;
+    }).join('')}
+
+  ${deudas.length > 0 ? `<div style="font-size:.78rem;color:var(--text3);margin-bottom:16px;text-align:right">Total pendiente: <strong style="color:var(--red);font-size:1rem">${fmt(totalPendiente)}</strong></div>` : ''}
+
+  <!-- Añadir nueva deuda -->
+  <div class="card" style="border:1px dashed var(--border2)">
+    <h3 style="margin-bottom:12px">➕ Añadir deuda</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:10px">
+      <div class="form-group" style="margin:0"><label style="font-size:.73rem">Nombre</label><input id="fin-deuda-nombre" class="upd-input" placeholder="iPhone Cetelem…" /></div>
+      <div class="form-group" style="margin:0"><label style="font-size:.73rem">Cantidad total (€)</label><input id="fin-deuda-cantidad" type="number" class="upd-input" step="0.01" placeholder="1200.00" /></div>
+      <div class="form-group" style="margin:0"><label style="font-size:.73rem">Plazo (meses)</label><input id="fin-deuda-cuotas" type="number" class="upd-input" min="1" placeholder="24" /></div>
+      <div class="form-group" style="margin:0"><label style="font-size:.73rem">TAE % (0 = sin interés)</label><input id="fin-deuda-tae" type="number" class="upd-input" step="0.01" placeholder="0" value="0" /></div>
+      <div class="form-group" style="margin:0"><label style="font-size:.73rem">Cuenta</label>
+        <select id="fin-deuda-cuenta" class="upd-input">
+          <option value="KTX">Kutxabank</option><option value="RVP">Revolut Personal</option><option value="RVC">Revolut Conjunta</option>
+        </select>
       </div>
-      <div style="margin:12px 0">
-        <div class="progress-bar"><div class="progress-fill" style="width:${pct.toFixed(1)}%;background:var(--green)"></div></div>
-      </div>
-      <div class="fin-sf-footer">
-        <span>Pagado: <strong>${fmt(totalPagado)}</strong> (${pagadas} cuotas)</span>
-        <span>Quedan: <strong>${restantes} cuotas</strong> (${fmt(totalPendiente)})</span>
-      </div>
-    </div>`;
-  }).join('');
+      <div class="form-group" style="margin:0"><label style="font-size:.73rem">Nota (opcional)</label><input id="fin-deuda-nota" class="upd-input" placeholder="Nota…" /></div>
+    </div>
+    <button class="upd-btn" onclick="finDeudaAnadir()">💾 Guardar deuda</button>
+    <div id="fin-deuda-cuota-preview" style="font-size:.78rem;color:var(--text3);margin-top:8px"></div>
+  </div>`;
+
+  // Live preview cuota al escribir
+  ['fin-deuda-cantidad','fin-deuda-cuotas','fin-deuda-tae'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => {
+      const c = parseFloat(document.getElementById('fin-deuda-cantidad')?.value);
+      const n = parseInt(document.getElementById('fin-deuda-cuotas')?.value);
+      const t = parseFloat(document.getElementById('fin-deuda-tae')?.value) || 0;
+      const prev = document.getElementById('fin-deuda-cuota-preview');
+      if (prev && !isNaN(c) && !isNaN(n) && n > 0) {
+        prev.textContent = `Cuota estimada: ${fmt(fin_calcCuota(c, n, t))}/mes`;
+      }
+    });
+  });
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1333,7 +1501,49 @@ function renderFinCTVSimulador() {
   const sims  = ctv_simularCrecimiento(ctv, metaTotal);
   const colorSim = ['var(--green)', 'var(--accent)'];
 
+  // Beneficios fiscales País Vasco menores de 36
+  const precio = pisoCfg.precio_ref || 180000;
+  const itpNormal = precio * 0.05;
+  const itpReducido = precio * 0.025;
+  const ahorroITP = itpNormal - itpReducido;
+
+  // Tiempo estimado para alcanzar la meta basado en ahorro mensual neto
+  const gastosFijos = fin_getGastosFijos ? fin_getGastosFijos() : [];
+  const totalFijo = gastosFijos.filter(g => g.activo && g.tipo === 'personal').reduce((a, g) => a + g.importe, 0);
+  const totalSubs = gastosFijos.filter(g => g.activo && g.tipo === 'suscripcion').reduce((a, g) => a + g.importe, 0);
+  const sueldo = FIN_DATA.presupuesto.sueldo;
+  const disponible = sueldo - totalFijo - totalSubs;
+  const aportacionCTVAnual = 8500;
+  const aportacionCTVMensual = aportacionCTVAnual / 12;
+
   el.innerHTML = `
+    <!-- Beneficios fiscales PV <36 -->
+    <div style="background:linear-gradient(135deg,rgba(52,211,153,.08),rgba(99,102,241,.05));border:1px solid rgba(52,211,153,.3);border-radius:10px;padding:12px 16px;margin-bottom:16px">
+      <div style="font-size:.78rem;font-weight:700;color:var(--green);margin-bottom:8px">🎁 Beneficios fiscales — Menores de 36 años en País Vasco</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
+          <div style="font-size:.65rem;color:var(--text3)">ITP reducido (2,5% vs 5%)</div>
+          <div style="font-weight:700;color:var(--green)">Ahorras ${fmt(ahorroITP)}</div>
+          <div style="font-size:.65rem;color:var(--text3)">sobre precio ref. ${fmt(precio)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
+          <div style="font-size:.65rem;color:var(--text3)">Deducción CTV IRPF anual (<36)</div>
+          <div style="font-weight:700;color:var(--green)">+${fmt(8500 * 0.23)}/año Hacienda</div>
+          <div style="font-size:.65rem;color:var(--text3)">23% sobre 8.500€ aportados</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
+          <div style="font-size:.65rem;color:var(--text3)">Bonus Kutxabank hipoteca</div>
+          <div style="font-weight:700;color:var(--accent)">hasta 1.000€</div>
+          <div style="font-size:.65rem;color:var(--text3)">40% intereses acum. en CTV</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 12px">
+          <div style="font-size:.65rem;color:var(--text3)">Tiempo estimado (${fmt(aportacionCTVMensual)}/mes CTV)</div>
+          <div style="font-weight:700;color:var(--accent2)">${falta <= 0 ? '¡Meta alcanzada!' : `${Math.ceil(falta / aportacionCTVMensual)} meses`}</div>
+          <div style="font-size:.65rem;color:var(--text3)">sin contar devolución Hacienda</div>
+        </div>
+      </div>
+    </div>
+
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-bottom:14px">
       <div>
         <div style="font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Saldo CTV actual</div>
