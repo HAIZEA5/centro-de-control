@@ -51,13 +51,18 @@ function getSaldosActuales() {
   const c = FIN_DATA.cuentas;
   const fmBase = saved.fm ?? (FIN_DATA.revolut_fondo_monetario.historial[FIN_DATA.revolut_fondo_monetario.historial.length-1]?.saldo_final ?? 291.28);
   const interesesDiarios = (Store.get('fin_revolut_intereses', [])).reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
+  // Sumar intereses registrados en Actualizar posteriores a la última actualización de saldo
+  const fmTs = saved.fm_ts || saved._ts || 0;
+  const interesesRegistrados = Store.get('cdc_intereses_fm', [])
+    .filter(e => new Date(e.fecha + 'T23:59:59').getTime() > fmTs)
+    .reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
   return {
     ktx: saved.ktx ?? c.kutxabank_personal.saldo,
     rvp: saved.rvp ?? c.revolut_personal.saldo,
     rvc: saved.rvc ?? c.revolut_conjunta.saldo,
     ctv: saved.ctv ?? c.ctv_vivienda.saldo,
     bp:  saved.bp  ?? c.baskepensiones.saldo,
-    fm:  fmBase + interesesDiarios,
+    fm:  fmBase + interesesDiarios + interesesRegistrados,
     fmBase,
     interesesDiarios,
   };
