@@ -63,6 +63,7 @@ function _dashFinanzas() {
     { label:'Revolut conjunta', val: s.rvc, color:'#f472b6' },
     { label:'CTV Vivienda',     val: s.ctv, color:'#34d399' },
     { label:'Baskepensiones',   val: s.bp,  color:'#fbbf24' },
+    { label:'FM Revolut',       val: s.fm,  color:'var(--red)' },
   ];
 
   el.innerHTML = `
