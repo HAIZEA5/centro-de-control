@@ -100,7 +100,12 @@ function renderOposCountdown(data) {
       nombreEl.textContent = next.convocatoria || '—';
     }
   }
-  document.getElementById('opos-cd-dias').textContent = dias;
+  const diasEl = document.getElementById('opos-cd-dias');
+  if (dias === 0) {
+    diasEl.innerHTML = '<span style="font-size:1.1rem;color:var(--red);animation:pulse 1s infinite">¡HOY!</span>';
+  } else {
+    diasEl.textContent = dias;
+  }
   const horaEl = document.getElementById('opos-cd-hora');
   if (horaEl) {
     if (mismodia.length > 1) {
@@ -260,7 +265,15 @@ function opos_renderFiltered() {
       <td data-label="Tasa">${r.tasa_pagada === 'SI' ? '<span class="badge badge--green">✓ Pagada</span>' : r.tasa_pagada === 'NO' ? '<span class="badge badge--red">✗ No</span>' : '—'}</td>
       <td data-label="Bolsa">${r.bolsa_entrada === true || r.bolsa_entrada === 'true' ? `<span class="badge badge--green">Sí ${r.bolsa_posicion ? '#'+r.bolsa_posicion : ''}</span>` : '<span class="badge badge--yellow">—</span>'}</td>
       <td data-label="Méritos">${meritosTotal > 0 ? `<span style="color:var(--accent2);font-weight:700">${meritosTotal.toFixed(2)} pts</span>` : r.tipo_proceso === 'libre' ? '<span style="color:var(--text3);font-size:.75rem">Libre</span>' : '—'}</td>
-      <td data-label="Fase">${r.fase ? `<span class="chip">${r.fase}</span>` : '—'}</td>
+      <td data-label="Fase">${(() => {
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        const fasesActivas = ['Preparación','Inscripción abierta','Fase Oposición','Pendiente pago'];
+        const examenPasado = r.fecha_examen && oposLocalDate(r.fecha_examen) < hoy;
+        if (examenPasado && r.fase && fasesActivas.includes(r.fase)) {
+          return `<span class="chip" style="background:#f59e0b22;color:#f59e0b;border-color:#f59e0b55" title="Fase estimada — actualiza en Actualizar">Pdte. de notas ⚡</span>`;
+        }
+        return r.fase ? `<span class="chip">${r.fase}</span>` : '—';
+      })()}</td>
     </tr>
     <tr class="opos-detalle-row hidden" id="opos-det-${realIdx}">
       <td colspan="9" style="padding:0">${renderDetalleHTML(r, realIdx)}</td>
