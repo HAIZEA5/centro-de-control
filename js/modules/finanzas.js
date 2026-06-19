@@ -830,7 +830,7 @@ function _renderFMChart(fmHistorial, fmExtra, saldoActual, objetivo) {
 ══════════════════════════════════════════════════════ */
 function _renderFMProyeccion(saldoActual) {
   const aportacion = parseFloat(Store.get('fin_fm_aportacion', 50));
-  const APY = 0.035;
+  const APY = 0.0138;
   const r = Math.pow(1 + APY, 1/12) - 1;
 
   function proyectar(meses) {
@@ -850,7 +850,7 @@ function _renderFMProyeccion(saldoActual) {
   return `
   <div class="card" style="margin-bottom:16px;border-left:3px solid var(--accent2)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <h3>📈 Proyección Fondo Monetario (~3.5% TAE)</h3>
+      <h3>📈 Proyección Fondo Monetario (~1.38% TIR)</h3>
       <div style="display:flex;align-items:center;gap:8px">
         <label style="font-size:.75rem;color:var(--text3)">Aportación/mes:</label>
         <input type="number" id="fin-fm-apor-input" value="${aportacion}" min="0" step="5"
