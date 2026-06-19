@@ -884,7 +884,7 @@ function _renderFMProyeccion(saldoActual) {
     <div style="font-size:.72rem;color:var(--text3);margin-top:10px">
       Saldo base: <strong style="color:var(--text2)">${fmt(saldoActual)}</strong> ·
       Sin aportaciones a 5 años: <strong>${fmt(soloInteres5)}</strong> ·
-      TAE estimada Revolut Money Market ~3.5%
+      TIR estimada Revolut Money Market ~1.38%
     </div>
   </div>`;
 }
