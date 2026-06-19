@@ -620,13 +620,37 @@ function renderFinSinking() {
   const fmDaily   = Store.get('fin_fm_daily', []).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   // Convertir intereses registrados en Actualizar a filas del historial,
   // solo si ese mes no existe ya en el historial base o en fmExtra
-  // Intereses registrados manualmente en Actualizar — siempre se muestran con su fecha exacta
-  const interesesRegistrados = Store.get('cdc_intereses_fm', []).map(e => {
-    const d = new Date(e.fecha + 'T12:00:00');
-    const fechaLabel = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-    return { mes: fechaLabel, aportacion: 0, interes: e.importe, saldo_final: null, nota: 'registrado', _fecha: e.fecha };
+  // Agrupar intereses registrados por mes (YYYY-MM) para sumarlos al historial
+  const _normMes = s => (s || '').toLowerCase().replace(/\./g, '').trim();
+  const interesesPorMes = {}; // clave: "YYYY-MM"
+  Store.get('cdc_intereses_fm', []).forEach(e => {
+    const clave = e.fecha.substring(0, 7); // "YYYY-MM"
+    interesesPorMes[clave] = (interesesPorMes[clave] || 0) + (parseFloat(e.importe) || 0);
   });
-  const fmHistorial = [...fm.historial, ...fmExtra, ...interesesRegistrados];
+
+  // Fusionar: sumar intereses registrados al mes existente si coincide, o añadir fila nueva si no existe
+  const histBase = [...fm.historial, ...fmExtra];
+  const mesesEnHistorial = {}; // clave normalizada → índice en histBase
+  histBase.forEach((h, i) => { mesesEnHistorial[_normMes(h.mes)] = i; });
+
+  // Clonar histBase para poder modificar intereses
+  const histConIntereses = histBase.map(h => ({ ...h }));
+  const filasSueltas = [];
+
+  Object.entries(interesesPorMes).forEach(([clave, totalInt]) => {
+    // Buscar si alguna fila del historial corresponde a este mes
+    const d = new Date(clave + '-01T12:00:00');
+    const mesLabel = d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+    const norm = _normMes(mesLabel);
+    const idx = mesesEnHistorial[norm];
+    if (idx !== undefined) {
+      histConIntereses[idx] = { ...histConIntereses[idx], interes: (histConIntereses[idx].interes || 0) + totalInt };
+    } else {
+      filasSueltas.push({ mes: mesLabel, aportacion: 0, interes: totalInt, saldo_final: null, nota: 'registrado' });
+    }
+  });
+
+  const fmHistorial = [...histConIntereses, ...filasSueltas];
   const s = getSaldosActuales();
   const totalIntereses = fmHistorial.reduce((a,h) => a + (h.interes || 0), 0) + s.interesesDiarios;
 
