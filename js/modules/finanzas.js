@@ -644,7 +644,12 @@ function renderFinSinking() {
     const norm = _normMes(mesLabel);
     const idx = mesesEnHistorial[norm];
     if (idx !== undefined) {
-      histConIntereses[idx] = { ...histConIntereses[idx], interes: (histConIntereses[idx].interes || 0) + totalInt };
+      const prev = histConIntereses[idx];
+      histConIntereses[idx] = {
+        ...prev,
+        interes: (prev.interes || 0) + totalInt,
+        saldo_final: prev.saldo_final !== null && prev.saldo_final !== undefined ? prev.saldo_final + totalInt : prev.saldo_final
+      };
     } else {
       filasSueltas.push({ mes: mesLabel, aportacion: 0, interes: totalInt, saldo_final: null, nota: 'registrado' });
     }
