@@ -86,6 +86,7 @@ function renderFinStats() {
   set('fin-rvc-saldo',  fmt(s.rvc));
   set('fin-ctv-saldo',  fmt(s.ctv));
   set('fin-bp-saldo',   fmt(s.bp));
+  set('fin-fm-card-saldo', fmt(s.fm));
   set('dash-ahorro',    fmt(saldoTotal));
 
   // Timestamps por cuenta
