@@ -34,6 +34,7 @@ function _fmtEdad(ts) {
 
 function loadFinanzas() {
   renderFinStats();
+  fin_patrRenderChart();
   setupFinTabs();
   renderFinResumen();
   renderFinTransacciones();
@@ -1328,9 +1329,12 @@ function guardarSaldos() {
   if (!ok) { alert('Revisa los valores — todos deben ser números.'); return; }
   data._ts = Date.now();
   Store.set('fin_saldos', data);
+  // Auto-snapshot para gráfica de evolución
+  fin_patrGuardarSnapshot(data);
   renderFinStats();
   renderFinActualizar();
   renderFinSinking();
+  fin_patrRenderChart();
 }
 
 function resetSaldos() {
@@ -1827,4 +1831,126 @@ function ctv_delAportacion(ts) {
   Store.set('ctv_aportaciones', lista);
   renderFinStats();
   renderFinCTVSimulador();
+}
+
+/* ════════════════════════════════════════════════════════
+   GRÁFICA EVOLUCIÓN PATRIMONIO
+   Clave localStorage: cdc_patrimonio_hist
+   Formato: [{ fecha, mes, total, ktx, rvp, rvc, ctv, bp, fm }]
+════════════════════════════════════════════════════════ */
+
+let _patrRango = 6; // meses a mostrar (0 = todo)
+let _patrChart = null;
+
+// Devuelve el historial ordenado cronológicamente
+function fin_patrGetHist() {
+  return Store.get('cdc_patrimonio_hist', []).sort((a, b) => a.fecha.localeCompare(b.fecha));
+}
+
+// Guarda snapshot del mes actual (1 por mes — reemplaza si ya existe)
+function fin_patrGuardarSnapshot(saldos) {
+  const ahora = new Date();
+  const mes = ahora.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+  const fecha = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}`;
+  const total = (saldos.ktx||0) + (saldos.rvp||0) + (saldos.rvc||0) + (saldos.ctv||0) + (saldos.bp||0) + (saldos.fm||0);
+  const hist = Store.get('cdc_patrimonio_hist', []);
+  const idx = hist.findIndex(h => h.fecha === fecha);
+  const snap = { fecha, mes, total, ktx: saldos.ktx||0, rvp: saldos.rvp||0, rvc: saldos.rvc||0, ctv: saldos.ctv||0, bp: saldos.bp||0, fm: saldos.fm||0 };
+  if (idx >= 0) hist[idx] = snap; else hist.push(snap);
+  Store.set('cdc_patrimonio_hist', hist);
+}
+
+// Cambia el rango y re-renderiza
+function fin_patrSetRango(n) {
+  _patrRango = n;
+  document.querySelectorAll('.fin-patr-btn').forEach(b => {
+    const esActivo = b.id === `fin-patr-btn-${n}`;
+    b.style.background = esActivo ? 'var(--bg3)' : 'var(--bg4)';
+    b.style.color = esActivo ? 'var(--text2)' : 'var(--text3)';
+    b.classList.toggle('active', esActivo);
+  });
+  fin_patrRenderChart();
+}
+
+// Renderiza la gráfica de línea con Chart.js
+function fin_patrRenderChart() {
+  const ctx = document.getElementById('fin-patrimonio-chart');
+  const empty = document.getElementById('fin-patr-empty');
+  const varEl = document.getElementById('fin-patr-variacion');
+  if (!ctx) return;
+
+  let hist = fin_patrGetHist();
+
+  // Filtrar por rango
+  if (_patrRango > 0 && hist.length > _patrRango) {
+    hist = hist.slice(-_patrRango);
+  }
+
+  if (hist.length < 2) {
+    ctx.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    if (_patrChart) { _patrChart.destroy(); _patrChart = null; }
+    return;
+  }
+
+  ctx.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+
+  // Variación vs primer punto del rango
+  const primero = hist[0].total;
+  const ultimo  = hist[hist.length-1].total;
+  const delta   = ultimo - primero;
+  const pct     = primero ? ((delta / primero) * 100).toFixed(1) : 0;
+  if (varEl) {
+    const signo = delta >= 0 ? '+' : '';
+    varEl.textContent = `${signo}${Fmt.eur2(delta)} (${signo}${pct}%)`;
+    varEl.style.color = delta >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+
+  const labels = hist.map(h => h.mes);
+  const totales = hist.map(h => h.total);
+
+  // Gradient fill
+  const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, ctx.offsetHeight || 120);
+  gradient.addColorStop(0, 'rgba(99,102,241,0.35)');
+  gradient.addColorStop(1, 'rgba(99,102,241,0.02)');
+
+  if (_patrChart) _patrChart.destroy();
+  _patrChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Patrimonio total',
+        data: totales,
+        borderColor: '#6366f1',
+        backgroundColor: gradient,
+        borderWidth: 2.5,
+        pointBackgroundColor: '#6366f1',
+        pointRadius: hist.length <= 8 ? 4 : 2,
+        pointHoverRadius: 6,
+        fill: true,
+        tension: 0.35
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + Fmt.eur2(ctx.parsed.y)
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#9ca3af', font: { size: 11 }, callback: v => Fmt.eur2(v) }
+        }
+      }
+    }
+  });
 }

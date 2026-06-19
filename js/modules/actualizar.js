@@ -354,6 +354,13 @@ function setupUpdFinanzas() {
   const intFecha = document.getElementById('ufin-int-fecha');
   if (intFecha) intFecha.value = hoy;
   ufin_renderInteresFM();
+  // Poner mes actual en el input de patrimonio y cargar lista
+  const patrMes = document.getElementById('ufin-patr-mes');
+  if (patrMes) {
+    const _d2 = new Date();
+    patrMes.value = `${_d2.getFullYear()}-${String(_d2.getMonth()+1).padStart(2,'0')}`;
+  }
+  ufin_renderPatrimonio();
 }
 
 /* ══ CATEGORÍAS EXTRA ══ */
@@ -664,6 +671,55 @@ function ufin_delInteresFM(fecha) {
   const lista = ufin_getInteresFM().filter(e => e.fecha !== fecha);
   Store.set('cdc_intereses_fm', lista);
   ufin_renderInteresFM();
+}
+
+/* ════════════════════════════════
+   HISTORIAL PATRIMONIO MANUAL
+   Clave localStorage: cdc_patrimonio_hist
+════════════════════════════════ */
+
+// Renderiza la lista de snapshots guardados
+function ufin_renderPatrimonio() {
+  const el = document.getElementById('ufin-patr-lista');
+  if (!el) return;
+  const hist = Store.get('cdc_patrimonio_hist', []).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  if (!hist.length) { el.innerHTML = '<p style="font-size:.75rem;color:var(--text3)">Sin registros aún.</p>'; return; }
+  const fmt2 = v => (parseFloat(v)||0).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  el.innerHTML = hist.map(h => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:.78rem;gap:8px;flex-wrap:wrap">
+      <span style="color:var(--text2);min-width:70px;font-weight:600">${h.mes}</span>
+      <span style="color:var(--accent2);font-weight:700">${fmt2(h.total)} €</span>
+      <span style="color:var(--text3);font-size:.72rem">KTX ${fmt2(h.ktx)} · RVP ${fmt2(h.rvp)} · CTV ${fmt2(h.ctv)} · FM ${fmt2(h.fm)}</span>
+      <button onclick="ufin_delPatrimonio('${h.fecha}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.8rem;padding:0 4px">✕</button>
+    </div>`).join('');
+}
+
+// Guarda un snapshot manual de un mes pasado
+function ufin_addPatrimonio() {
+  const mes = document.getElementById('ufin-patr-mes')?.value; // YYYY-MM
+  if (!mes) { alert('Indica el mes.'); return; }
+  const get = id => parseFloat(document.getElementById('ufin-patr-'+id)?.value) || 0;
+  const ktx = get('ktx'), rvp = get('rvp'), rvc = get('rvc'), ctv = get('ctv'), bp = get('bp'), fm = get('fm');
+  const total = ktx + rvp + rvc + ctv + bp + fm;
+  const d = new Date(mes + '-01');
+  const mesLabel = d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+  const hist = Store.get('cdc_patrimonio_hist', []);
+  const idx = hist.findIndex(h => h.fecha === mes);
+  const snap = { fecha: mes, mes: mesLabel, total, ktx, rvp, rvc, ctv, bp, fm };
+  if (idx >= 0) hist[idx] = snap; else hist.push(snap);
+  Store.set('cdc_patrimonio_hist', hist);
+  ['ktx','rvp','rvc','ctv','bp','fm'].forEach(id => { const e = document.getElementById('ufin-patr-'+id); if(e) e.value=''; });
+  mostrarOk('ufin-patr-ok');
+  ufin_renderPatrimonio();
+  if (typeof fin_patrRenderChart === 'function') fin_patrRenderChart();
+}
+
+// Borra un snapshot por su clave de fecha (YYYY-MM)
+function ufin_delPatrimonio(fecha) {
+  const hist = Store.get('cdc_patrimonio_hist', []).filter(h => h.fecha !== fecha);
+  Store.set('cdc_patrimonio_hist', hist);
+  ufin_renderPatrimonio();
+  if (typeof fin_patrRenderChart === 'function') fin_patrRenderChart();
 }
 
 function aplicarFinanzasLocales(datos) {

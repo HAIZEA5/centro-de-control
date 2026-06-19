@@ -40,6 +40,11 @@ function setupNavigation() {
       link.classList.add('active');
       document.getElementById(target)?.classList.add('active');
 
+      // Renderizar gráfica de patrimonio cuando la sección finanzas se hace visible
+      if (target === 'finanzas' && typeof fin_patrRenderChart === 'function') {
+        requestAnimationFrame(() => fin_patrRenderChart());
+      }
+
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('sidebarOverlay')?.classList.remove('open');
     });
