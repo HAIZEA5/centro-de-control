@@ -620,14 +620,11 @@ function renderFinSinking() {
   const fmDaily   = Store.get('fin_fm_daily', []).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   // Convertir intereses registrados en Actualizar a filas del historial,
   // solo si ese mes no existe ya en el historial base o en fmExtra
-  // Normalizar etiqueta de mes: minúsculas, sin puntos, sin espacios extra
-  const _normMes = s => (s || '').toLowerCase().replace(/\./g, '').trim();
-  const mesesExistentes = new Set([...fm.historial, ...fmExtra].map(e => _normMes(e.mes)));
-  const interesesRegistrados = Store.get('cdc_intereses_fm', []).flatMap(e => {
+  // Intereses registrados manualmente en Actualizar — siempre se muestran con su fecha exacta
+  const interesesRegistrados = Store.get('cdc_intereses_fm', []).map(e => {
     const d = new Date(e.fecha + 'T12:00:00');
-    const mesLabel = d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
-    if (mesesExistentes.has(_normMes(mesLabel))) return []; // ya existe entrada ese mes, no duplicar
-    return [{ mes: mesLabel, aportacion: 0, interes: e.importe, saldo_final: null, nota: 'registrado' }];
+    const fechaLabel = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+    return { mes: fechaLabel, aportacion: 0, interes: e.importe, saldo_final: null, nota: 'registrado', _fecha: e.fecha };
   });
   const fmHistorial = [...fm.historial, ...fmExtra, ...interesesRegistrados];
   const s = getSaldosActuales();
