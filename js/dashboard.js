@@ -43,7 +43,7 @@ function _dashFinanzas() {
 
   // Deuda iPhone restante
   const deuda = FIN_DATA.deudas?.[0];
-  const extra  = parseInt(localStorage.getItem('fin_cuotas_extra') || '0');
+  const extra  = parseInt(Store.get('fin_cuotas_extra', '0'));
   const cuotasRest = deuda ? Math.max(0, deuda.cuotas_total - deuda.cuotas_pagadas - extra) : 0;
   const deudaRest  = cuotasRest * (deuda?.importe_cuota || 0);
   const neto = patrimonio - deudaRest;

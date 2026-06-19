@@ -61,9 +61,12 @@ async function supaInit() {
         'Authorization': `Bearer ${SUPA_KEY}`,
       },
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      const err = await res.text();
+      console.warn(`[Supabase] Error ${res.status}:`, err);
+      return;
+    }
     const rows = await res.json();
-    // Usar el original para no reenviar a Supabase lo que acabamos de leer
     rows.forEach(({ key, value }) => _origSetItem(key, value));
     console.info(`[Supabase] Sync OK — ${rows.length} clave(s) cargadas`);
   } catch (e) {

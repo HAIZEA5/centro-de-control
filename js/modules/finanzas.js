@@ -74,7 +74,7 @@ function renderFinStats() {
 
   // Deuda iPhone restante
   const deuda = FIN_DATA.deudas?.[0];
-  const extra  = parseInt(localStorage.getItem('fin_cuotas_extra') || '0');
+  const extra  = parseInt(Store.get('fin_cuotas_extra', '0'));
   const cuotasRest = deuda ? Math.max(0, deuda.cuotas_total - deuda.cuotas_pagadas - extra) : 0;
   const deudaRest  = cuotasRest * (deuda?.importe_cuota || 0);
   const neto = saldoTotal - deudaRest;
@@ -172,12 +172,15 @@ function setupFinTabs() {
       }).join('');
     mesSelect.value = mesActual;
   }
-  document.getElementById('fin-mes-filter')?.addEventListener('change',  renderFinTransacciones);
-  document.getElementById('fin-cat-filter')?.addEventListener('change',  renderFinTransacciones);
-  document.getElementById('fin-cta-filter')?.addEventListener('change',  renderFinTransacciones);
-  document.getElementById('fin-search')?.addEventListener('input',       renderFinTransacciones);
-  document.getElementById('fin-hide-internal')?.addEventListener('change',renderFinTransacciones);
-  document.getElementById('fin-add-txn')?.addEventListener('click',      addTransaccionManual);
+  if (!window._finTabsSetup) {
+    window._finTabsSetup = true;
+    document.getElementById('fin-mes-filter')?.addEventListener('change',  renderFinTransacciones);
+    document.getElementById('fin-cat-filter')?.addEventListener('change',  renderFinTransacciones);
+    document.getElementById('fin-cta-filter')?.addEventListener('change',  renderFinTransacciones);
+    document.getElementById('fin-search')?.addEventListener('input',       renderFinTransacciones);
+    document.getElementById('fin-hide-internal')?.addEventListener('change',renderFinTransacciones);
+    document.getElementById('fin-add-txn')?.addEventListener('click',      addTransaccionManual);
+  }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -897,7 +900,7 @@ function fin_getDeudas() {
   // Migrar iPhone de FIN_DATA en el primer acceso
   const deudas = [];
   (FIN_DATA.deudas || []).forEach(d => {
-    const extra = parseInt(localStorage.getItem('fin_cuotas_extra') || '0');
+    const extra = parseInt(Store.get('fin_cuotas_extra', '0'));
     deudas.push({
       id: Date.now() + Math.floor(Math.random() * 1000),
       nombre: d.nombre,
@@ -1039,10 +1042,8 @@ function renderFinDeudas() {
 /* ══════════════════════════════════════════════════════
    PANEL: PRESUPUESTO
 ══════════════════════════════════════════════════════ */
-// Legacy alias — kept so finGFToggle/finGFBorrar/finGFEditar/finGFAnadir still work
-function renderFinPresupuesto()   { renderFinPresupuestoYGastos(); }
-function renderFinGastosFijos()   { renderFinPresupuestoYGastos(); }
-function renderFinRevolutIntereses() { renderFinSinking(); }
+function renderFinPresupuesto() { renderFinPresupuestoYGastos(); }
+function renderFinGastosFijos() { renderFinPresupuestoYGastos(); }
 
 /* ══════════════════════════════════════════════════════
    PANEL UNIFICADO: PRESUPUESTO & GASTOS FIJOS
@@ -1146,220 +1147,6 @@ function renderFinPresupuestoYGastos() {
     </div>`;
 }
 
-/* ══════════════════════════════════════════════════════
-   PANEL: ACTUALIZAR SALDOS Y DATOS
-══════════════════════════════════════════════════════ */
-function renderFinActualizar() {
-  const el = document.getElementById('fin-actualizar-content');
-  if (!el) return;
-  const s = getSaldosActuales();
-
-  el.innerHTML = `
-    <div class="card" style="margin-bottom:16px">
-      <h3 style="margin-bottom:4px">💳 Actualizar saldos de cuentas</h3>
-      <p style="font-size:.78rem;color:var(--text3);margin-bottom:16px">Los saldos que introduces aquí se guardan en este dispositivo y se usan en toda la sección. No se modifican los archivos del proyecto.</p>
-      <div class="fin-act-grid">
-        ${[
-          { id:'ktx', label:'Kutxabank Personal', color:'#60a5fa', val: s.ktx },
-          { id:'rvp', label:'Revolut Personal',   color:'#a78bfa', val: s.rvp },
-          { id:'rvc', label:'Revolut Conjunta',   color:'#f472b6', val: s.rvc },
-          { id:'ctv', label:'CTV – Vivienda',     color:'#34d399', val: s.ctv },
-          { id:'bp',  label:'Baskepensiones 60',  color:'#fbbf24', val: s.bp  },
-          { id:'fm',  label:'Fondo Monetario Revolut', color:'#818cf8', val: s.fm },
-        ].map(a => `
-          <div class="fin-act-row">
-            <label class="fin-act-label" style="color:${a.color}">● ${a.label}</label>
-            <input type="number" class="upd-input fin-act-input" id="fin-act-${a.id}" step="0.01" value="${a.val.toFixed(2)}" placeholder="0.00" />
-            <span class="fin-act-actual">Actual: <strong>${fmt(a.val)}</strong></span>
-          </div>`).join('')}
-      </div>
-      <button class="upd-btn" style="margin-top:16px;width:100%" onclick="guardarSaldos()">💾 Guardar saldos</button>
-      <button class="upd-btn" style="margin-top:8px;width:100%;background:transparent;border:1px solid var(--text3);color:var(--text2)" onclick="resetSaldos()">↩ Restaurar saldos originales de los PDFs</button>
-      ${(() => {
-        const ts = Store.get('fin_saldos')._ts;
-        if (!ts) return '<p style="font-size:.75rem;color:var(--text3);margin-top:10px">⚠️ Saldos no actualizados todavía — usando valores de los PDFs.</p>';
-        const d = new Date(ts);
-        const diff = Math.floor((Date.now() - ts) / 86400000);
-        const cuando = diff === 0 ? 'hoy' : diff === 1 ? 'ayer' : `hace ${diff} días`;
-        const color = diff > 7 ? 'var(--yellow)' : 'var(--text3)';
-        return `<p style="font-size:.75rem;color:${color};margin-top:10px">🕐 Última actualización: ${d.toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'})} a las ${d.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})} (${cuando})${diff > 7 ? ' — considera actualizar' : ''}</p>`;
-      })()}
-    </div>
-
-
-    ${renderFinGastosFijosAdmin()}
-
-    <div class="card">
-      <h3 style="margin-bottom:4px">📊 Fondo Monetario Revolut</h3>
-      <p style="font-size:.78rem;color:var(--text3);margin-bottom:14px">Registra el saldo diario o añade un mes al historial mensual.</p>
-
-      <h4 style="font-size:.82rem;color:var(--accent2);margin-bottom:10px">Entrada diaria (seguimiento rápido)</h4>
-      <div style="display:grid;grid-template-columns:140px 1fr 2fr auto;gap:8px;align-items:end;margin-bottom:6px">
-        <div class="form-group" style="margin:0"><label style="font-size:.75rem">Fecha</label><input type="date" id="fin-fmd-fecha" class="upd-input" /></div>
-        <div class="form-group" style="margin:0"><label style="font-size:.75rem">Saldo (€)</label><input type="number" id="fin-fmd-saldo" class="upd-input" step="0.01" placeholder="291.50" /></div>
-        <div class="form-group" style="margin:0"><label style="font-size:.75rem">Nota (opcional)</label><input type="text" id="fin-fmd-nota" class="upd-input" placeholder="Aportación, retirada…" /></div>
-        <button class="upd-btn" style="margin-bottom:0" onclick="addFMDiario()">➕</button>
-      </div>
-      <span id="fin-fmd-ok" class="update-success" style="display:none;font-size:.8rem">✓ Guardado</span>
-
-      <hr style="border-color:var(--border);margin:16px 0">
-
-      <h4 style="font-size:.82rem;color:var(--accent2);margin-bottom:10px">Resumen mensual (cierre de mes)</h4>
-      <div class="fin-act-form">
-        <input type="text" id="fin-fm-mes" class="upd-input" placeholder="Ej: Jul 2026" style="width:120px" />
-        <input type="number" id="fin-fm-aport" class="upd-input" placeholder="Aportación (€)" step="0.01" />
-        <input type="number" id="fin-fm-interes" class="upd-input" placeholder="Interés (€)" step="0.01" />
-        <input type="number" id="fin-fm-saldo" class="upd-input" placeholder="Saldo final (€)" step="0.01" />
-        <input type="text" id="fin-fm-nota" class="upd-input" placeholder="Nota (opcional)" />
-        <button class="upd-btn" onclick="addMesFondoMonetario()">➕ Añadir mes</button>
-      </div>
-      <div id="fin-fm-feedback" style="font-size:.8rem;color:var(--green);margin-top:8px;display:none">✅ Mes añadido.</div>
-    </div>`;
-}
-
-/* ══════════════════════════════════════════════════════
-   GESTIÓN DE GASTOS FIJOS (CRUD)
-══════════════════════════════════════════════════════ */
-function renderFinGastosFijosAdmin() {
-  const gastos = fin_getGastosFijos();
-  const tipoLabel = { personal:'Personal', conjunta:'Conjunta', suscripcion:'Suscripción' };
-  const tipoColor = { personal:'var(--red)', conjunta:'var(--pink)', suscripcion:'var(--blue)' };
-  const ctaColor  = { KTX:'#60a5fa', RVP:'#a78bfa', RVC:'#f472b6', CTV:'#34d399', BP:'#fbbf24' };
-
-  return `
-  <div class="card" style="margin-bottom:16px">
-    <h3 style="margin-bottom:4px">📋 Gestionar gastos fijos y suscripciones</h3>
-    <p style="font-size:.78rem;color:var(--text3);margin-bottom:14px">Los cambios se aplican en toda la app: presupuesto, agenda, auto-generación de transacciones.</p>
-
-    <div style="margin-bottom:16px">
-      ${gastos.map((g, i) => `
-      <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);opacity:${g.activo ? '1' : '.4'}">
-        <div>
-          <span style="font-size:.87rem;font-weight:600">${g.nombre}</span>
-          ${g.dia ? `<span style="font-size:.7rem;color:var(--text3);margin-left:6px">día ${g.dia}</span>` : ''}
-          ${g.hasta ? `<span style="font-size:.68rem;color:var(--orange);margin-left:4px">hasta ${g.hasta}</span>` : ''}
-          <br>
-          <span style="font-size:.72rem;color:${tipoColor[g.tipo]}">${tipoLabel[g.tipo]}</span>
-          <span style="font-size:.72rem;color:${ctaColor[g.cuenta] || 'var(--text3)'}"> · ${g.cuenta}</span>
-          <span style="font-size:.72rem;color:var(--text3)"> · ${g.cat}</span>
-        </div>
-        <span style="font-size:.9rem;font-weight:700;color:${g.activo ? 'var(--red)' : 'var(--text3)'}">-${fmt(g.importe)}</span>
-        <button onclick="finGFToggle(${i})" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:3px 8px;font-size:.75rem;font-family:inherit">${g.activo ? '⏸ Pausar' : '▶ Activar'}</button>
-        <button onclick="finGFEditar(${i})" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;padding:3px 8px;font-size:.75rem;font-family:inherit">✏️ Editar</button>
-        <button onclick="finGFBorrar(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:.85rem">✕</button>
-      </div>`).join('')}
-    </div>
-
-    <details style="margin-top:4px">
-      <summary style="cursor:pointer;font-size:.85rem;font-weight:600;color:var(--accent2);margin-bottom:12px">➕ Añadir nuevo gasto fijo / suscripción</summary>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
-        <div class="form-group">
-          <label>Nombre</label>
-          <input type="text" id="fin-gf-nombre" class="upd-input" placeholder="Ej: Spotify" />
-        </div>
-        <div class="form-group">
-          <label>Importe (€)</label>
-          <input type="number" id="fin-gf-importe" class="upd-input" step="0.01" placeholder="0.00" />
-        </div>
-        <div class="form-group">
-          <label>Tipo</label>
-          <select id="fin-gf-tipo" class="upd-input">
-            <option value="personal">Personal</option>
-            <option value="conjunta">Conjunta</option>
-            <option value="suscripcion">Suscripción</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Cuenta</label>
-          <select id="fin-gf-cuenta" class="upd-input">
-            <option value="KTX">KTX – Kutxabank</option>
-            <option value="RVP">RVP – Revolut Personal</option>
-            <option value="RVC">RVC – Revolut Conjunta</option>
-            <option value="CTV">CTV – Cuenta Vivienda</option>
-            <option value="BP">BP – Baskepensiones</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Día de cobro (1–31)</label>
-          <input type="number" id="fin-gf-dia" class="upd-input" min="1" max="31" placeholder="Ej: 5" />
-        </div>
-        <div class="form-group">
-          <label>Categoría</label>
-          <select id="fin-gf-cat" class="upd-input">
-            ${Object.entries(CAT_META).filter(([k])=>k!=='interna').map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Hasta (YYYY-MM, opcional)</label>
-          <input type="text" id="fin-gf-hasta" class="upd-input" placeholder="Ej: 2027-03" />
-        </div>
-        <div class="form-group">
-          <label>Nota</label>
-          <input type="text" id="fin-gf-nota" class="upd-input" placeholder="Opcional" />
-        </div>
-      </div>
-      <button class="upd-btn" style="margin-top:8px" onclick="finGFAnadir()">➕ Añadir gasto fijo</button>
-      <span class="update-success" id="fin-gf-ok" style="display:none;margin-left:10px;color:var(--green);font-size:.82rem">✓ Guardado</span>
-    </details>
-  </div>`;
-}
-
-function finGFAnadir() {
-  const nombre  = document.getElementById('fin-gf-nombre')?.value?.trim();
-  const importe = parseFloat(document.getElementById('fin-gf-importe')?.value);
-  const tipo    = document.getElementById('fin-gf-tipo')?.value;
-  const cuenta  = document.getElementById('fin-gf-cuenta')?.value;
-  const dia     = parseInt(document.getElementById('fin-gf-dia')?.value) || null;
-  const cat     = document.getElementById('fin-gf-cat')?.value;
-  const hasta   = document.getElementById('fin-gf-hasta')?.value?.trim() || null;
-  const nota    = document.getElementById('fin-gf-nota')?.value?.trim() || '';
-
-  if (!nombre || isNaN(importe) || !tipo || !cuenta) {
-    alert('Rellena al menos nombre, importe, tipo y cuenta.'); return;
-  }
-  const list = fin_getGastosFijos();
-  list.push({ id: 'gf_' + Date.now(), nombre, importe, tipo, cuenta, dia, cat: cat || 'otros', hasta, nota, activo: true });
-  fin_saveGastosFijos(list);
-  renderFinActualizar();
-  renderFinPresupuesto();
-  renderFinGastosFijos(); // agenda section
-}
-
-function finGFToggle(i) {
-  const list = fin_getGastosFijos();
-  list[i].activo = !list[i].activo;
-  fin_saveGastosFijos(list);
-  renderFinActualizar();
-  renderFinPresupuesto();
-  renderFinGastosFijos();
-}
-
-function finGFBorrar(i) {
-  if (!confirm('¿Eliminar este gasto fijo?')) return;
-  const list = fin_getGastosFijos();
-  list.splice(i, 1);
-  fin_saveGastosFijos(list);
-  renderFinActualizar();
-  renderFinPresupuesto();
-  renderFinGastosFijos();
-}
-
-function finGFEditar(i) {
-  const list = fin_getGastosFijos();
-  const g = list[i];
-  const nombre  = prompt('Nombre:', g.nombre);       if (nombre === null) return;
-  const importe = parseFloat(prompt('Importe:', g.importe));
-  const dia     = parseInt(prompt('Día de cobro (vacío = variable):', g.dia || '')) || null;
-  const hasta   = prompt('Hasta (YYYY-MM, vacío = indefinido):', g.hasta || '') || null;
-  const nota    = prompt('Nota:', g.nota || '') || '';
-  if (isNaN(importe)) { alert('Importe inválido'); return; }
-  list[i] = { ...g, nombre: nombre.trim(), importe, dia, hasta, nota };
-  fin_saveGastosFijos(list);
-  renderFinActualizar();
-  renderFinPresupuesto();
-  renderFinGastosFijos();
-}
-
 function guardarSaldos() {
   const ids = ['ktx','rvp','rvc','ctv','bp','fm'];
   const data = {};
@@ -1375,7 +1162,6 @@ function guardarSaldos() {
   // Auto-snapshot para gráfica de evolución
   fin_patrGuardarSnapshot(data);
   renderFinStats();
-  renderFinActualizar();
   renderFinSinking();
   fin_patrRenderChart();
 }
@@ -1384,16 +1170,14 @@ function resetSaldos() {
   if (!confirm('¿Restaurar los saldos originales de los PDFs?')) return;
   localStorage.removeItem('fin_saldos');
   renderFinStats();
-  renderFinActualizar();
   renderFinSinking();
 }
 
 function marcarCuotaIphone(delta) {
-  const actual = parseInt(localStorage.getItem('fin_cuotas_extra') || '0');
+  const actual = parseInt(Store.get('fin_cuotas_extra', '0'));
   const nuevo = Math.max(0, actual + delta);
-  localStorage.setItem('fin_cuotas_extra', String(nuevo));
+  Store.set('fin_cuotas_extra', String(nuevo));
   renderFinDeudas();
-  renderFinActualizar();
   renderFinStats();
 }
 
@@ -1419,7 +1203,6 @@ function addFMDiario() {
   mostrarOk('fin-fmd-ok');
   renderFinSinking();
   renderFinStats();
-  renderFinActualizar();
 }
 
 function finFMDailyBorrar(i) {

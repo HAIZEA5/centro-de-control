@@ -456,12 +456,12 @@ function ufin_guardarMovimiento() {
 
   // Auto-sync: ajustar el input de saldo de la cuenta usada
   const cuentaMap = { KTX:'ufin-s-ktx', RVP:'ufin-s-rvp', RVC:'ufin-s-rvc', CTV:'ufin-s-ctv', BP:'ufin-s-bp' };
-  const saldoInputId = cuentaMap[entry.ct];
+  const saldoInputId = cuentaMap[cuenta];
   if (saldoInputId) {
     const saldoEl = document.getElementById(saldoInputId);
     if (saldoEl && saldoEl.value) {
       const saldoActual = parseFloat(saldoEl.value) || 0;
-      saldoEl.value = (saldoActual + entry.i).toFixed(2);
+      saldoEl.value = (saldoActual + importe).toFixed(2);
       saldoEl.style.background = 'var(--green)18';
       setTimeout(() => saldoEl.style.background = '', 2000);
     }
@@ -566,7 +566,7 @@ function ufin_guardarSaldos() {
   if (okEl) { okEl.style.display='inline'; setTimeout(()=>okEl.style.display='none',2500); }
   if (typeof renderFinStats === 'function') renderFinStats();
   if (typeof renderFinSinking === 'function') renderFinSinking();
-  if (typeof renderFinActualizar === 'function') renderFinActualizar();
+
 }
 
 function ufin_resetSaldos() {
@@ -575,7 +575,7 @@ function ufin_resetSaldos() {
   ufin_cargarSaldosInputs();
   if (typeof renderFinStats === 'function') renderFinStats();
   if (typeof renderFinSinking === 'function') renderFinSinking();
-  if (typeof renderFinActualizar === 'function') renderFinActualizar();
+
 }
 
 /* ══ CUOTA IPHONE ══ */
@@ -583,7 +583,7 @@ function ufin_renderIphoneInfo() {
   const el = document.getElementById('ufin-iphone-info');
   if (!el || typeof FIN_DATA === 'undefined') return;
   const d = FIN_DATA.deudas[0];
-  const extra = parseInt(localStorage.getItem('fin_cuotas_extra') || '0');
+  const extra = parseInt(Store.get('fin_cuotas_extra', '0'));
   const pagadas = d.cuotas_pagadas + extra;
   const restantes = Math.max(0, d.cuotas_total - pagadas);
   const pct = Math.min(100, Math.round(pagadas / d.cuotas_total * 100));
@@ -605,13 +605,13 @@ function ufin_renderIphoneInfo() {
 }
 
 function ufin_cuotaIphone(delta) {
-  const actual = parseInt(localStorage.getItem('fin_cuotas_extra') || '0');
+  const actual = parseInt(Store.get('fin_cuotas_extra', '0'));
   const nuevo = Math.max(0, actual + delta);
-  localStorage.setItem('fin_cuotas_extra', String(nuevo));
+  Store.set('fin_cuotas_extra', String(nuevo));
   ufin_renderIphoneInfo();
   if (typeof renderFinDeudas === 'function') renderFinDeudas();
   if (typeof renderFinStats === 'function') renderFinStats();
-  if (typeof renderFinActualizar === 'function') renderFinActualizar();
+
 }
 
 /* ════════════════════════════════
