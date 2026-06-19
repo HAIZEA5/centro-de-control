@@ -618,7 +618,13 @@ function renderFinSinking() {
   const fm = FIN_DATA.revolut_fondo_monetario;
   const fmExtra   = Store.get('fin_fm_extra', []);
   const fmDaily   = Store.get('fin_fm_daily', []).sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  const fmHistorial = [...fm.historial, ...fmExtra];
+  // Convertir intereses registrados en Actualizar a filas del historial
+  const interesesRegistrados = Store.get('cdc_intereses_fm', []).map(e => {
+    const d = new Date(e.fecha + 'T12:00:00');
+    const mesLabel = d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+    return { mes: mesLabel, aportacion: 0, interes: e.importe, saldo_final: null, nota: '📋 registrado' };
+  });
+  const fmHistorial = [...fm.historial, ...fmExtra, ...interesesRegistrados];
   const s = getSaldosActuales();
   const totalIntereses = fmHistorial.reduce((a,h) => a + (h.interes || 0), 0) + s.interesesDiarios;
 
