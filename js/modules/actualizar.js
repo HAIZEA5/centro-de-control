@@ -350,6 +350,10 @@ function setupUpdFinanzas() {
   ufin_renderRecientes();
   // Load iPhone info
   ufin_renderIphoneInfo();
+  // Poner fecha de hoy en el input de intereses FM y cargar histórico
+  const intFecha = document.getElementById('ufin-int-fecha');
+  if (intFecha) intFecha.value = hoy;
+  ufin_renderInteresFM();
 }
 
 /* ══ CATEGORÍAS EXTRA ══ */
@@ -546,6 +550,10 @@ function ufin_guardarSaldos() {
     else data[id] = v;
   });
   if (!ok) { alert('Revisa los valores — deben ser números.'); return; }
+  const prev = Store.get('fin_saldos', {});
+  const now  = Date.now();
+  ids.forEach(id => { if (data[id] !== prev[id]) data[id + '_ts'] = now; else if (prev[id + '_ts']) data[id + '_ts'] = prev[id + '_ts']; });
+  data._ts = now;
   Store.set('fin_saldos', data);
   const okEl = document.getElementById('ufin-saldos-ok');
   if (okEl) { okEl.style.display='inline'; setTimeout(()=>okEl.style.display='none',2500); }
@@ -597,6 +605,65 @@ function ufin_cuotaIphone(delta) {
   if (typeof renderFinDeudas === 'function') renderFinDeudas();
   if (typeof renderFinStats === 'function') renderFinStats();
   if (typeof renderFinActualizar === 'function') renderFinActualizar();
+}
+
+/* ════════════════════════════════
+   INTERESES FONDO MONETARIO
+   Clave localStorage: cdc_intereses_fm
+   Formato: [{ fecha, importe }]
+════════════════════════════════ */
+
+// Devuelve el listado de intereses guardados
+function ufin_getInteresFM() {
+  return Store.get('cdc_intereses_fm', []);
+}
+
+// Renderiza el histórico de intereses y el total acumulado
+function ufin_renderInteresFM() {
+  const lista = ufin_getInteresFM();
+  const total = lista.reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
+
+  const totalEl = document.getElementById('ufin-int-total');
+  if (totalEl) totalEl.textContent = lista.length
+    ? `Total acumulado: ${total.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} €`
+    : '';
+
+  const listaEl = document.getElementById('ufin-int-lista');
+  if (!listaEl) return;
+  if (!lista.length) { listaEl.innerHTML = '<p style="font-size:.75rem;color:var(--text3)">Sin registros aún.</p>'; return; }
+
+  const sorted = [...lista].sort((a, b) => b.fecha.localeCompare(a.fecha));
+  listaEl.innerHTML = sorted.map(e => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:.8rem">
+      <span style="color:var(--text2)">${e.fecha}</span>
+      <span style="color:var(--green);font-weight:600">+${parseFloat(e.importe).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} €</span>
+      <button onclick="ufin_delInteresFM('${e.fecha}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.8rem;padding:0 4px">✕</button>
+    </div>`).join('');
+}
+
+// Guarda un nuevo registro de interés FM
+function ufin_addInteresFM() {
+  const fecha   = document.getElementById('ufin-int-fecha')?.value;
+  const importe = parseFloat(document.getElementById('ufin-int-importe')?.value);
+  if (!fecha || isNaN(importe) || importe <= 0) { alert('Indica fecha e importe válido.'); return; }
+
+  const lista = ufin_getInteresFM();
+  // Reemplaza si ya existe entrada para la misma fecha
+  const idx = lista.findIndex(e => e.fecha === fecha);
+  if (idx >= 0) lista[idx].importe = importe;
+  else lista.push({ fecha, importe });
+
+  Store.set('cdc_intereses_fm', lista);
+  document.getElementById('ufin-int-importe').value = '';
+  mostrarOk('ufin-int-ok');
+  ufin_renderInteresFM();
+}
+
+// Borra el registro de interés de una fecha concreta
+function ufin_delInteresFM(fecha) {
+  const lista = ufin_getInteresFM().filter(e => e.fecha !== fecha);
+  Store.set('cdc_intereses_fm', lista);
+  ufin_renderInteresFM();
 }
 
 function aplicarFinanzasLocales(datos) {
