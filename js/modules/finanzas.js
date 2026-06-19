@@ -1929,12 +1929,13 @@ function fin_patrRenderChart() {
     hist = hist.slice(-_patrRango);
   }
 
+  const card = document.getElementById('fin-patrimonio-chart-card');
   if (hist.length < 2) {
-    ctx.style.display = 'none';
-    if (empty) empty.style.display = 'block';
+    if (card) card.style.display = 'none';
     if (_patrChart) { _patrChart.destroy(); _patrChart = null; }
     return;
   }
+  if (card) card.style.display = 'block';
 
   ctx.style.display = 'block';
   if (empty) empty.style.display = 'none';
