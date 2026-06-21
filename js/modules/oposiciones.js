@@ -22,6 +22,7 @@ async function loadOposiciones() {
   renderOposSesiones();
   setupOposTemas();
   setupOposSesiones();
+  radarInit();
 }
 
 /* ── Stats ── */
@@ -959,4 +960,103 @@ function opos_toggleCheck(key, field, checked) {
     const span = label.querySelector('span');
     if (span) span.style.cssText = checked ? 'text-decoration:line-through;color:var(--text3)' : '';
   }
+}
+
+/* ══════════════════════════════════════════════════════
+   RADAR DE ORGANISMOS
+══════════════════════════════════════════════════════ */
+const RADAR_KEY = 'opos_radar';
+
+const RADAR_INICIAL = [
+  { organismo:'Diputación Foral de Bizkaia', puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Gobierno Vasco',              puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Bilbao',                puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Barakaldo',             puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Basauri',               puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Sestao',                puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Erandio',               puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Durango',               puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Galdakao',              puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Mungia',                puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Ermua',                 puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Muskiz',                puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Ortuella',              puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Balmaseda',             puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Zalla',                 puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Gernika-Lumo',          puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Bermeo',                puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Ondarroa',              puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Amorebieta-Etxano',     puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Sopelana',              puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Plentzia',              puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Urduliz',               puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Meñaka',                puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Ayto. Igorre',                puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Bilbao Ekintza',              puesto:'Administrativo / Auxiliar', nota:'OAL Bilbao' },
+  { organismo:'Bilbao Kirolak',              puesto:'Administrativo / Auxiliar', nota:'OAL Bilbao' },
+  { organismo:'UPV/EHU',                     puesto:'Administración universitaria', nota:'' },
+  { organismo:'Lanbide',                     puesto:'Administrativo / Auxiliar', nota:'Servicio Vasco de Empleo' },
+  { organismo:'Metro Bilbao',                puesto:'Administrativo / Auxiliar', nota:'' },
+  { organismo:'Autoridad Portuaria Bilbao',  puesto:'Administrativo / Auxiliar', nota:'' },
+];
+
+function radarInit() {
+  if (!Store.get(RADAR_KEY, null)) {
+    Store.set(RADAR_KEY, RADAR_INICIAL.map((r, i) => ({ ...r, id: 'rad_' + i })));
+  }
+  radarRender();
+}
+
+function radarRender() {
+  const el = document.getElementById('opos-radar-list');
+  if (!el) return;
+  const lista = Store.get(RADAR_KEY, []);
+  if (!lista.length) {
+    el.innerHTML = '<p style="color:var(--text3);font-size:.85rem">Sin organismos en el radar.</p>';
+    return;
+  }
+  el.innerHTML = lista.map((r, i) => `
+    <div style="display:grid;grid-template-columns:1fr 1fr 2fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:.85rem;font-weight:600">${r.organismo}</span>
+      <span style="font-size:.78rem;color:var(--accent2)">${r.puesto}</span>
+      <span style="font-size:.75rem;color:var(--text3)">${r.nota || ''}</span>
+      <button onclick="radarConvertir(${i})" title="Ha salido convocatoria — añadir" style="background:var(--green)22;border:1px solid var(--green)55;color:var(--green);border-radius:6px;cursor:pointer;padding:3px 8px;font-size:.78rem;font-family:inherit;white-space:nowrap">➕ Convocar</button>
+      <button onclick="radarBorrar(${i})" title="Quitar del radar" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:.85rem">✕</button>
+    </div>`).join('');
+}
+
+function radarAnadir() {
+  const organismo = document.getElementById('radar-organismo')?.value.trim();
+  const puesto    = document.getElementById('radar-puesto')?.value.trim();
+  const nota      = document.getElementById('radar-nota')?.value.trim() || '';
+  if (!organismo || !puesto) { alert('Indica organismo y puesto.'); return; }
+  const lista = Store.get(RADAR_KEY, []);
+  lista.push({ id: 'rad_' + Date.now(), organismo, puesto, nota });
+  Store.set(RADAR_KEY, lista);
+  document.getElementById('radar-organismo').value = '';
+  document.getElementById('radar-puesto').value    = '';
+  document.getElementById('radar-nota').value      = '';
+  radarRender();
+}
+
+function radarBorrar(i) {
+  if (!confirm('¿Quitar este organismo del radar?')) return;
+  const lista = Store.get(RADAR_KEY, []);
+  lista.splice(i, 1);
+  Store.set(RADAR_KEY, lista);
+  radarRender();
+}
+
+function radarConvertir(i) {
+  const r = Store.get(RADAR_KEY, [])[i];
+  if (!r) return;
+  // Abrir el panel Actualizar → Oposiciones con el organismo pre-rellenado
+  document.querySelector('[data-section=actualizar]')?.click();
+  setTimeout(() => {
+    document.querySelector('[data-tab=upd-oposiciones]')?.click();
+    setTimeout(() => {
+      const el = document.getElementById('ufin-opos-organismo') || document.getElementById('uopos-organismo');
+      if (el) { el.value = r.organismo; el.focus(); }
+    }, 200);
+  }, 150);
 }
