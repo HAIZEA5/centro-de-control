@@ -302,7 +302,17 @@
           <div class="opos-stat opos-stat--seguimiento"><div class="opos-stat-value" id="opos-n-seguimiento">—</div><div class="opos-stat-label">En seguimiento</div></div>
           <div class="opos-stat opos-stat--bolsa"><div class="opos-stat-value" id="opos-n-bolsa">—</div><div class="opos-stat-label">En bolsa</div></div>
           <div class="opos-stat opos-stat--prox" style="grid-column:span 2"><div class="opos-stat-value" id="opos-prox-fecha" style="font-size:1rem;line-height:1.3">—</div><div class="opos-stat-label">Próximo examen</div></div>
-          <div class="opos-stat" style="grid-column:span 2;cursor:pointer;border:1px dashed var(--border)" onclick="document.querySelector('.card.mt:last-of-type')?.scrollIntoView({behavior:'smooth'})"><div class="opos-stat-value" id="opos-n-radar" style="font-size:1.2rem">📡</div><div class="opos-stat-label">Radar · <span id="opos-radar-count">—</span> organismos</div></div>
+        </div>
+
+        <!-- RADAR COMPACTO -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:.75rem;font-weight:700;color:var(--text3);letter-spacing:.06em">📡 RADAR · <span id="opos-radar-count">—</span> organismos</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="text" id="radar-quick-add" placeholder="+ organismo / puesto" style="font-size:.72rem;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:3px 8px;font-family:inherit;width:160px;outline:none" onkeydown="if(event.key==='Enter')radarQuickAdd(this.value)" />
+            </div>
+          </div>
+          <div id="opos-radar-list" style="max-height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:2px"></div>
         </div>
 
         <div class="opos-countdown" id="opos-countdown" style="display:none">
@@ -381,19 +391,6 @@
             <button class="btn-primary" id="opos-sesion-add">Registrar</button>
           </div>
           <ul class="list" id="opos-sesiones"></ul>
-        </div>
-
-        <!-- RADAR DE ORGANISMOS -->
-        <div class="card mt">
-          <h3>📡 Radar de organismos</h3>
-          <p style="font-size:.78rem;color:var(--text3);margin-bottom:14px">Organismos a vigilar periódicamente. Cuando salga convocatoria, pulsa ➕ para añadirla.</p>
-          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-            <input type="text" id="radar-organismo" class="upd-input" placeholder="Organismo (ej: Ayto. Bilbao)" style="flex:2;min-width:140px" />
-            <input type="text" id="radar-puesto" class="upd-input" placeholder="Puesto (ej: Administrativo)" style="flex:2;min-width:120px" />
-            <input type="text" id="radar-nota" class="upd-input" placeholder="Nota (opcional)" style="flex:3;min-width:140px" />
-            <button class="btn-primary" onclick="radarAnadir()" style="white-space:nowrap">+ Añadir</button>
-          </div>
-          <div id="opos-radar-list"></div>
         </div>
 
       </section>

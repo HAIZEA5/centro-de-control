@@ -1014,17 +1014,17 @@ function radarRender() {
   const el = document.getElementById('opos-radar-list');
   if (!el) return;
   const lista = Store.get(RADAR_KEY, []);
+  const cnt = document.getElementById('opos-radar-count');
+  if (cnt) cnt.textContent = lista.length;
   if (!lista.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:.85rem">Sin organismos en el radar.</p>';
+    el.innerHTML = '<p style="color:var(--text3);font-size:.75rem">Sin organismos en el radar.</p>';
     return;
   }
   el.innerHTML = lista.map((r, i) => `
-    <div style="display:grid;grid-template-columns:1fr 1fr 2fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:.85rem;font-weight:600">${r.organismo}</span>
-      <span style="font-size:.78rem;color:var(--accent2)">${r.puesto}</span>
-      <span style="font-size:.75rem;color:var(--text3)">${r.nota || ''}</span>
-      <button onclick="radarConvertir(${i})" title="Ha salido convocatoria — añadir" style="background:var(--green)22;border:1px solid var(--green)55;color:var(--green);border-radius:6px;cursor:pointer;padding:3px 8px;font-size:.78rem;font-family:inherit;white-space:nowrap">➕ Convocar</button>
-      <button onclick="radarBorrar(${i})" title="Quitar del radar" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:3px 6px;font-size:.85rem">✕</button>
+    <div style="display:flex;align-items:center;gap:6px;padding:2px 0;border-bottom:1px solid var(--border)22">
+      <span style="font-size:.74rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="font-weight:600">${r.organismo}</span><span style="color:var(--text3)"> · ${r.puesto}</span>${r.nota ? `<span style="color:var(--text3);font-size:.68rem"> (${r.nota})</span>` : ''}</span>
+      <button onclick="radarConvertir(${i})" title="Ha salido convocatoria" style="background:none;border:none;color:var(--green);cursor:pointer;padding:1px 4px;font-size:.78rem;flex-shrink:0">➕</button>
+      <button onclick="radarBorrar(${i})" title="Quitar" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:1px 4px;font-size:.75rem;flex-shrink:0">✕</button>
     </div>`).join('');
 }
 
@@ -1039,6 +1039,19 @@ function radarAnadir() {
   document.getElementById('radar-organismo').value = '';
   document.getElementById('radar-puesto').value    = '';
   document.getElementById('radar-nota').value      = '';
+  radarRender();
+}
+
+function radarQuickAdd(val) {
+  if (!val?.trim()) return;
+  const parts = val.split('/').map(s => s.trim());
+  const organismo = parts[0] || val.trim();
+  const puesto    = parts[1] || 'Administrativo / Auxiliar';
+  const lista = Store.get(RADAR_KEY, []);
+  lista.push({ id: 'rad_' + Date.now(), organismo, puesto, nota: '' });
+  Store.set(RADAR_KEY, lista);
+  const el = document.getElementById('radar-quick-add');
+  if (el) el.value = '';
   radarRender();
 }
 
