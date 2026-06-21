@@ -38,9 +38,9 @@ function renderOposStats(data) {
     r.bolsa_entrada === true || r.bolsa_entrada === 'true'
   ).length || '0';
 
-  const conFecha = data.filter(r => r.fecha_examen).sort((a,b) =>
-    oposLocalDate(a.fecha_examen) - oposLocalDate(b.fecha_examen)
-  );
+  const hoyStats = new Date(); hoyStats.setHours(0,0,0,0);
+  const conFecha = data.filter(r => r.fecha_examen && oposLocalDate(r.fecha_examen) >= hoyStats)
+    .sort((a,b) => oposLocalDate(a.fecha_examen) - oposLocalDate(b.fecha_examen));
   const proxEl = document.getElementById('opos-prox-fecha');
   if (conFecha.length) {
     const next = conFecha[0];
