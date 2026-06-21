@@ -42,18 +42,34 @@ function renderOposStats(data) {
   const conFecha = data.filter(r => r.fecha_examen && oposLocalDate(r.fecha_examen) >= hoyStats)
     .sort((a,b) => oposLocalDate(a.fecha_examen) - oposLocalDate(b.fecha_examen));
   const proxEl = document.getElementById('opos-prox-fecha');
+  // Próximas inscripciones que vencen (en los próximos 30 días)
+  const proxInscr = data
+    .filter(r => r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoyStats)
+    .sort((a,b) => oposLocalDate(a.fecha_fin_inscr) - oposLocalDate(b.fecha_fin_inscr))
+    .slice(0, 2);
+
+  let html = '';
   if (conFecha.length) {
     const next = conFecha[0];
     const mismaFecha = conFecha.filter(r => r.fecha_examen === next.fecha_examen);
-    const nombresHTML = mismaFecha.map(r =>
-      `<div style="font-size:.68rem;color:var(--text3);margin-top:3px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.convocatoria || ''}</div>`
+    const dias = Math.round((oposLocalDate(next.fecha_examen) - hoyStats) / 86400000);
+    const diasLabel = dias === 0 ? '<span style="color:var(--red);font-weight:700"> · HOY</span>' : dias === 1 ? '<span style="color:var(--orange)"> · mañana</span>' : `<span style="color:var(--text3)"> · ${dias}d</span>`;
+    html += `<div style="font-size:.78rem;color:var(--yellow);font-weight:600;margin-bottom:2px">📝 Examen${diasLabel}</div>`;
+    html += mismaFecha.map(r =>
+      `<div style="font-size:.68rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${formatFecha(next.fecha_examen)} · ${r.convocatoria}</div>`
     ).join('');
-    proxEl.innerHTML = `${formatFecha(next.fecha_examen)}${nombresHTML}`;
     const dashOposEl = document.getElementById('dash-opos') || document.getElementById('dash-opos-content');
     if (dashOposEl) dashOposEl.textContent = formatFecha(next.fecha_examen);
-  } else {
-    proxEl.textContent = '—';
   }
+  if (proxInscr.length) {
+    html += `<div style="font-size:.78rem;color:var(--accent2);font-weight:600;margin-top:${conFecha.length ? '6px' : '0'};margin-bottom:2px">🔴 Fin inscripción</div>`;
+    html += proxInscr.map(r => {
+      const dias = Math.round((oposLocalDate(r.fecha_fin_inscr) - hoyStats) / 86400000);
+      const col = dias <= 2 ? 'var(--red)' : dias <= 6 ? 'var(--orange)' : 'var(--text3)';
+      return `<div style="font-size:.68rem;color:${col};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${formatFecha(r.fecha_fin_inscr)} · ${r.convocatoria}</div>`;
+    }).join('');
+  }
+  proxEl.innerHTML = html || '—';
 
   // Horas estudiadas: mes actual y semana actual
   const _sesiones = Store.get('opos_sesiones', []);
