@@ -1005,6 +1005,9 @@ function radarInit() {
     Store.set(RADAR_KEY, RADAR_INICIAL.map((r, i) => ({ ...r, id: 'rad_' + i })));
   }
   radarRender();
+  const n = Store.get(RADAR_KEY, []).length;
+  const el = document.getElementById('opos-radar-count');
+  if (el) el.textContent = n;
 }
 
 function radarRender() {

@@ -302,6 +302,7 @@
           <div class="opos-stat opos-stat--seguimiento"><div class="opos-stat-value" id="opos-n-seguimiento">—</div><div class="opos-stat-label">En seguimiento</div></div>
           <div class="opos-stat opos-stat--bolsa"><div class="opos-stat-value" id="opos-n-bolsa">—</div><div class="opos-stat-label">En bolsa</div></div>
           <div class="opos-stat opos-stat--prox" style="grid-column:span 2"><div class="opos-stat-value" id="opos-prox-fecha" style="font-size:1rem;line-height:1.3">—</div><div class="opos-stat-label">Próximo examen</div></div>
+          <div class="opos-stat" style="grid-column:span 2;cursor:pointer;border:1px dashed var(--border)" onclick="document.querySelector('.card.mt:last-of-type')?.scrollIntoView({behavior:'smooth'})"><div class="opos-stat-value" id="opos-n-radar" style="font-size:1.2rem">📡</div><div class="opos-stat-label">Radar · <span id="opos-radar-count">—</span> organismos</div></div>
         </div>
 
         <div class="opos-countdown" id="opos-countdown" style="display:none">
