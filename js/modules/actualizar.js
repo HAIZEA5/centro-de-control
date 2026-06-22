@@ -2,11 +2,6 @@
 
 function initActualizar() {
   setupUpdateTabs();
-  setupUpdOposiciones();
-  setupUpdFinanzas();
-  setupUpdCarnet();
-  setupUpdAgenda();
-  cargarValoresGuardados();
 }
 
 /* ── Tabs principales ── */
@@ -356,14 +351,10 @@ function setupUpdFinanzas() {
   const fmdFecha = document.getElementById('fin-fmd-fecha');
   if (fmdFecha) fmdFecha.value = hoy;
 
-  // Compras futuras (legacy field kept)
-  document.getElementById('upd-fin-guardar')?.addEventListener('click', () => {
-    const compras = document.getElementById('upd-fin-compras')?.value || '';
-    const datos = Store.get('local_finanzas');
-    datos.compras = compras;
-    Store.set('local_finanzas', datos);
-    mostrarOk('upd-fin-ok');
-  });
+  // Cargar wishlist guardada
+  const fin = Store.get('local_finanzas', null);
+  const comprasEl = document.getElementById('upd-fin-compras');
+  if (comprasEl && fin?.compras) comprasEl.value = fin.compras;
 
   // Load saved saldos into inputs
   ufin_cargarSaldosInputs();
@@ -993,6 +984,14 @@ function cargarValoresGuardados() {
   age_renderCumplesList();
   age_renderEventosList();
   age_renderVencList();
+}
+
+function ufin_guardarWishlist() {
+  const compras = document.getElementById('upd-fin-compras')?.value || '';
+  const datos = Store.get('local_finanzas');
+  datos.compras = compras;
+  Store.set('local_finanzas', datos);
+  mostrarOk('upd-fin-ok');
 }
 
 /* ── Helpers ── */

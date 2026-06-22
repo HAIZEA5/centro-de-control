@@ -397,12 +397,12 @@ function renderDetalleHTML(r, i) {
 /* ── Panel: Fechas ── */
 function renderFechasPanel(r) {
   const fechas = [
-    { label: 'Apertura inscripción',  val: r.fecha_apertura,    icon: '🟢' },
-    { label: 'Fin inscripción',       val: r.fecha_fin_inscr,   icon: '🔴' },
-    { label: 'Lista provisional',     val: r.fecha_lista_prov,  icon: '📄' },
-    { label: 'Alegaciones',           val: r.fecha_alegaciones, icon: '✍️' },
-    { label: 'Lista definitiva',      val: r.fecha_lista_def,   icon: '✅' },
-    { label: 'Examen',                val: r.fecha_examen,      icon: '📝', extra: r.hora_examen ? `🕐 ${r.hora_examen}` : null },
+    { label: 'Apertura inscripción',  val: r.fecha_apertura,    field: 'fecha_apertura',    icon: '🟢' },
+    { label: 'Fin inscripción',       val: r.fecha_fin_inscr,   field: 'fecha_fin_inscr',   icon: '🔴' },
+    { label: 'Lista provisional',     val: r.fecha_lista_prov,  field: 'fecha_lista_prov',  icon: '📄' },
+    { label: 'Alegaciones',           val: r.fecha_alegaciones, field: 'fecha_alegaciones', icon: '✍️' },
+    { label: 'Lista definitiva',      val: r.fecha_lista_def,   field: 'fecha_lista_def',   icon: '✅' },
+    { label: 'Examen',                val: r.fecha_examen,      field: 'fecha_examen',      icon: '📝', extra: r.hora_examen ? `🕐 ${r.hora_examen}` : null },
   ];
   const hoy = new Date(); hoy.setHours(0,0,0,0);
 
@@ -415,6 +415,8 @@ function renderFechasPanel(r) {
     const d = f.val ? oposLocalDate(f.val) : null;
     return d && d >= hoy;
   });
+
+  const conv = (r.convocatoria || '').replace(/'/g, "\\'");
 
   return `
   <div class="det-fechas-grid">
@@ -435,6 +437,9 @@ function renderFechasPanel(r) {
           ${d && !pasado && !hoyEs && dias !== null ? `<div class="det-fecha-dias">${'en '+dias+' día'+(dias===1?'':'s')}</div>` : ''}
           ${hoyEs ? '<div class="det-fecha-dias" style="color:var(--green);font-weight:700">¡Hoy!</div>' : ''}
           ${pasado ? '<div class="det-fecha-dias pasado-txt">Pasado</div>' : ''}
+          <input type="date" value="${f.val||''}" onclick="event.stopPropagation()"
+            onchange="opos_setField('${conv}','${f.field}',this.value)"
+            style="margin-top:5px;font-size:.7rem;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:2px 5px;color:var(--text);font-family:inherit;width:100%;max-width:130px;outline:none" />
         </div>
       </div>`;
     }).join('')}
@@ -496,6 +501,7 @@ function renderDocsPanel(r) {
     { key: 'doc_extra3',     label: r.doc_extra3_nombre || 'Documento extra 3', show: !!r.doc_extra3 },
   ].filter(d => d.show);
   const colorEstado = { 'Listo': 'badge--green', 'Pendiente': 'badge--yellow', 'No aplica': 'badge--red', '': 'badge--blue' };
+  const DOC_OPCIONES = ['', 'Listo', 'Pendiente', 'Al ser seleccionado', 'Tras oposición', 'No aplica'];
   const ckKey = 'opos_checklist_' + (r.convocatoria || '').replace(/\s+/g,'_');
   const ck = Store.get(ckKey);
   const checkItems = [
@@ -504,6 +510,7 @@ function renderDocsPanel(r) {
     { id:'boli',   label:'Bolígrafo azul o negro' },
     { id:'lista',  label:'Comprobante de lista definitiva de admitidos' },
   ];
+  const conv = (r.convocatoria || '').replace(/'/g, "\\'");
 
   return `
   <div style="margin-bottom:16px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
@@ -523,11 +530,13 @@ function renderDocsPanel(r) {
       return `
       <div class="det-doc-card">
         <span class="det-doc-label">${d.label}</span>
-        <span class="badge ${cls}">${est || '—'}</span>
+        <select class="badge ${cls}" onchange="opos_setField('${conv}','${d.key}',this.value)"
+          style="cursor:pointer;border:none;outline:none;font-size:.72rem;font-weight:600;font-family:inherit;appearance:none;-webkit-appearance:none;padding:3px 8px;border-radius:20px">
+          ${DOC_OPCIONES.map(o => `<option value="${o}"${o===est?' selected':''}>${o||'—'}</option>`).join('')}
+        </select>
       </div>`;
     }).join('')}
   </div>
-  <p style="font-size:.75rem;color:var(--text3);margin-top:12px">Edita los estados en ✏️ Actualizar → Oposiciones → editar</p>
   ${(() => {
     if (!r.req_it_txartelas?.length || typeof it_validarRequisitos !== 'function') return '';
     const check = it_validarRequisitos(r.req_it_txartelas);
@@ -988,6 +997,26 @@ function guardarUbicacionExamen(conv, key) {
   if (idx >= 0) {
     const panel = document.getElementById('det-fechas-' + idx);
     if (panel) panel.innerHTML = renderFechasPanel(data[idx]);
+  }
+}
+
+function opos_setField(conv, field, value) {
+  const data = Store.get('opos_convocatorias', []);
+  const idx = data.findIndex(r => r.convocatoria === conv);
+  if (idx < 0) return;
+  data[idx][field] = value;
+  Store.set('opos_convocatorias', data);
+  if (window._oposData) window._oposData[idx] = data[idx];
+  const r = data[idx];
+  const docFields = ['doc_solicitud','doc_dni','doc_titulacion','doc_euskera','doc_cv','doc_meritos','doc_discap',
+    'doc_extra1','doc_extra2','doc_extra3'];
+  const fechaFields = ['fecha_apertura','fecha_fin_inscr','fecha_lista_prov','fecha_alegaciones','fecha_lista_def','fecha_examen','hora_examen'];
+  if (docFields.includes(field)) {
+    const panel = document.getElementById('det-docs-' + idx);
+    if (panel) panel.innerHTML = renderDocsPanel(r);
+  } else if (fechaFields.includes(field)) {
+    const panel = document.getElementById('det-fechas-' + idx);
+    if (panel) panel.innerHTML = renderFechasPanel(r);
   }
 }
 

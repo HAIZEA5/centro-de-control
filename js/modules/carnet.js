@@ -88,6 +88,13 @@ function loadCarnet() {
   if (selEstado && cfg.prox_estado !== undefined) selEstado.value = cfg.prox_estado;
   if (inpFecha  && cfg.prox_fecha)                inpFecha.value  = cfg.prox_fecha;
 
+  // Poner fecha de hoy en el input de práctica
+  const pracFecha = document.getElementById('upd-car-prac-fecha');
+  if (pracFecha && !pracFecha.value) {
+    const _d = new Date();
+    pracFecha.value = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
+  }
+
   renderCarStats(practicas, cfg);
   renderCarPracticas(practicas);
 }

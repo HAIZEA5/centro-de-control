@@ -153,6 +153,10 @@ function setupFinTabs() {
       document.querySelectorAll('.fin-panel').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById(tab.dataset.fintab)?.classList.add('active');
+      // Inicializar panel Ajustar la primera vez que se abre
+      if (tab.dataset.fintab === 'fin-panel-ajustar' && typeof setupUpdFinanzas === 'function') {
+        setupUpdFinanzas();
+      }
     });
   });
   // Generar opciones de mes dinámicamente desde transacciones + mes actual

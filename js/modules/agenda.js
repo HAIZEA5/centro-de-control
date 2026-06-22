@@ -508,6 +508,11 @@ async function loadAgenda() {
   }
 
   renderAgendaCalendario();
+
+  // Renderizar listas de gestión inline
+  if (typeof age_renderCumplesList === 'function') age_renderCumplesList();
+  if (typeof age_renderEventosList === 'function') age_renderEventosList();
+  if (typeof age_renderVencList    === 'function') age_renderVencList();
 }
 
 function daysUntil(ddmm) {

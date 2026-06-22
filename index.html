@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -171,6 +171,7 @@
           <button class="fin-tab" data-fintab="fin-panel-sinking">Ahorro</button>
           <button class="fin-tab" data-fintab="fin-panel-deudas">Deudas</button>
           <button class="fin-tab" data-fintab="fin-panel-presupuesto">Presupuesto & Gastos</button>
+          <button class="fin-tab" data-fintab="fin-panel-ajustar">⚙️ Ajustar</button>
         </div>
 
         <!-- Panel: Resumen -->
@@ -273,6 +274,152 @@
           <div id="fin-presupuesto-content" class="mt"></div>
         </div>
 
+        <!-- Panel: Ajustar saldos / wishlist / intereses -->
+        <div id="fin-panel-ajustar" class="fin-panel">
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start;margin-top:14px">
+
+            <div>
+              <!-- AÑADIR MOVIMIENTO -->
+              <div class="card" style="margin-bottom:14px">
+                <h3 style="margin-bottom:12px">➕ Añadir ingreso o gasto</h3>
+                <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:end;margin-bottom:8px">
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Tipo</label>
+                    <div class="ufin-tipo-toggle" style="height:38px">
+                      <button type="button" id="ufin-btn-gasto" class="ufin-tipo-btn ufin-tipo-btn--active-red" onclick="ufinSetTipo('gasto')">− Gasto</button>
+                      <button type="button" id="ufin-btn-ingreso" class="ufin-tipo-btn" onclick="ufinSetTipo('ingreso')">+ Ingreso</button>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Importe (€)</label>
+                    <input type="number" id="ufin-importe" class="upd-input" placeholder="0.00" step="0.01" min="0" style="width:100%" />
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Fecha</label>
+                    <input type="date" id="ufin-fecha" class="upd-input" style="width:100%" />
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:8px">
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Descripción</label>
+                    <input type="text" id="ufin-desc" class="upd-input" placeholder="Mercadona, Nómina…" style="width:100%" />
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Categoría</label>
+                    <div style="display:flex;gap:4px">
+                      <select id="ufin-cat" class="upd-input" style="flex:1;font-size:.8rem;padding:6px 6px">
+                        <option value="alimentacion">🛒 Alimentación</option>
+                        <option value="hosteleria">☕ Hostelería</option>
+                        <option value="ropa">👗 Ropa</option>
+                        <option value="suscripciones">📱 Suscripciones</option>
+                        <option value="ocio">🎭 Ocio</option>
+                        <option value="transporte">🚆 Transporte</option>
+                        <option value="oposiciones">📚 Oposiciones</option>
+                        <option value="belleza">💄 Belleza</option>
+                        <option value="salud">💊 Salud</option>
+                        <option value="deuda">💳 Deuda</option>
+                        <option value="ahorro">🐷 Ahorro</option>
+                        <option value="hogar">🏠 Hogar</option>
+                        <option value="regalo">🎁 Regalos</option>
+                        <option value="formacion">🎓 Formación</option>
+                        <option value="compras">🛍️ Compras</option>
+                        <option value="nomina">💼 Nómina</option>
+                        <option value="otros">• Otros</option>
+                      </select>
+                      <button class="upd-btn" onclick="ufin_nuevaCat()" title="Nueva cat." style="padding:0 8px;font-size:1rem;flex-shrink:0">＋</button>
+                    </div>
+                    <div id="ufin-cats-extra" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px"></div>
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.72rem">Cuenta</label>
+                    <select id="ufin-cuenta" class="upd-input" style="width:100%;font-size:.8rem;padding:6px 6px">
+                      <option value="KTX">🔵 Kutxabank</option>
+                      <option value="RVP">🟣 Revolut Personal</option>
+                      <option value="RVC">🩷 Revolut Conjunta</option>
+                      <option value="CTV">🟢 CTV</option>
+                      <option value="BP">🟡 Baskepensiones</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="ufin-nota-row" style="display:none;margin-bottom:8px">
+                  <input type="text" id="ufin-nota" class="upd-input" placeholder="Nota opcional…" style="width:100%" />
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                  <button class="btn-primary" onclick="ufin_guardarMovimiento()">💾 Guardar</button>
+                  <button type="button" onclick="document.getElementById('ufin-nota-row').style.display=document.getElementById('ufin-nota-row').style.display==='none'?'block':'none'"
+                    style="background:none;border:1px dashed var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.75rem;color:var(--text3)">＋ Nota</button>
+                  <span id="ufin-ok" style="color:var(--green);font-size:.85rem;display:none">✅ Guardado</span>
+                </div>
+              </div>
+
+              <!-- MOVIMIENTOS RECIENTES -->
+              <div class="card" style="margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                  <h3>📋 Movimientos manuales</h3>
+                  <button onclick="ufin_renderRecientes()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.8rem">↺</button>
+                </div>
+                <div id="ufin-recientes"><p style="color:var(--text3);font-size:.82rem">Cargando…</p></div>
+              </div>
+
+              <!-- ACTUALIZAR SALDOS -->
+              <div class="card" style="margin-bottom:14px">
+                <h3 style="margin-bottom:4px">💳 Actualizar saldos de cuentas</h3>
+                <div id="ufin-saldos-form">
+                  <div class="upd-fin-saldo-row"><label style="color:#60a5fa">● Kutxabank</label><input type="number" class="upd-input" id="ufin-s-ktx" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#a78bfa">● Revolut Personal</label><input type="number" class="upd-input" id="ufin-s-rvp" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#f472b6">● Revolut Conjunta</label><input type="number" class="upd-input" id="ufin-s-rvc" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#34d399">● CTV – Vivienda</label><input type="number" class="upd-input" id="ufin-s-ctv" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#fbbf24">● Baskepensiones</label><input type="number" class="upd-input" id="ufin-s-bp" step="0.01" placeholder="0.00" /></div>
+                  <div class="upd-fin-saldo-row"><label style="color:#818cf8">● Fondo Monetario</label><input type="number" class="upd-input" id="ufin-s-fm" step="0.01" placeholder="0.00" /></div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
+                  <button class="btn-primary" onclick="ufin_guardarSaldos()">💾 Guardar saldos</button>
+                  <button onclick="ufin_resetSaldos()" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:.8rem">↩ Restaurar</button>
+                  <span id="ufin-saldos-ok" style="color:var(--green);font-size:.85rem;display:none">✅ Guardado</span>
+                </div>
+              </div>
+
+              <!-- INTERESES FONDO MONETARIO -->
+              <div class="card" style="margin-bottom:14px">
+                <h3 style="margin-bottom:4px">💹 Intereses del Fondo Monetario</h3>
+                <div style="display:grid;grid-template-columns:140px 1fr auto;gap:8px;align-items:end;margin-bottom:10px">
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.75rem">Fecha</label>
+                    <input type="date" id="ufin-int-fecha" class="upd-input" />
+                  </div>
+                  <div class="form-group" style="margin:0">
+                    <label style="font-size:.75rem">Interés neto (€)</label>
+                    <input type="number" id="ufin-int-importe" class="upd-input" step="0.01" placeholder="0.15" />
+                  </div>
+                  <button class="upd-btn" style="margin-bottom:0" onclick="ufin_addInteresFM()">Guardar</button>
+                </div>
+                <span id="ufin-int-ok" class="update-success" style="display:none;font-size:.8rem;margin-bottom:8px;display:block">✓ Guardado</span>
+                <div id="ufin-int-total" style="font-size:.82rem;color:var(--accent2);font-weight:600;margin-bottom:10px"></div>
+                <div id="ufin-int-lista"></div>
+              </div>
+
+              <!-- CUOTA IPHONE -->
+              <div class="card">
+                <h3 style="margin-bottom:10px">📅 Cuota iPhone (Cetelem)</h3>
+                <div id="ufin-iphone-info">Cargando…</div>
+              </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: Wishlist -->
+            <div class="card" style="position:sticky;top:80px">
+              <h3 style="margin-bottom:10px">🛒 Lista de deseos</h3>
+              <div class="form-group" style="margin-bottom:12px">
+                <textarea id="upd-fin-compras" rows="8" placeholder="Sofá — 800€&#10;Lavadora — 400€" style="width:100%;font-size:.82rem"></textarea>
+              </div>
+              <div class="form-actions">
+                <button class="btn-primary" onclick="ufin_guardarWishlist()">Guardar</button>
+                <span class="update-success" id="upd-fin-ok">✓ Guardado</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </section>
 
       <!-- CARNET -->
@@ -288,8 +435,79 @@
         <!-- Prácticas -->
         <div class="card mt">
           <h3>🚘 Clases prácticas</h3>
-          <div id="car-practicas-lista"><p style="color:var(--text3);font-size:.87rem">Sin clases registradas. Añade desde ✏️ Actualizar → Carnet.</p></div>
+          <div id="car-practicas-lista"><p style="color:var(--text3);font-size:.87rem">Sin clases registradas.</p></div>
         </div>
+
+        <!-- ── Editar estado teórico ── -->
+        <div class="card mt">
+          <h3>📋 Estado del examen teórico</h3>
+          <div class="update-form">
+            <div class="form-group">
+              <label>Resultado</label>
+              <select id="upd-car-teorico-estado">
+                <option value="">— Sin realizar —</option>
+                <option value="aprobado">✅ Aprobado</option>
+                <option value="suspendido">❌ Suspendido</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha (opcional)</label>
+              <input type="date" id="upd-car-teorico-fecha" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="car_guardarTeoricoEstado()">Guardar</button>
+            <span class="update-success" id="upd-car-teorico-ok">✓ Guardado</span>
+          </div>
+        </div>
+
+        <!-- ── Examen práctico ── -->
+        <div class="card mt">
+          <h3>🚗 Examen práctico</h3>
+          <div class="update-form">
+            <div class="form-group">
+              <label>Estado</label>
+              <select id="upd-car-prox-estado">
+                <option value="">— Sin convocar —</option>
+                <option value="pendiente">⏳ Pendiente de fecha</option>
+                <option value="en_proceso">🔄 En proceso / Preparando</option>
+                <option value="convocado">📅 Fecha convocada</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha del examen</label>
+              <input type="date" id="upd-car-prox-fecha" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="car_guardarProxima()">Guardar</button>
+            <span class="update-success" id="upd-car-prox-ok">✓ Guardado</span>
+          </div>
+        </div>
+
+        <!-- ── Añadir clase práctica ── -->
+        <div class="card mt">
+          <h3>🚘 Añadir clase práctica</h3>
+          <div class="update-form">
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" id="upd-car-prac-fecha" />
+            </div>
+            <div class="form-group">
+              <label>Duración (min)</label>
+              <input type="number" id="upd-car-prac-min" placeholder="60" min="1" />
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label>Notas</label>
+            <input type="text" id="upd-car-prac-nota" placeholder="Ej: Rotondas, aparcamiento en paralelo…" />
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="car_guardarPractica()">Guardar clase</button>
+            <span class="update-success" id="upd-car-prac-ok">✓ Guardado</span>
+          </div>
+        </div>
+
       </section>
 
       <!-- OPOSICIONES -->
@@ -445,599 +663,12 @@
         </div>
         <!-- Gastos fijos eliminados de Agenda (están en Finanzas → Presupuesto & Gastos) -->
         <ul id="age-gastos-fijos" style="display:none"></ul>
-      </section>
 
-      <!-- ACTUALIZAR -->
-      <section id="actualizar" class="section">
-        <h2 class="section-title">Actualizar datos</h2>
+        <!-- ── Gestionar eventos / cumpleaños / vencimientos ── -->
+        <div class="cards-row mt">
 
-        <div class="update-tabs">
-          <button class="update-tab active" data-tab="upd-oposiciones">Oposiciones</button>
-          <button class="update-tab" data-tab="upd-finanzas">Finanzas</button>
-          <button class="update-tab" data-tab="upd-carnet">Carnet</button>
-          <button class="update-tab" data-tab="upd-it-txartelas">IT Txartelas</button>
-          <button class="update-tab" data-tab="upd-agenda">Agenda</button>
-          <button class="update-tab" data-tab="upd-excel">Excel</button>
-        </div>
-
-        <!-- ═══ PANEL OPOSICIONES ═══ -->
-        <div class="update-panel active" id="upd-oposiciones">
-
-          <!-- Sub-tabs del formulario -->
-          <div class="opos-form-tabs">
-            <button class="opos-form-tab active" data-ftab="ft-basico">Básico</button>
-            <button class="opos-form-tab" data-ftab="ft-fechas">Fechas</button>
-            <button class="opos-form-tab" data-ftab="ft-docs">Docs</button>
-            <button class="opos-form-tab" data-ftab="ft-meritos">Méritos</button>
-            <button class="opos-form-tab" data-ftab="ft-bolsa">Bolsa</button>
-            <button class="opos-form-tab" data-ftab="ft-enlaces">Enlaces</button>
-          </div>
-
-          <div class="card" style="border-top:2px solid var(--accent)">
-            <h3 id="upd-opos-form-title">Nueva convocatoria</h3>
-
-            <!-- TAB: Básico -->
-            <div class="opos-form-panel active" id="ft-basico">
-              <div class="update-form">
-                <div class="form-group">
-                  <label>Perfil</label>
-                  <select id="upd-opos-perfil">
-                    <option value="Yo">Yo</option>
-                    <option value="Kerman">Kerman</option>
-                    <option value="Ambos">Ambos</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Convocatoria *</label>
-                  <input type="text" id="upd-opos-conv" placeholder="Ej: Auxiliar Administrativo CAC" />
-                </div>
-                <div class="form-group">
-                  <label>Grupo / Categoría</label>
-                  <input type="text" id="upd-opos-grupo" placeholder="Ej: C1 / Grupo III" />
-                </div>
-                <div class="form-group">
-                  <label>Estado</label>
-                  <select id="upd-opos-estado">
-                    <option value="EN SEGUIMIENTO">👁 En seguimiento (sin apuntar)</option>
-                    <option value="PREVISTA">📆 Prevista (próxima convocatoria)</option>
-                    <option value="PENDIENTE">⏳ Pendiente</option>
-                    <option value="ABIERTA">✅ Abierta — apuntada</option>
-                    <option value="EN PROCESO">🔄 En proceso</option>
-                    <option value="CERRADA">❌ Cerrada</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Tasa pagada</label>
-                  <select id="upd-opos-tasa">
-                    <option value="">—</option>
-                    <option value="SI">Sí</option>
-                    <option value="NO">No</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Fase</label>
-                  <select id="upd-opos-fase">
-                    <option value="">—</option>
-                    <option value="Oposición">Oposición</option>
-                    <option value="Concurso">Concurso</option>
-                    <option value="Concurso-oposición">Concurso-oposición</option>
-                    <option value="Méritos">Méritos</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Tipo de proceso</label>
-                  <select id="upd-opos-tipo-proceso" onchange="opos_liveMeritos()">
-                    <option value="">—</option>
-                    <option value="libre">Libre (solo oposición)</option>
-                    <option value="concurso">Concurso-oposición (con méritos)</option>
-                  </select>
-                </div>
-                <div class="form-group" id="upd-opos-tope-wrap">
-                  <label>Tope de méritos (pts)</label>
-                  <input type="number" id="upd-opos-tope-meritos" min="0" step="0.5" placeholder="Ej: 35" oninput="opos_liveMeritos()" />
-                  <span style="font-size:.72rem;color:var(--text3)">Máximo de puntos que puede aportar el concurso</span>
-                </div>
-                <div class="form-group">
-                  <label>¿Requiere acreditación de euskera?</label>
-                  <select id="upd-opos-req-euskera">
-                    <option value="">—</option>
-                    <option value="true">Sí</option>
-                    <option value="false">No (No aplica)</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Nivel euskera requerido</label>
-                  <select id="upd-opos-nivel-euskera">
-                    <option value="">—</option>
-                    <option value="PL1">PL1 (A2)</option>
-                    <option value="PL2">PL2 (B2)</option>
-                    <option value="PL3">PL3 (C1)</option>
-                    <option value="PL4">PL4 (C2)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <!-- TAB: Fechas -->
-            <div class="opos-form-panel" id="ft-fechas">
-              <div class="update-form">
-                <div class="form-group">
-                  <label>📅 Apertura inscripción</label>
-                  <input type="date" id="upd-opos-fecha-apertura" />
-                </div>
-                <div class="form-group">
-                  <label>🔴 Fin inscripción</label>
-                  <input type="date" id="upd-opos-fecha-fin" />
-                </div>
-                <div class="form-group">
-                  <label>📄 Lista provisional</label>
-                  <input type="date" id="upd-opos-fecha-lprov" />
-                </div>
-                <div class="form-group">
-                  <label>✍️ Alegaciones</label>
-                  <input type="date" id="upd-opos-fecha-aleg" />
-                </div>
-                <div class="form-group">
-                  <label>✅ Lista definitiva</label>
-                  <input type="date" id="upd-opos-fecha-ldef" />
-                </div>
-                <div class="form-group">
-                  <label>📝 Fecha examen</label>
-                  <input type="date" id="upd-opos-fecha-examen" />
-                </div>
-                <div class="form-group">
-                  <label>🕐 Hora examen</label>
-                  <input type="time" id="upd-opos-hora-examen" />
-                </div>
-              </div>
-            </div>
-
-            <!-- TAB: Docs -->
-            <div class="opos-form-panel" id="ft-docs">
-              <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Marca el estado de cada documento requerido.</p>
-              <!-- IT Txartelas -->
-              <div style="margin-bottom:16px;padding:12px 14px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
-                <div style="font-weight:700;font-size:.82rem;color:var(--accent2);margin-bottom:10px">🖥️ IT Txartela requerida</div>
-                <label style="display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--text);margin-bottom:10px;cursor:pointer">
-                  <input type="checkbox" id="upd-opos-req-it" onchange="opos_toggleItReqs(this.checked)"
-                    style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer" />
-                  Esta convocatoria exige IT Txartela
-                </label>
-                <div id="upd-opos-it-modulos" style="display:none;flex-direction:column;gap:4px">
-                  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:4px" id="upd-opos-it-checks">
-                    <label class="it-req-label"><input type="checkbox" value="windows"        class="it-req-check" onchange="opos_itSemaforo()"> Windows</label>
-                    <label class="it-req-label"><input type="checkbox" value="internet_basico" class="it-req-check" onchange="opos_itSemaforo()"> Internet Básico</label>
-                    <label class="it-req-label"><input type="checkbox" value="internet"        class="it-req-check" onchange="opos_itSemaforo()"> Internet Avanzado</label>
-                    <label class="it-req-label"><input type="checkbox" value="word_basico"    class="it-req-check" onchange="opos_itSemaforo()"> Word Básico</label>
-                    <label class="it-req-label"><input type="checkbox" value="word_avanzado"  class="it-req-check" onchange="opos_itSemaforo()"> Word Avanzado</label>
-                    <label class="it-req-label"><input type="checkbox" value="excel_basico"   class="it-req-check" onchange="opos_itSemaforo()"> Excel Básico</label>
-                    <label class="it-req-label"><input type="checkbox" value="excel_avanzado" class="it-req-check" onchange="opos_itSemaforo()"> Excel Avanzado</label>
-                    <label class="it-req-label"><input type="checkbox" value="powerpoint"     class="it-req-check" onchange="opos_itSemaforo()"> PowerPoint</label>
-                    <label class="it-req-label"><input type="checkbox" value="access"         class="it-req-check" onchange="opos_itSemaforo()"> Access</label>
-                  </div>
-                  <div id="upd-opos-it-semaforo" style="margin-top:6px;font-size:.75rem;min-height:1.2em"></div>
-                </div>
-              </div>
-              <!-- Docs principales en grid compacto 3 columnas -->
-              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px">
-                <div class="form-group" style="margin:0">
-                  <label style="font-size:.72rem">Solicitud / Instancia</label>
-                  <select id="upd-opos-doc-solicitud" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-                <div class="form-group" style="margin:0">
-                  <label style="font-size:.72rem">Titulación requerida</label>
-                  <select id="upd-opos-doc-titulacion" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-                <div class="form-group" style="margin:0">
-                  <label style="font-size:.72rem">Acreditación euskera</label>
-                  <select id="upd-opos-doc-euskera" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-                <div class="form-group" style="margin:0">
-                  <label style="font-size:.72rem">DNI / NIF</label>
-                  <select id="upd-opos-doc-dni" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-                <div class="form-group" style="margin:0">
-                  <label style="font-size:.72rem">Currículum vitae</label>
-                  <select id="upd-opos-doc-cv" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-                <div class="form-group" style="margin:0">
-                  <label style="font-size:.72rem">Hoja de méritos</label>
-                  <select id="upd-opos-doc-meritos" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-                <div class="form-group" style="margin:0">
-                  <label style="font-size:.72rem">Cert. discapacidad</label>
-                  <select id="upd-opos-doc-discap" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-              </div>
-              <!-- Docs extra: colapsados por defecto -->
-              <div style="margin-top:14px">
-                <button type="button" onclick="opos_toggleDocsExtra()" id="opos-docs-extra-btn"
-                  style="background:none;border:1px dashed var(--border);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.78rem;color:var(--text3)">
-                  ＋ Añadir documento extra
-                </button>
-                <div id="opos-docs-extra" style="display:none;margin-top:12px;display:none">
-                  <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px">
-                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Nombre doc. extra 1</label><input type="text" id="upd-opos-doc-e1-nombre" placeholder="Ej: Empadronamiento" /></div>
-                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Estado</label><select id="upd-opos-doc-e1" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-                  </div>
-                  <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px">
-                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Nombre doc. extra 2</label><input type="text" id="upd-opos-doc-e2-nombre" placeholder="Ej: Vida laboral" /></div>
-                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Estado</label><select id="upd-opos-doc-e2" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-                  </div>
-                  <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end">
-                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Nombre doc. extra 3</label><input type="text" id="upd-opos-doc-e3-nombre" placeholder="Ej: Contrato de trabajo" /></div>
-                    <div class="form-group" style="margin:0"><label style="font-size:.72rem">Estado</label><select id="upd-opos-doc-e3" style="padding:6px 8px;font-size:.82rem"><option value="">—</option><option>Listo</option><option>Pendiente</option><option>No aplica</option></select></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- TAB: Méritos -->
-            <div class="opos-form-panel" id="ft-meritos">
-              <p style="font-size:.8rem;color:var(--text3);margin-bottom:16px">Rellena los datos para que se calcule automáticamente la puntuación.</p>
-              <!-- Live score preview -->
-              <div id="opos-meritos-live" style="display:flex;gap:16px;align-items:center;background:var(--surface2);border-radius:10px;padding:10px 16px;margin-bottom:16px;flex-wrap:wrap">
-                <div style="font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Puntuación estimada</div>
-                <div style="display:flex;gap:12px;flex:1;flex-wrap:wrap">
-                  <span style="font-size:.78rem;color:var(--text3)">Servicios: <strong id="lm-servicios" style="color:var(--green)">0,00</strong></span>
-                  <span style="font-size:.78rem;color:var(--text3)">Formación: <strong id="lm-formacion" style="color:var(--blue)">0,00</strong></span>
-                  <span style="font-size:.78rem;color:var(--text3)">Cursos: <strong id="lm-cursos" style="color:var(--blue)">0,00</strong></span>
-                </div>
-                <div style="font-size:1.4rem;font-weight:900;color:var(--accent2)" id="lm-total">0,00 pts</div>
-              </div>
-              <div class="meritos-form-section">
-                <div class="meritos-form-titulo">💼 Servicios prestados</div>
-                <div class="update-form">
-                  <div class="form-group">
-                    <label>Meses en la misma categoría / plaza</label>
-                    <input type="number" id="upd-opos-m-misma" min="0" placeholder="0" oninput="opos_liveMeritos()" />
-                    <span style="font-size:.72rem;color:var(--text3)">0,10 pts/mes · máx 4 pts (40 meses)</span>
-                  </div>
-                  <div class="form-group">
-                    <label>Meses en otras categorías (admin. pública)</label>
-                    <input type="number" id="upd-opos-m-otras" min="0" placeholder="0" oninput="opos_liveMeritos()" />
-                    <span style="font-size:.72rem;color:var(--text3)">0,05 pts/mes · máx 2 pts</span>
-                  </div>
-                  <div class="form-group">
-                    <label>Meses en empresa privada (sector)</label>
-                    <input type="number" id="upd-opos-m-priv" min="0" placeholder="0" oninput="opos_liveMeritos()" />
-                    <span style="font-size:.72rem;color:var(--text3)">0,02 pts/mes · máx 0,50 pts</span>
-                  </div>
-                </div>
-              </div>
-              <div class="meritos-form-section" style="margin-top:16px">
-                <div class="meritos-form-titulo">🎓 Formación y titulación</div>
-                <div class="update-form">
-                  <div class="form-group">
-                    <label>Nivel de euskera</label>
-                    <select id="upd-opos-m-euskera" onchange="opos_liveMeritos()">
-                      <option value="">Sin acreditación</option>
-                      <option value="A2">A2 — 0,50 pts</option>
-                      <option value="B1">B1 — 1,00 pt</option>
-                      <option value="B2">B2 — 1,50 pts</option>
-                      <option value="EGA/C1">EGA / C1 — 2,00 pts</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label>Titulación adicional</label>
-                    <select id="upd-opos-m-tit" onchange="opos_liveMeritos()">
-                      <option value="">Ninguna</option>
-                      <option value="Otro">Otro título — 0,50 pts</option>
-                      <option value="Máster">Máster — 1,00 pt</option>
-                      <option value="Licenciatura/Grado">Licenciatura / Grado — 1,50 pts</option>
-                      <option value="Doctorado">Doctorado — 2,00 pts</option>
-                    </select>
-                  </div>
-                </div>
-                <div style="margin-top:14px">
-                  <p style="font-size:.76rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:10px">Cursos de formación</p>
-                  <p style="font-size:.76rem;color:var(--text3);margin-bottom:10px">10-19h=0,10 · 20-39h=0,20 · 40-79h=0,40 · 80-119h=0,60 · ≥120h=0,80 pts &nbsp;(máx 3 pts en total)</p>
-                  <div id="upd-opos-cursos-container" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
-                  <button class="btn-secondary" id="upd-opos-add-curso">+ Añadir curso</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- TAB: Bolsa -->
-            <div class="opos-form-panel" id="ft-bolsa">
-              <div class="form-group" style="margin-bottom:16px">
-                <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;font-size:.9rem;font-weight:500;color:var(--text)">
-                  <input type="checkbox" id="upd-opos-bolsa-entra" style="width:18px;height:18px;accent-color:var(--accent)" />
-                  Entré en bolsa de empleo
-                </label>
-              </div>
-              <div class="update-form">
-                <div class="form-group">
-                  <label>Fecha de entrada en bolsa</label>
-                  <input type="date" id="upd-opos-bolsa-fecha" />
-                </div>
-                <div class="form-group">
-                  <label>Posición en bolsa</label>
-                  <input type="number" id="upd-opos-bolsa-pos" min="1" placeholder="Ej: 42" />
-                </div>
-                <div class="form-group">
-                  <label>Llamadas recibidas</label>
-                  <input type="number" id="upd-opos-bolsa-llamadas" min="0" placeholder="0" />
-                </div>
-              </div>
-              <div class="form-group" style="margin-top:10px">
-                <label>Notas sobre la bolsa</label>
-                <textarea id="upd-opos-bolsa-notas" placeholder="Ej: Rechacé la primera llamada por incompatibilidad de horario…" style="min-height:80px"></textarea>
-              </div>
-            </div>
-
-            <!-- TAB: Enlaces -->
-            <div class="opos-form-panel" id="ft-enlaces">
-              <div class="update-form">
-                <div class="form-group">
-                  <label>🔗 BOE / BOPV / Boletín oficial</label>
-                  <input type="url" id="upd-opos-url-boe" placeholder="https://www.boe.es/…" />
-                </div>
-                <div class="form-group">
-                  <label>📋 Bases de la convocatoria</label>
-                  <input type="url" id="upd-opos-url-bases" placeholder="https://…" />
-                </div>
-                <div class="form-group">
-                  <label>📚 Temario oficial</label>
-                  <input type="url" id="upd-opos-url-temario" placeholder="https://…" />
-                </div>
-                <div class="form-group">
-                  <label>🔗 Enlace extra 1</label>
-                  <input type="url" id="upd-opos-url-e1" placeholder="https://…" />
-                </div>
-                <div class="form-group">
-                  <label>🔗 Enlace extra 2</label>
-                  <input type="url" id="upd-opos-url-e2" placeholder="https://…" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Acciones -->
-            <div class="form-actions" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border2)">
-              <button class="btn-primary" id="upd-opos-guardar">Guardar convocatoria</button>
-              <button class="btn-secondary" id="upd-opos-cancelar" style="display:none">Cancelar edición</button>
-              <span class="update-success" id="upd-opos-ok">✓ Guardado</span>
-            </div>
-          </div>
-
-          <div class="card mt" id="upd-opos-lista-card">
-            <h3>Convocatorias guardadas localmente</h3>
-            <div id="upd-opos-lista"></div>
-          </div>
-        </div>
-
-        <!-- ═══ PANEL FINANZAS ═══ -->
-        <div class="update-panel" id="upd-finanzas">
-          <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start">
-
-            <!-- COLUMNA IZQUIERDA: formularios operativos -->
-            <div>
-
-              <!-- AÑADIR MOVIMIENTO — compacto en 2 filas -->
-              <div class="card" style="margin-bottom:14px">
-                <h3 style="margin-bottom:12px">➕ Añadir ingreso o gasto</h3>
-                <!-- Fila 1: Tipo + Importe | Fecha | Cuenta -->
-                <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:end;margin-bottom:8px">
-                  <div class="form-group" style="margin:0">
-                    <label style="font-size:.72rem">Tipo</label>
-                    <div class="ufin-tipo-toggle" style="height:38px">
-                      <button type="button" id="ufin-btn-gasto" class="ufin-tipo-btn ufin-tipo-btn--active-red" onclick="ufinSetTipo('gasto')">− Gasto</button>
-                      <button type="button" id="ufin-btn-ingreso" class="ufin-tipo-btn" onclick="ufinSetTipo('ingreso')">+ Ingreso</button>
-                    </div>
-                  </div>
-                  <div class="form-group" style="margin:0">
-                    <label style="font-size:.72rem">Importe (€)</label>
-                    <input type="number" id="ufin-importe" class="upd-input" placeholder="0.00" step="0.01" min="0" style="width:100%" />
-                  </div>
-                  <div class="form-group" style="margin:0">
-                    <label style="font-size:.72rem">Fecha</label>
-                    <input type="date" id="ufin-fecha" class="upd-input" style="width:100%" />
-                  </div>
-                </div>
-                <!-- Fila 2: Descripción | Categoría | Cuenta -->
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:8px">
-                  <div class="form-group" style="margin:0">
-                    <label style="font-size:.72rem">Descripción</label>
-                    <input type="text" id="ufin-desc" class="upd-input" placeholder="Mercadona, Nómina…" style="width:100%" />
-                  </div>
-                  <div class="form-group" style="margin:0">
-                    <label style="font-size:.72rem">Categoría</label>
-                    <div style="display:flex;gap:4px">
-                      <select id="ufin-cat" class="upd-input" style="flex:1;font-size:.8rem;padding:6px 6px">
-                        <option value="alimentacion">🛒 Alimentación</option>
-                        <option value="hosteleria">☕ Hostelería</option>
-                        <option value="ropa">👗 Ropa</option>
-                        <option value="suscripciones">📱 Suscripciones</option>
-                        <option value="ocio">🎭 Ocio</option>
-                        <option value="transporte">🚆 Transporte</option>
-                        <option value="oposiciones">📚 Oposiciones</option>
-                        <option value="belleza">💄 Belleza</option>
-                        <option value="salud">💊 Salud</option>
-                        <option value="deuda">💳 Deuda</option>
-                        <option value="ahorro">🐷 Ahorro</option>
-                        <option value="hogar">🏠 Hogar</option>
-                        <option value="regalo">🎁 Regalos</option>
-                        <option value="formacion">🎓 Formación</option>
-                        <option value="compras">🛍️ Compras</option>
-                        <option value="nomina">💼 Nómina</option>
-                        <option value="otros">• Otros</option>
-                      </select>
-                      <button class="upd-btn" onclick="ufin_nuevaCat()" title="Nueva cat." style="padding:0 8px;font-size:1rem;flex-shrink:0">＋</button>
-                    </div>
-                    <div id="ufin-cats-extra" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px"></div>
-                  </div>
-                  <div class="form-group" style="margin:0">
-                    <label style="font-size:.72rem">Cuenta</label>
-                    <select id="ufin-cuenta" class="upd-input" style="width:100%;font-size:.8rem;padding:6px 6px">
-                      <option value="KTX">🔵 Kutxabank</option>
-                      <option value="RVP">🟣 Revolut Personal</option>
-                      <option value="RVC">🩷 Revolut Conjunta</option>
-                      <option value="CTV">🟢 CTV</option>
-                      <option value="BP">🟡 Baskepensiones</option>
-                    </select>
-                  </div>
-                </div>
-                <!-- Nota opcional -->
-                <div id="ufin-nota-row" style="display:none;margin-bottom:8px">
-                  <input type="text" id="ufin-nota" class="upd-input" placeholder="Nota opcional…" style="width:100%" />
-                </div>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                  <button class="btn-primary" onclick="ufin_guardarMovimiento()">💾 Guardar</button>
-                  <button type="button" onclick="document.getElementById('ufin-nota-row').style.display=document.getElementById('ufin-nota-row').style.display==='none'?'block':'none'"
-                    style="background:none;border:1px dashed var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.75rem;color:var(--text3)">＋ Nota</button>
-                  <span id="ufin-ok" style="color:var(--green);font-size:.85rem;display:none">✅ Guardado</span>
-                </div>
-              </div>
-
-              <!-- MOVIMIENTOS RECIENTES -->
-              <div class="card" style="margin-bottom:14px">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                  <h3>📋 Movimientos manuales</h3>
-                  <button onclick="ufin_renderRecientes()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.8rem">↺</button>
-                </div>
-                <div id="ufin-recientes"><p style="color:var(--text3);font-size:.82rem">Cargando…</p></div>
-              </div>
-
-              <!-- ACTUALIZAR SALDOS -->
-              <div class="card" style="margin-bottom:14px">
-                <h3 style="margin-bottom:4px">💳 Actualizar saldos de cuentas</h3>
-                <p style="font-size:.75rem;color:var(--text3);margin-bottom:12px">Saldo real actual de cada cuenta.</p>
-                <div id="ufin-saldos-form">
-                  <div class="upd-fin-saldo-row"><label style="color:#60a5fa">● Kutxabank</label><input type="number" class="upd-input" id="ufin-s-ktx" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#a78bfa">● Revolut Personal</label><input type="number" class="upd-input" id="ufin-s-rvp" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#f472b6">● Revolut Conjunta</label><input type="number" class="upd-input" id="ufin-s-rvc" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#34d399">● CTV – Vivienda</label><input type="number" class="upd-input" id="ufin-s-ctv" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#fbbf24">● Baskepensiones</label><input type="number" class="upd-input" id="ufin-s-bp" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#818cf8">● Fondo Monetario</label><input type="number" class="upd-input" id="ufin-s-fm" step="0.01" placeholder="0.00" /></div>
-                </div>
-                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
-                  <button class="btn-primary" onclick="ufin_guardarSaldos()">💾 Guardar saldos</button>
-                  <button onclick="ufin_resetSaldos()" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:.8rem">↩ Restaurar</button>
-                  <span id="ufin-saldos-ok" style="color:var(--green);font-size:.85rem;display:none">✅ Guardado</span>
-                </div>
-              </div>
-
-              <!-- INTERESES FONDO MONETARIO -->
-              <div class="card">
-                <h3 style="margin-bottom:4px">💹 Intereses del Fondo Monetario</h3>
-                <p style="font-size:.75rem;color:var(--text3);margin-bottom:12px">Registra los intereses netos (ya descontadas comisiones) de tu Fondo Monetario Revolut.</p>
-                <div style="display:grid;grid-template-columns:140px 1fr auto;gap:8px;align-items:end;margin-bottom:10px">
-                  <div class="form-group" style="margin:0">
-                    <label style="font-size:.75rem">Fecha</label>
-                    <input type="date" id="ufin-int-fecha" class="upd-input" />
-                  </div>
-                  <div class="form-group" style="margin:0">
-                    <label style="font-size:.75rem">Interés neto (€)</label>
-                    <input type="number" id="ufin-int-importe" class="upd-input" step="0.01" placeholder="0.15" />
-                  </div>
-                  <button class="upd-btn" style="margin-bottom:0" onclick="ufin_addInteresFM()">Guardar</button>
-                </div>
-                <span id="ufin-int-ok" class="update-success" style="display:none;font-size:.8rem;margin-bottom:8px;display:block">✓ Guardado</span>
-                <div id="ufin-int-total" style="font-size:.82rem;color:var(--accent2);font-weight:600;margin-bottom:10px"></div>
-                <div id="ufin-int-lista"></div>
-              </div>
-
-              <!-- CUOTA IPHONE -->
-              <div class="card">
-                <h3 style="margin-bottom:10px">📅 Cuota iPhone (Cetelem)</h3>
-                <div id="ufin-iphone-info">Cargando…</div>
-              </div>
-
-            </div><!-- /columna izquierda -->
-
-            <!-- COLUMNA DERECHA: Wishlist -->
-            <div class="card" style="position:sticky;top:80px">
-              <h3 style="margin-bottom:10px">🛒 Lista de deseos</h3>
-              <p style="font-size:.75rem;color:var(--text3);margin-bottom:10px">Compras futuras planeadas</p>
-              <div class="form-group" style="margin-bottom:12px">
-                <textarea id="upd-fin-compras" rows="8" placeholder="Sofá — 800€&#10;Lavadora — 400€&#10;Garmin Forerunner 300 — 350€" style="width:100%;font-size:.82rem"></textarea>
-              </div>
-              <div class="form-actions">
-                <button class="btn-primary" id="upd-fin-guardar">Guardar</button>
-                <span class="update-success" id="upd-fin-ok">✓ Guardado</span>
-              </div>
-            </div><!-- /columna derecha -->
-
-          </div><!-- /grid dos columnas -->
-        </div>
-
-
-
-        <!-- ═══ PANEL CARNET ═══ -->
-        <div class="update-panel" id="upd-carnet">
-
-          <!-- Estado examen teórico -->
           <div class="card">
-            <h3>📋 Estado del examen teórico</h3>
-            <div class="update-form">
-              <div class="form-group">
-                <label>Resultado</label>
-                <select id="upd-car-teorico-estado">
-                  <option value="">— Sin realizar —</option>
-                  <option value="aprobado">✅ Aprobado</option>
-                  <option value="suspendido">❌ Suspendido</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Fecha (opcional)</label>
-                <input type="date" id="upd-car-teorico-fecha" />
-              </div>
-            </div>
-            <div class="form-actions">
-              <button class="btn-primary" onclick="car_guardarTeoricoEstado()">Guardar</button>
-              <span class="update-success" id="upd-car-teorico-ok">✓ Guardado</span>
-            </div>
-          </div>
-
-          <!-- Examen práctico -->
-          <div class="card mt">
-            <h3>🚗 Examen práctico</h3>
-            <div class="update-form">
-              <div class="form-group">
-                <label>Estado</label>
-                <select id="upd-car-prox-estado">
-                  <option value="">— Sin convocar —</option>
-                  <option value="pendiente">⏳ Pendiente de fecha</option>
-                  <option value="en_proceso">🔄 En proceso / Preparando</option>
-                  <option value="convocado">📅 Fecha convocada</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Fecha del examen</label>
-                <input type="date" id="upd-car-prox-fecha" />
-              </div>
-            </div>
-            <div class="form-actions">
-              <button class="btn-primary" onclick="car_guardarProxima()">Guardar</button>
-              <span class="update-success" id="upd-car-prox-ok">✓ Guardado</span>
-            </div>
-          </div>
-
-          <!-- Añadir clase práctica -->
-          <div class="card mt">
-            <h3>🚘 Añadir clase práctica</h3>
-            <div class="update-form">
-              <div class="form-group">
-                <label>Fecha</label>
-                <input type="date" id="upd-car-prac-fecha" />
-              </div>
-              <div class="form-group">
-                <label>Duración (min)</label>
-                <input type="number" id="upd-car-prac-min" placeholder="60" min="1" />
-              </div>
-            </div>
-            <div class="form-group" style="margin-bottom:14px">
-              <label>Notas</label>
-              <input type="text" id="upd-car-prac-nota" placeholder="Ej: Rotondas, aparcamiento en paralelo…" />
-            </div>
-            <div class="form-actions">
-              <button class="btn-primary" onclick="car_guardarPractica()">Guardar clase</button>
-              <span class="update-success" id="upd-car-prac-ok">✓ Guardado</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- ═══ PANEL AGENDA ═══ -->
-        <div class="update-panel" id="upd-agenda">
-
-          <!-- Cumpleaños -->
-          <div class="card">
-            <h3>Cumpleaños</h3>
-            <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Aparecerán en el calendario cada año en su fecha.</p>
+            <h3>🎂 Cumpleaños</h3>
             <div id="age-cumples-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <input type="text" id="age-new-cumple-nombre" class="upd-input" placeholder="Nombre" style="flex:2;min-width:120px" />
@@ -1046,10 +677,8 @@
             </div>
           </div>
 
-          <!-- Eventos -->
-          <div class="card mt">
-            <h3>Eventos y vacaciones</h3>
-            <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Eventos puntuales con fecha exacta. Aparecen en el calendario.</p>
+          <div class="card">
+            <h3>📅 Eventos y vacaciones</h3>
             <div id="age-eventos-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
               <input type="text" id="age-new-evento-nombre" class="upd-input" placeholder="Descripción del evento" />
@@ -1065,16 +694,14 @@
               </select>
               <input type="date" id="age-new-evento-fecha" class="upd-input" />
               <input type="time" id="age-new-evento-hora" class="upd-input" />
-              <input type="text" id="age-new-evento-ubicacion" class="upd-input" placeholder="Ubicación / lugar (opcional)" style="grid-column:span 2" />
+              <input type="text" id="age-new-evento-ubicacion" class="upd-input" placeholder="Ubicación (opcional)" style="grid-column:span 2" />
               <textarea id="age-new-evento-notas" class="upd-input" placeholder="Notas (opcional)" rows="2" style="grid-column:span 2;resize:vertical;font-family:inherit"></textarea>
             </div>
             <button class="btn-primary" onclick="age_addEvento()">📅 Guardar evento</button>
           </div>
 
-          <!-- Vencimientos -->
-          <div class="card mt">
-            <h3>Vencimientos importantes</h3>
-            <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Fechas límite, renovaciones, plazos. Aparecen en el calendario.</p>
+          <div class="card">
+            <h3>⚠️ Vencimientos importantes</h3>
             <div id="age-venc-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <input type="text" id="age-new-venc-nombre" class="upd-input" placeholder="Descripción" style="flex:2;min-width:140px" />
@@ -1085,19 +712,18 @@
 
         </div>
 
-        <!-- ═══ PANEL IT TXARTELAS ═══ -->
-        <div class="update-panel" id="upd-it-txartelas">
-          <div class="card">
-            <h3>🖥️ Mis IT Txartelas (IVAP)</h3>
-            <p style="color:var(--text3);font-size:.83rem;margin-bottom:16px">
-              Registra los módulos del certificado IT Txartela que tienes aprobados. El sistema comparará automáticamente con los requisitos de cada oposición.
-            </p>
-            <div id="it-lista"></div>
-          </div>
+      </section>
+
+      <!-- ACTUALIZAR -->
+      <section id="actualizar" class="section">
+        <h2 class="section-title">Actualizar datos</h2>
+
+        <div class="update-tabs">
+          <button class="update-tab active" data-tab="upd-excel">Excel</button>
         </div>
 
         <!-- ═══ PANEL EXCEL ═══ -->
-        <div class="update-panel" id="upd-excel">
+        <div class="update-panel active" id="upd-excel">
           <div class="card">
             <h3>📊 Exportar a Excel</h3>
             <p style="color:var(--text3);font-size:.85rem;margin-bottom:10px">Descarga todos tus datos en un archivo Excel con formato profesional: encabezados coloreados, columnas ajustadas y fechas nativas.</p>
