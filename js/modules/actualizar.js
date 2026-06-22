@@ -35,7 +35,29 @@ function setupUpdOposiciones() {
 
 function opos_toggleItReqs(checked) {
   const el = document.getElementById('upd-opos-it-modulos');
-  if (el) el.style.display = checked ? 'grid' : 'none';
+  if (el) el.style.display = checked ? 'flex' : 'none';
+  if (checked) opos_itSemaforo();
+}
+
+function opos_itSemaforo() {
+  const el = document.getElementById('upd-opos-it-semaforo');
+  if (!el || typeof it_validarRequisitos !== 'function') return;
+  const marcados = [...document.querySelectorAll('.it-req-check:checked')].map(c => c.value);
+  if (!marcados.length) { el.innerHTML = ''; return; }
+  const check = it_validarRequisitos(marcados);
+  if (check.ok) {
+    el.innerHTML = '<span style="color:var(--green)">✅ Tienes todos los módulos requeridos</span>';
+  } else {
+    el.innerHTML = `<span style="color:var(--red)">⚠️ Te faltan: <strong>${check.nombres.join(', ')}</strong></span>`;
+  }
+  document.querySelectorAll('.it-req-check').forEach(cb => {
+    const label = cb.closest('label');
+    if (!label) return;
+    if (!cb.checked) { label.style.color = ''; label.style.fontWeight = ''; return; }
+    const tienes = typeof it_tieneModulo === 'function' && it_tieneModulo(cb.value);
+    label.style.color = tienes ? 'var(--green)' : 'var(--red)';
+    label.style.fontWeight = '600';
+  });
 }
 
 function opos_toggleDocsExtra() {
@@ -233,6 +255,7 @@ function editarOpos(i) {
   const itCb = document.getElementById('upd-opos-req-it');
   if (itCb) { itCb.checked = itReqs.length > 0; opos_toggleItReqs(itReqs.length > 0); }
   document.querySelectorAll('.it-req-check').forEach(c => { c.checked = itReqs.includes(c.value); });
+  if (itReqs.length > 0) opos_itSemaforo();
   set('upd-opos-fecha-examen', r.fecha_examen);
   set('upd-opos-hora-examen',  r.hora_examen);
   set('upd-opos-fecha-apertura',r.fecha_apertura);

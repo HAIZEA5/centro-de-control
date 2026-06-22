@@ -1,24 +1,36 @@
 // ─── MÓDULO IT TXARTELAS ───
 
 const IT_MODULOS = [
-  { id: 'windows',       nombre: 'Windows 7',          desc: 'Microsoft Windows 7 — Sistema Operativo' },
-  { id: 'internet_basico',  nombre: 'Internet Básico',   desc: 'Internet y correo electrónico básico' },
-  { id: 'internet',         nombre: 'Internet Avanzado', desc: 'Internet y correo electrónico avanzado' },
-  { id: 'word_basico',   nombre: 'Word 2010 Básico',   desc: 'Ofimática Microsoft — nivel básico' },
-  { id: 'word_avanzado', nombre: 'Word 2010 Avanzado', desc: 'Ofimática Microsoft — nivel avanzado' },
-  { id: 'excel_basico',  nombre: 'Excel 2010 Básico',  desc: 'Hoja de cálculo Microsoft — nivel básico' },
-  { id: 'excel_avanzado',nombre: 'Excel 2010 Avanzado',desc: 'Hoja de cálculo Microsoft — nivel avanzado' },
-  { id: 'powerpoint',    nombre: 'PowerPoint 2010',    desc: 'Presentaciones multimedia — nivel único' },
-  { id: 'access',        nombre: 'Access 2010',        desc: 'Base de datos Microsoft — nivel único' },
+  { id: 'windows',        nombre: 'Windows 7',          desc: 'Sistema Operativo' },
+  { id: 'internet_basico',nombre: 'Internet Básico',    desc: 'Internet y correo básico' },
+  { id: 'internet',       nombre: 'Internet Avanzado',  desc: 'Internet y correo avanzado' },
+  { id: 'word_basico',    nombre: 'Word Básico',        desc: 'Ofimática Word — nivel básico' },
+  { id: 'word_avanzado',  nombre: 'Word Avanzado',      desc: 'Ofimática Word — nivel avanzado' },
+  { id: 'excel_basico',   nombre: 'Excel Básico',       desc: 'Hoja de cálculo — nivel básico' },
+  { id: 'excel_avanzado', nombre: 'Excel Avanzado',     desc: 'Hoja de cálculo — nivel avanzado' },
+  { id: 'powerpoint',     nombre: 'PowerPoint',         desc: 'Presentaciones multimedia' },
+  { id: 'access',         nombre: 'Access',             desc: 'Base de datos Microsoft' },
 ];
 
 // ── Storage ──
 function it_getEstados() { return Store.get('it_txartelas_estado', {}); }
 function it_saveEstados(d) { Store.set('it_txartelas_estado', d); }
 
-function it_setEstado(id, estado, fecha) {
+function it_toggle(id) {
   const d = it_getEstados();
-  if (!estado) { delete d[id]; } else { d[id] = { estado, fecha: fecha || '' }; }
+  if (d[id]?.estado === 'aprobada') {
+    delete d[id];
+  } else {
+    d[id] = { estado: 'aprobada', fecha: d[id]?.fecha || '' };
+  }
+  it_saveEstados(d);
+  loadItTxartelas();
+}
+
+function it_setFecha(id, fecha) {
+  const d = it_getEstados();
+  if (!d[id]) d[id] = { estado: 'aprobada' };
+  d[id].fecha = fecha;
   it_saveEstados(d);
 }
 
@@ -38,15 +50,6 @@ function it_getNombreModulo(id) {
   return IT_MODULOS.find(m => m.id === id)?.nombre || id;
 }
 
-// ── Guardar desde la UI ──
-function it_guardar(id) {
-  const sel  = document.getElementById('it-sel-' + id);
-  const inp  = document.getElementById('it-fecha-' + id);
-  if (!sel) return;
-  it_setEstado(id, sel.value, inp?.value || '');
-  loadItTxartelas();
-}
-
 // ── Render ──
 function loadItTxartelas() {
   const estados = it_getEstados();
@@ -55,42 +58,37 @@ function loadItTxartelas() {
 
   const aprobadas = IT_MODULOS.filter(m => estados[m.id]?.estado === 'aprobada').length;
   const total = IT_MODULOS.length;
+  const pct = Math.round(aprobadas / total * 100);
 
   el.innerHTML = `
-  <div style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-    <div style="font-size:.85rem;color:var(--text2)">
-      Módulos aprobados: <strong style="color:var(--green)">${aprobadas}</strong> de ${total}
+  <div style="margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:.82rem;color:var(--text2)">Módulos aprobados</span>
+      <span style="font-size:.82rem;font-weight:700;color:${aprobadas===total?'var(--green)':'var(--accent2)'}">${aprobadas} / ${total}</span>
     </div>
-    <div style="flex:1;height:6px;background:var(--bg4);border-radius:99px;min-width:80px">
-      <div style="height:100%;width:${Math.round(aprobadas/total*100)}%;background:var(--green);border-radius:99px;transition:.3s"></div>
+    <div style="height:6px;background:var(--bg4);border-radius:99px">
+      <div style="height:100%;width:${pct}%;background:var(--green);border-radius:99px;transition:.4s"></div>
     </div>
   </div>
-  <div class="it-grid">
+  <div style="display:flex;flex-direction:column;gap:8px">
     ${IT_MODULOS.map(m => {
       const e = estados[m.id] || {};
-      const color = e.estado === 'aprobada' ? 'var(--green)' : e.estado === 'en_estudio' ? 'var(--yellow)' : 'var(--text3)';
-      const icon  = e.estado === 'aprobada' ? '✅' : e.estado === 'en_estudio' ? '📚' : '⬜';
+      const on = e.estado === 'aprobada';
       return `
-      <div class="it-card" style="border-color:${e.estado === 'aprobada' ? 'var(--green)' : 'var(--border)'}">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
-          <div>
-            <div style="font-weight:700;font-size:.9rem;color:var(--text)">${icon} ${m.nombre}</div>
-            <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${m.desc}</div>
-          </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:${on ? 'rgba(52,211,153,.07)' : 'var(--bg3)'};border:1px solid ${on ? 'rgba(52,211,153,.3)' : 'var(--border)'};border-radius:10px;transition:.2s">
+        <button onclick="it_toggle('${m.id}')" title="${on ? 'Desactivar' : 'Activar'}"
+          style="flex-shrink:0;width:44px;height:24px;border-radius:99px;border:none;cursor:pointer;position:relative;transition:.25s;background:${on ? 'var(--green)' : 'var(--bg4)'}">
+          <span style="position:absolute;top:3px;left:${on ? '23px' : '3px'};width:18px;height:18px;background:#fff;border-radius:50%;transition:.25s;display:block;box-shadow:0 1px 3px rgba(0,0,0,.3)"></span>
+        </button>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.88rem;font-weight:${on ? '700' : '500'};color:${on ? 'var(--text)' : 'var(--text3)'}">${m.nombre}</div>
+          <div style="font-size:.7rem;color:var(--text3)">${m.desc}</div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <select id="it-sel-${m.id}" onchange="it_guardar('${m.id}')"
-            style="flex:1;min-width:110px;padding:5px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:.8rem;font-family:inherit">
-            <option value="">— Estado —</option>
-            <option value="aprobada"   ${e.estado==='aprobada'   ?'selected':''}>✅ Aprobada</option>
-            <option value="en_estudio" ${e.estado==='en_estudio' ?'selected':''}>📚 En estudio</option>
-            <option value="pendiente"  ${e.estado==='pendiente'  ?'selected':''}>⏳ Pendiente</option>
-          </select>
-          <input type="date" id="it-fecha-${m.id}" value="${e.fecha||''}" onchange="it_guardar('${m.id}')"
-            title="Fecha de aprobación"
-            style="padding:5px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:.8rem;font-family:inherit" />
-        </div>
-        ${e.estado === 'aprobada' && e.fecha ? `<div style="font-size:.7rem;color:var(--green);margin-top:6px">📅 ${_fmtFecha(e.fecha)}</div>` : ''}
+        ${on ? `
+        <input type="date" value="${e.fecha || ''}" onchange="it_setFecha('${m.id}', this.value)"
+          title="Fecha de aprobación"
+          style="padding:4px 7px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:.75rem;font-family:inherit;width:130px" />
+        ` : ''}
       </div>`;
     }).join('')}
   </div>`;
