@@ -243,7 +243,7 @@ function renderPisoCalc() {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
           <div class="form-group" style="grid-column:1/-1">
             <label style="font-size:.75rem">Precio piso (€)</label>
-            <input type="number" id="pcfg-precio" value="${cfg.precio_ref}" step="1000" style="width:100%" oninput="piso_liveCalc()">
+            <input type="text" id="pcfg-precio" value="${Number(cfg.precio_ref).toLocaleString('es-ES')}" inputmode="numeric" style="width:100%" oninput="pisoPrecioInput(this)" onblur="pisoPrecioBlur(this)">
           </div>
           <div class="form-group">
             <label style="font-size:.75rem">Tipo interés (%)</label>
@@ -327,7 +327,7 @@ function _calcResultsHTML(hipoteca, hipAuto, impP, cuota, intereses, costeTotal,
 
 function piso_liveCalc() {
   const cfg = piso_getConfig();
-  cfg.precio_ref         = +document.getElementById('pcfg-precio')?.value   || cfg.precio_ref;
+  cfg.precio_ref         = parseInt((document.getElementById('pcfg-precio')?.value || '').replace(/\./g, '').replace(',', '.')) || cfg.precio_ref;
   cfg.tipo_interes       = +document.getElementById('pcfg-tipo')?.value     || cfg.tipo_interes;
   cfg.anios              = +document.getElementById('pcfg-anios')?.value    || cfg.anios;
   cfg.itp                = +document.getElementById('pcfg-itp')?.value      || cfg.itp;
@@ -779,6 +779,22 @@ function piso_borrarBanco(idx) {
   bancos.splice(idx, 1);
   piso_saveBancos(bancos);
   renderPisoBancos();
+}
+
+function pisoPrecioInput(el) {
+  const raw = el.value.replace(/\./g, '').replace(/[^\d]/g, '');
+  const num = parseInt(raw);
+  const cur = el.selectionStart;
+  const prevLen = el.value.length;
+  el.value = isNaN(num) ? '' : num.toLocaleString('es-ES');
+  const diff = el.value.length - prevLen;
+  el.setSelectionRange(Math.max(0, cur + diff), Math.max(0, cur + diff));
+  piso_liveCalc();
+}
+
+function pisoPrecioBlur(el) {
+  const raw = parseInt(el.value.replace(/\./g, '')) || 0;
+  el.value = raw > 0 ? raw.toLocaleString('es-ES') : '';
 }
 
 // ── TABS ──────────────────────────────────────────────────────
