@@ -661,6 +661,16 @@ function ufin_addInteresFM() {
   else lista.push({ fecha, importe });
 
   Store.set('cdc_intereses_fm', lista);
+
+  // Actualizar fin_saldos.fm con el nuevo total para que Supabase lo persista
+  if (typeof getSaldosActuales === 'function') {
+    const s = getSaldosActuales();
+    const saldos = Store.get('fin_saldos', {});
+    saldos.fm = s.fm;
+    saldos._ts = Date.now();
+    Store.set('fin_saldos', saldos);
+  }
+
   document.getElementById('ufin-int-importe').value = '';
   mostrarOk('ufin-int-ok');
   ufin_renderInteresFM();
