@@ -677,18 +677,42 @@ function calcMeritosTotal(r) {
 /* ── Panel: Bolsa ── */
 function renderBolsaPanel(r) {
   const entra = r.bolsa_entrada === true || r.bolsa_entrada === 'true';
+  const conv = (r.convocatoria || '').replace(/'/g, "\\'");
+  const inp = (id, type, val, placeholder, extra='') =>
+    `<input type="${type}" value="${val||''}" placeholder="${placeholder}"
+      onchange="opos_setField('${conv}','${id}',this.value)"
+      style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-family:inherit;font-size:.83rem;outline:none;width:100%" ${extra}/>`;
   return `
   <div class="det-bolsa">
     <div class="bolsa-estado ${entra ? 'bolsa-si' : 'bolsa-no'}">
       <span class="bolsa-icon">${entra ? '✅' : '⏳'}</span>
-      <div>
-        <div class="bolsa-titulo">${entra ? 'En bolsa' : 'Sin bolsa / Pendiente'}</div>
-        ${entra ? `
-          <div class="bolsa-dato">📅 Fecha de entrada: <strong>${r.bolsa_fecha ? formatFecha(r.bolsa_fecha) : '—'}</strong></div>
-          <div class="bolsa-dato">🏅 Posición: <strong>${r.bolsa_posicion ? '#'+r.bolsa_posicion : '—'}</strong></div>
-          <div class="bolsa-dato">🔄 Llamadas recibidas: <strong>${r.bolsa_llamadas || '0'}</strong></div>
-          <div class="bolsa-dato">📝 Notas: <span style="color:var(--text2)">${r.bolsa_notas || '—'}</span></div>
-        ` : `<div style="color:var(--text3);font-size:.87rem;margin-top:4px">Actualiza cuando entre en bolsa desde ✏️ Actualizar</div>`}
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div class="bolsa-titulo">${entra ? 'En bolsa' : 'Sin bolsa / Pendiente'}</div>
+          <select onchange="opos_setField('${conv}','bolsa_entrada',this.value==='si')"
+            style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-family:inherit;font-size:.8rem;cursor:pointer">
+            <option value="no" ${!entra?'selected':''}>⏳ Pendiente</option>
+            <option value="si" ${entra?'selected':''}>✅ En bolsa</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">📅 Fecha de entrada</div>
+            ${inp('bolsa_fecha','date',r.bolsa_fecha,'')}
+          </div>
+          <div>
+            <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">🏅 Posición en bolsa</div>
+            ${inp('bolsa_posicion','number',r.bolsa_posicion,'Ej: 42','min="1"')}
+          </div>
+          <div>
+            <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">🔄 Llamadas recibidas</div>
+            ${inp('bolsa_llamadas','number',r.bolsa_llamadas,'0','min="0"')}
+          </div>
+          <div>
+            <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">📝 Notas</div>
+            ${inp('bolsa_notas','text',r.bolsa_notas,'Notas sobre la bolsa…')}
+          </div>
+        </div>
       </div>
     </div>
   </div>`;
@@ -696,21 +720,28 @@ function renderBolsaPanel(r) {
 
 /* ── Panel: Enlaces ── */
 function renderEnlacesPanel(r) {
+  const conv = (r.convocatoria || '').replace(/'/g, "\\'");
   const links = [
-    { label: 'BOE / BOE-A',    val: r.url_boe,    icon: '📰' },
-    { label: 'Bases de la convocatoria', val: r.url_bases, icon: '📋' },
-    { label: 'Temario oficial', val: r.url_temario, icon: '📚' },
-    { label: 'Enlace extra 1',  val: r.url_extra1, icon: '🔗' },
-    { label: 'Enlace extra 2',  val: r.url_extra2, icon: '🔗' },
+    { label: 'BOE / BOE-A',              field: 'url_boe',     val: r.url_boe,     icon: '📰' },
+    { label: 'Bases de la convocatoria',  field: 'url_bases',   val: r.url_bases,   icon: '📋' },
+    { label: 'Temario oficial',           field: 'url_temario', val: r.url_temario, icon: '📚' },
+    { label: 'Enlace extra 1',            field: 'url_extra1',  val: r.url_extra1,  icon: '🔗' },
+    { label: 'Enlace extra 2',            field: 'url_extra2',  val: r.url_extra2,  icon: '🔗' },
   ];
-  const activos = links.filter(l => l.val);
-  if (!activos.length) return `<p style="color:var(--text3);font-size:.87rem;padding:12px 0">Sin enlaces guardados. Añádelos en ✏️ Actualizar.</p>`;
-  return `<div class="det-enlaces">${activos.map(l => `
-    <a href="${l.val}" target="_blank" rel="noopener" class="det-enlace-card">
-      <span class="det-enlace-icon">${l.icon}</span>
-      <span class="det-enlace-label">${l.label}</span>
-      <span style="margin-left:auto;color:var(--text3)">↗</span>
-    </a>`).join('')}</div>`;
+  return `<div style="display:flex;flex-direction:column;gap:10px;padding:4px 0">
+    ${links.map(l => `
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:1.1rem;flex-shrink:0">${l.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">${l.label}</div>
+        <input type="url" value="${l.val ? l.val.replace(/"/g,'&quot;') : ''}" placeholder="https://…"
+          onchange="opos_setField('${conv}','${l.field}',this.value)"
+          style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-family:inherit;font-size:.78rem;outline:none;width:100%" />
+      </div>
+      ${l.val ? `<a href="${l.val}" target="_blank" rel="noopener"
+        style="flex-shrink:0;font-size:1rem;color:var(--accent);text-decoration:none;padding:4px" title="Abrir">↗</a>` : ''}
+    </div>`).join('')}
+  </div>`;
 }
 
 /* ── Panel: Historial ── */
@@ -1011,12 +1042,20 @@ function opos_setField(conv, field, value) {
   const docFields = ['doc_solicitud','doc_dni','doc_titulacion','doc_euskera','doc_cv','doc_meritos','doc_discap',
     'doc_extra1','doc_extra2','doc_extra3'];
   const fechaFields = ['fecha_apertura','fecha_fin_inscr','fecha_lista_prov','fecha_alegaciones','fecha_lista_def','fecha_examen','hora_examen'];
+  const bolsaFields = ['bolsa_entrada','bolsa_fecha','bolsa_posicion','bolsa_llamadas','bolsa_notas'];
+  const enlaceFields = ['url_boe','url_bases','url_temario','url_extra1','url_extra2'];
   if (docFields.includes(field)) {
     const panel = document.getElementById('det-docs-' + idx);
     if (panel) panel.innerHTML = renderDocsPanel(r);
   } else if (fechaFields.includes(field)) {
     const panel = document.getElementById('det-fechas-' + idx);
     if (panel) panel.innerHTML = renderFechasPanel(r);
+  } else if (bolsaFields.includes(field)) {
+    const panel = document.getElementById('det-bolsa-' + idx);
+    if (panel) panel.innerHTML = renderBolsaPanel(r);
+  } else if (enlaceFields.includes(field)) {
+    const panel = document.getElementById('det-enlaces-' + idx);
+    if (panel) panel.innerHTML = renderEnlacesPanel(r);
   }
 }
 
