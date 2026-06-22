@@ -664,6 +664,8 @@ function ufin_addInteresFM() {
   document.getElementById('ufin-int-importe').value = '';
   mostrarOk('ufin-int-ok');
   ufin_renderInteresFM();
+  if (typeof renderFinSinking === 'function') renderFinSinking();
+  if (typeof renderFinStats === 'function') renderFinStats();
 }
 
 // Borra el registro de interés de una fecha concreta
