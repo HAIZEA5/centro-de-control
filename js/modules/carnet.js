@@ -27,47 +27,6 @@ function car_getPracticas() { return Store.get('car_practicas', []); }
 function car_getConfig()    { return Store.get('car_config'); }
 function car_savePracticas(d) { Store.set('car_practicas', d); }
 
-// ── Guardar estado examen teórico ──
-function car_guardarTeoricoEstado() {
-  const estado = document.getElementById('upd-car-teorico-estado')?.value;
-  const fecha  = document.getElementById('upd-car-teorico-fecha')?.value;
-  const cfg = car_getConfig();
-  cfg.teorico_estado = estado;
-  cfg.teorico_fecha  = fecha;
-  Store.set('car_config', cfg);
-  mostrarOk('upd-car-teorico-ok');
-  loadCarnet();
-}
-
-// ── Guardar próxima convocatoria ──
-function car_guardarProxima() {
-  const estado = document.getElementById('upd-car-prox-estado')?.value;
-  const fecha  = document.getElementById('upd-car-prox-fecha')?.value;
-  const cfg = car_getConfig();
-  cfg.prox_estado = estado;
-  cfg.prox_fecha  = fecha;
-  Store.set('car_config', cfg);
-  mostrarOk('upd-car-prox-ok');
-  loadCarnet();
-}
-
-// ── Guardar práctica ──
-function car_guardarPractica() {
-  const fecha = document.getElementById('upd-car-prac-fecha')?.value;
-  const min   = parseInt(document.getElementById('upd-car-prac-min')?.value ?? '0');
-  const nota  = document.getElementById('upd-car-prac-nota')?.value?.trim();
-
-  if (!fecha) { alert('Indica la fecha de la práctica.'); return; }
-
-  const practicas = car_getPracticas();
-  practicas.push({ fecha, min: isNaN(min) ? 0 : min, nota: nota || '' });
-  car_savePracticas(practicas);
-
-  document.getElementById('upd-car-prac-min').value = '';
-  document.getElementById('upd-car-prac-nota').value = '';
-  mostrarOk('upd-car-prac-ok');
-  loadCarnet();
-}
 
 function car_borrarPractica(i) { const d = car_getPracticas(); d.splice(i,1); car_savePracticas(d); loadCarnet(); }
 

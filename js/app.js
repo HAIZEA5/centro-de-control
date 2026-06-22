@@ -8,10 +8,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 function initApp() {
   setupNavigation();
   setupMobileMenu();
-  setupOposFormTabs();
   loadDashboard();
   loadAllModules();
-  initActualizar();
 }
 
 function loadAllModules() {
@@ -51,16 +49,6 @@ function setupNavigation() {
   });
 }
 
-function setupOposFormTabs() {
-  document.querySelectorAll('.opos-form-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.opos-form-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.opos-form-panel').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById(tab.dataset.ftab)?.classList.add('active');
-    });
-  });
-}
 
 function setupMobileMenu() {
   const toggle  = document.getElementById('menuToggle');

@@ -23,6 +23,10 @@
   localStorage.setItem(KEY, String(VER));
 })();
 
+// ── Helpers de datos de agenda ──
+function age_getDatos() { return Store.get('local_agenda'); }
+function age_saveDatos(d) { Store.set('local_agenda', d); loadAgenda(); }
+
 // ── Estado del calendario ──
 let _calYear  = new Date().getFullYear();
 let _calMonth = new Date().getMonth(); // 0-indexed
