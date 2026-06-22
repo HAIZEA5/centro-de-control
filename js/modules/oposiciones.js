@@ -548,7 +548,7 @@ function renderDocsPanel(r) {
     return `
       <div style="margin-top:12px;padding:10px 14px;background:#ff000010;border:1px solid var(--red);border-radius:8px;font-size:.82rem">
         <div style="color:var(--red);font-weight:600;margin-bottom:6px">🖥️ ⚠️ IT Txartela: faltan módulos</div>
-        ${check.nombres.map(n => `<div style="color:var(--red);margin-top:4px">▸ Pendiente: <strong>${n}</strong> — Actualiza en ✏️ Actualizar → IT Txartelas</div>`).join('')}
+        ${check.nombres.map(n => `<div style="color:var(--red);margin-top:4px">▸ Pendiente: <strong>${n}</strong></div>`).join('')}
         <div style="color:var(--text2);margin-top:4px;font-size:.75rem">Requeridos: ${allNames.join(', ')}</div>
       </div>`;
   })()}
@@ -1173,15 +1173,17 @@ function radarBorrar(i) {
 }
 
 function radarConvertir(i) {
-  const r = Store.get(RADAR_KEY, [])[i];
+  const radar = Store.get(RADAR_KEY, []);
+  const r = radar[i];
   if (!r) return;
-  // Abrir el panel Actualizar → Oposiciones con el organismo pre-rellenado
-  document.querySelector('[data-section=actualizar]')?.click();
-  setTimeout(() => {
-    document.querySelector('[data-tab=upd-oposiciones]')?.click();
-    setTimeout(() => {
-      const el = document.getElementById('ufin-opos-organismo') || document.getElementById('uopos-organismo');
-      if (el) { el.value = r.organismo; el.focus(); }
-    }, 200);
-  }, 150);
+  const conv = prompt(`Nombre de la convocatoria para "${r.organismo}":`, r.organismo + (r.puesto ? ' — ' + r.puesto : ''));
+  if (!conv?.trim()) return;
+  const data = Store.get('opos_convocatorias', []);
+  data.push({ convocatoria: conv.trim(), organismo: r.organismo, puesto: r.puesto, fase: 'Seguimiento', estado: 'PENDIENTE', grupo: 'C1', perfil: 'Yo' });
+  Store.set('opos_convocatorias', data);
+  // Eliminar del radar
+  radar.splice(i, 1);
+  Store.set(RADAR_KEY, radar);
+  renderOposiciones();
+  renderRadar();
 }

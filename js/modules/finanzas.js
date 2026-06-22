@@ -696,7 +696,7 @@ function renderFinSinking() {
         }).join('')}
         ${totalCompras > 0 ? `<div class="dash-row" style="margin-top:8px;font-weight:700"><span class="dash-row-label">Total estimado</span><span class="dash-row-val red">${fmt(totalCompras)}</span></div>` : ''}
       </div>
-      <a href="#" onclick="event.preventDefault();document.querySelector('[data-section=actualizar]')?.click();setTimeout(()=>{document.querySelector('[data-tab=upd-finanzas]')?.click();setTimeout(()=>document.getElementById('upd-fin-compras')?.scrollIntoView({behavior:'smooth'}),150)},150)" style="font-size:.75rem;color:var(--accent2)">✏️ Editar en Actualizar → Finanzas</a>
+      <a href="#finanzas" onclick="event.preventDefault();document.querySelector('a[href=\'#finanzas\']')?.click();setTimeout(()=>{document.querySelector('[data-fintab=\'fin-panel-ajustar\']')?.click();setTimeout(()=>document.getElementById('upd-fin-compras')?.scrollIntoView({behavior:'smooth'}),150)},300)" style="font-size:.75rem;color:var(--accent2)">✏️ Editar en Finanzas → Ajustar</a>
     </div>` : ''}
 
     <div class="card" style="margin-bottom:16px">
