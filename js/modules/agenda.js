@@ -420,9 +420,11 @@ async function loadAgenda() {
     const d = daysUntilDate(fecha);
     const txt = d < 0 ? 'Pasado' : d === 0 ? 'HOY' : d === 1 ? 'Mañana' : `en ${d}d`;
     const c = d < 0 ? 'var(--text3)' : d === 0 ? 'var(--green)' : d <= 7 ? 'var(--yellow)' : (colorTag || 'var(--text2)');
-    return `<li style="flex-direction:column;align-items:flex-start;gap:3px">
-      <span style="font-size:.84rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;display:block">${texto}</span>
-      <span style="font-size:.75rem;font-weight:${d<=1?700:500};color:${c}">${txt}</span>
+    return `<li>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${texto}</span>
+        <span style="font-size:.74rem;font-weight:${d<=1?700:500};color:${c}">${txt}</span>
+      </div>
     </li>`;
   };
 
