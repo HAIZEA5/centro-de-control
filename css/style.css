@@ -483,6 +483,9 @@ body::before {
   align-items: center;
   gap: 10px;
   transition: background .2s;
+  overflow: hidden;
+  word-break: break-word;
+  min-width: 0;
 }
 .list li:hover { background: var(--bg4); }
 .list li::before { content: '▸'; color: var(--accent2); font-size: .8rem; flex-shrink: 0; }

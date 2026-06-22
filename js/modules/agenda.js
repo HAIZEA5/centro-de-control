@@ -414,8 +414,10 @@ async function loadAgenda() {
     const d = daysUntilDate(fecha);
     const txt = d < 0 ? 'Pasado' : d === 0 ? 'HOY' : d === 1 ? 'Mañana' : `en ${d}d`;
     const c   = d < 0 ? 'var(--text3)' : d === 0 ? 'var(--green)' : d <= 7 ? 'var(--yellow)' : color;
-    return `<span style="color:${c};margin-left:auto;font-size:.78rem;font-weight:${d<=1?700:400}">${txt}</span>`;
+    return `<span style="color:${c};white-space:nowrap;font-size:.78rem;font-weight:${d<=1?700:400};flex-shrink:0;margin-left:auto;padding-left:6px">${txt}</span>`;
   };
+  const liItem = (texto, fecha, colorTag) =>
+    `<li><span style="flex:1;min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${texto}</span>${tagFecha(fecha, colorTag)}</li>`;
 
   // Preferir struct sobre sheets/local para mayor control
   const struct = Store.get('age_eventos_struct', [])
@@ -426,16 +428,16 @@ async function loadAgenda() {
     const proximos = struct.filter(e => daysUntilDate(e.fecha) >= 0);
     const pasados  = struct.filter(e => daysUntilDate(e.fecha) < 0).reverse(); // más recientes primero
     const liProximos = proximos.map(e =>
-      `<li>${e.nombre}${e.hora ? ' · '+e.hora : ''} ${tagFecha(e.fecha)}</li>`
+      liItem(`${e.nombre}${e.hora ? ' · '+e.hora : ''}`, e.fecha)
     ).join('') || '<li style="color:var(--text2)">Sin eventos próximos</li>';
     const liPasados = pasados.length
       ? `<li style="padding:0;list-style:none"><details style="margin-top:6px"><summary style="cursor:pointer;font-size:.75rem;color:var(--text3);user-select:none">Eventos pasados (${pasados.length})</summary><ul style="margin-top:6px;padding-left:0;list-style:none">${
-          pasados.map(e => `<li style="opacity:.5">${e.nombre}${e.hora ? ' · '+e.hora : ''} ${tagFecha(e.fecha)}</li>`).join('')
+          pasados.map(e => liItem(`${e.nombre}${e.hora ? ' · '+e.hora : ''}`, e.fecha)).join('')
         }</ul></details></li>`
       : '';
     ul2.innerHTML = liProximos + liPasados;
   } else if (eventos.length) {
-    ul2.innerHTML = eventos.map(e => `<li>${e.nombre} ${tagFecha(e.fecha)}</li>`).join('');
+    ul2.innerHTML = eventos.map(e => liItem(e.nombre, e.fecha)).join('');
   } else if (local.eventos) {
     const lineas = local.eventos.split('\n').filter(l => l.trim());
     ul2.innerHTML = lineas.map(l => `<li>${l.trim()}</li>`).join('') || '<li style="color:var(--text2)">Sin eventos</li>';
@@ -477,7 +479,7 @@ async function loadAgenda() {
   if (todosVenc.length) {
     ul3.innerHTML = todosVenc
       .sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''))
-      .map(v => `<li>${v.item} ${tagFecha(v.fecha, 'var(--yellow)')}</li>`).join('');
+      .map(v => liItem(v.item, v.fecha, 'var(--yellow)')).join('');
   } else if (local.vencimientos) {
     const lineas = local.vencimientos.split('\n').filter(l => l.trim());
     ul3.innerHTML = lineas.map(l => `<li style="color:var(--yellow)">${l.trim()}</li>`).join('') || '<li style="color:var(--text2)">Sin vencimientos</li>';
