@@ -158,8 +158,8 @@ body::before {
 .main-content {
   margin-left: var(--sidebar-w);
   flex: 1;
-  padding: 36px 40px;
-  max-width: 1160px;
+  padding: 36px 48px;
+  max-width: 1320px;
   position: relative;
   z-index: 1;
 }
