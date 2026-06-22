@@ -422,7 +422,7 @@ async function loadAgenda() {
     const c = d < 0 ? 'var(--text3)' : d === 0 ? 'var(--green)' : d <= 7 ? 'var(--yellow)' : (colorTag || 'var(--text2)');
     return `<li>
       <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
-        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${texto}</span>
+        <span>${texto}</span>
         <span style="font-size:.74rem;font-weight:${d<=1?700:500};color:${c}">${txt}</span>
       </div>
     </li>`;
