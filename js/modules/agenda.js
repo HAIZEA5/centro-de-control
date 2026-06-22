@@ -321,7 +321,7 @@ function renderAgeGastosFijos() {
     : [];
 
   if (!todos.length) {
-    el.innerHTML = '<li style="color:var(--text3)">Sin gastos fijos — añade desde ✏️ Actualizar → Finanzas.</li>';
+    el.innerHTML = '<li style="color:var(--text3)">Sin gastos fijos.</li>';
     return;
   }
 
@@ -395,7 +395,7 @@ async function loadAgenda() {
       ul1.innerHTML = lineas.map(l => `<li>${l.trim()}</li>`).join('') || '<li style="color:var(--text2)">Sin cumpleaños</li>';
     }
   } else {
-    ul1.innerHTML = '<li style="color:var(--text2)">Sin cumpleaños — añade en ✏️ Actualizar</li>';
+    ul1.innerHTML = '<li style="color:var(--text2)">Sin cumpleaños</li>';
   }
 
   // ── Eventos ──
@@ -462,7 +462,7 @@ async function loadAgenda() {
       ? futuros.map(e => e.fecha ? liItem(e.texto, e.fecha) : `<li>${e.texto}</li>`).join('')
       : '<li style="color:var(--text2)">Sin eventos próximos</li>';
   } else {
-    ul2.innerHTML = '<li style="color:var(--text2)">Sin eventos — añade en ✏️ Actualizar</li>';
+    ul2.innerHTML = '<li style="color:var(--text2)">Sin eventos</li>';
   }
 
   // ── Vencimientos ──

@@ -627,7 +627,7 @@ function renderFinSinking() {
   const fm = FIN_DATA.revolut_fondo_monetario;
   const fmExtra   = Store.get('fin_fm_extra', []);
   const fmDaily   = Store.get('fin_fm_daily', []).sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  // Convertir intereses registrados en Actualizar a filas del historial,
+  // Convertir intereses registrados a filas del historial,
   // solo si ese mes no existe ya en el historial base o en fmExtra
   // Agrupar intereses registrados por mes (YYYY-MM) para sumarlos al historial
   const _normMes = s => (s || '').toLowerCase().replace(/\./g, '').trim();
@@ -692,7 +692,6 @@ function renderFinSinking() {
         }).join('')}
         ${totalCompras > 0 ? `<div class="dash-row" style="margin-top:8px;font-weight:700"><span class="dash-row-label">Total estimado</span><span class="dash-row-val red">${fmt(totalCompras)}</span></div>` : ''}
       </div>
-      <a href="#" onclick="event.preventDefault();document.querySelector('[data-section=actualizar]')?.click();setTimeout(()=>{document.querySelector('[data-tab=upd-finanzas]')?.click();setTimeout(()=>document.getElementById('upd-fin-compras')?.scrollIntoView({behavior:'smooth'}),150)},150)" style="font-size:.75rem;color:var(--accent2)">✏️ Editar en Actualizar → Finanzas</a>
     </div>` : ''}
 
     <div class="card" style="margin-bottom:16px">
@@ -1153,7 +1152,7 @@ function renderFinPresupuestoYGastos() {
           <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:12px;margin-bottom:6px">Conjunta · ${fmt(totalConj)}/mes</div>
           ${conjunta.map(filaGasto).join('')}` : ''}
         ${pausados.length ? `
-          <div style="font-size:.7rem;color:var(--text3);margin-top:12px;font-style:italic">⏸ ${pausados.length} gasto${pausados.length!==1?'s':''} pausado${pausados.length!==1?'s':''} (ver en Actualizar)</div>` : ''}
+          <div style="font-size:.7rem;color:var(--text3);margin-top:12px;font-style:italic">⏸ ${pausados.length} gasto${pausados.length!==1?'s':''} pausado${pausados.length!==1?'s':''}</div>` : ''}
       </div>
     </div>`;
 }

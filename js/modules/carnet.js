@@ -140,7 +140,7 @@ function renderCarPracticas(practicas) {
   const el = document.getElementById('car-practicas-lista');
   if (!el) return;
   if (!practicas.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin clases registradas. Añade desde ✏️ Actualizar → Carnet.</p>';
+    el.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin clases registradas.</p>';
     return;
   }
   const totalMin = practicas.reduce((s,p) => s+(p.min||0), 0);

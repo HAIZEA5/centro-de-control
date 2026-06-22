@@ -312,7 +312,7 @@ function opos_renderFiltered() {
         const fasesActivas = ['Preparación','Inscripción abierta','Fase Oposición','Pendiente pago'];
         const examenPasado = r.fecha_examen && oposLocalDate(r.fecha_examen) < hoy;
         if (examenPasado && r.fase && fasesActivas.includes(r.fase)) {
-          return `<span class="chip" style="background:#f59e0b22;color:#f59e0b;border-color:#f59e0b55" title="Fase estimada — actualiza en Actualizar">Pdte. de notas ⚡</span>`;
+          return `<span class="chip" style="background:#f59e0b22;color:#f59e0b;border-color:#f59e0b55" title="Fase estimada">Pdte. de notas ⚡</span>`;
         }
         return r.fase ? `<span class="chip">${r.fase}</span>` : '—';
       })()}</td>
@@ -527,7 +527,6 @@ function renderDocsPanel(r) {
       </div>`;
     }).join('')}
   </div>
-  <p style="font-size:.75rem;color:var(--text3);margin-top:12px">Edita los estados en ✏️ Actualizar → Oposiciones → editar</p>
   ${(() => {
     if (!r.req_it_txartelas?.length || typeof it_validarRequisitos !== 'function') return '';
     const check = it_validarRequisitos(r.req_it_txartelas);
@@ -539,7 +538,7 @@ function renderDocsPanel(r) {
     return `
       <div style="margin-top:12px;padding:10px 14px;background:#ff000010;border:1px solid var(--red);border-radius:8px;font-size:.82rem">
         <div style="color:var(--red);font-weight:600;margin-bottom:6px">🖥️ ⚠️ IT Txartela: faltan módulos</div>
-        ${check.nombres.map(n => `<div style="color:var(--red);margin-top:4px">▸ Pendiente: <strong>${n}</strong> — Actualiza en ✏️ Actualizar → IT Txartelas</div>`).join('')}
+        ${check.nombres.map(n => `<div style="color:var(--red);margin-top:4px">▸ Pendiente: <strong>${n}</strong></div>`).join('')}
         <div style="color:var(--text2);margin-top:4px;font-size:.75rem">Requeridos: ${allNames.join(', ')}</div>
       </div>`;
   })()}
@@ -637,7 +636,7 @@ function renderMeritosPanel(r, i) {
       <div class="meritos-total-label">TOTAL MÉRITOS</div>
       <div class="meritos-total-val">${total.toFixed(2)}</div>
       <div class="meritos-total-sub">puntos</div>
-      <div style="margin-top:16px;font-size:.75rem;color:var(--text3);text-align:center">Edita los datos en ✏️ Actualizar</div>
+      <div style="margin-top:16px;font-size:.75rem;color:var(--text3);text-align:center"></div>
     </div>
   </div>
   ${r.notas ? `
@@ -679,7 +678,7 @@ function renderBolsaPanel(r) {
           <div class="bolsa-dato">🏅 Posición: <strong>${r.bolsa_posicion ? '#'+r.bolsa_posicion : '—'}</strong></div>
           <div class="bolsa-dato">🔄 Llamadas recibidas: <strong>${r.bolsa_llamadas || '0'}</strong></div>
           <div class="bolsa-dato">📝 Notas: <span style="color:var(--text2)">${r.bolsa_notas || '—'}</span></div>
-        ` : `<div style="color:var(--text3);font-size:.87rem;margin-top:4px">Actualiza cuando entre en bolsa desde ✏️ Actualizar</div>`}
+        ` : `<div style="color:var(--text3);font-size:.87rem;margin-top:4px">Actualiza cuando entre en bolsa</div>`}
       </div>
     </div>
   </div>`;
@@ -695,7 +694,7 @@ function renderEnlacesPanel(r) {
     { label: 'Enlace extra 2',  val: r.url_extra2, icon: '🔗' },
   ];
   const activos = links.filter(l => l.val);
-  if (!activos.length) return `<p style="color:var(--text3);font-size:.87rem;padding:12px 0">Sin enlaces guardados. Añádelos en ✏️ Actualizar.</p>`;
+  if (!activos.length) return `<p style="color:var(--text3);font-size:.87rem;padding:12px 0">Sin enlaces guardados.</p>`;
   return `<div class="det-enlaces">${activos.map(l => `
     <a href="${l.val}" target="_blank" rel="noopener" class="det-enlace-card">
       <span class="det-enlace-icon">${l.icon}</span>
@@ -1107,13 +1106,11 @@ function radarBorrar(i) {
 function radarConvertir(i) {
   const r = Store.get(RADAR_KEY, [])[i];
   if (!r) return;
-  // Abrir el panel Actualizar → Oposiciones con el organismo pre-rellenado
-  document.querySelector('[data-section=actualizar]')?.click();
-  setTimeout(() => {
-    document.querySelector('[data-tab=upd-oposiciones]')?.click();
-    setTimeout(() => {
-      const el = document.getElementById('ufin-opos-organismo') || document.getElementById('uopos-organismo');
-      if (el) { el.value = r.organismo; el.focus(); }
-    }, 200);
-  }, 150);
+  const lista = getOposLocal();
+  const existe = lista.some(o => (o.convocatoria || '').toLowerCase().includes((r.organismo || '').toLowerCase()));
+  if (existe) { alert('Ya hay una convocatoria de este organismo.'); return; }
+  lista.push({ convocatoria: r.organismo, estado: 'pendiente', perfil: 'Yo', _id: Date.now(), historial: [{ fecha: new Date().toLocaleDateString('es-ES'), texto: 'Añadida desde radar' }] });
+  Store.set('local_oposiciones', lista);
+  renderOposiciones();
+  alert(`Añadida: ${r.organismo}`);
 }

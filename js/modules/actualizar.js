@@ -1,6 +1,7 @@
 // ─── MÓDULO ACTUALIZAR ───
 
 function initActualizar() {
+  if (!document.getElementById('upd-oposiciones')) return;
   setupUpdateTabs();
   setupUpdOposiciones();
   setupUpdFinanzas();
