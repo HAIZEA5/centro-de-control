@@ -349,13 +349,17 @@ async function loadAgenda() {
   const cumples    = rowsToObjects(cumpleRows);
   const ul1 = document.getElementById('age-cumples');
 
+  const CUMPLE_VENTANA = 60; // días hacia adelante que se muestran
   if (cumples.length) {
     const ordenados = sortByProximity(cumples, 'fecha');
-    ul1.innerHTML = ordenados.slice(0, 10).map(c => {
-      const dias = daysUntil(c.fecha);
-      const tag  = dias === 0 ? '🎂 HOY' : dias <= 7 ? `en ${dias}d` : c.fecha;
-      return `<li>${c.nombre} <span style="color:var(--accent2);margin-left:auto">${tag}</span></li>`;
-    }).join('');
+    const proximos = ordenados.filter(c => daysUntil(c.fecha) <= CUMPLE_VENTANA);
+    ul1.innerHTML = proximos.length
+      ? proximos.map(c => {
+          const dias = daysUntil(c.fecha);
+          const tag  = dias === 0 ? '🎂 HOY' : dias === 1 ? 'mañana' : dias <= 7 ? `en ${dias}d` : c.fecha;
+          return `<li>${c.nombre} <span style="color:var(--accent2);margin-left:auto">${tag}</span></li>`;
+        }).join('')
+      : `<li style="color:var(--text2)">Ninguno en los próximos ${CUMPLE_VENTANA} días</li>`;
     const prox = ordenados[0];
     const dias = daysUntil(prox.fecha);
     const dashCumple = document.getElementById('dash-cumple');
@@ -373,11 +377,14 @@ async function loadAgenda() {
 
     if (parsed.length) {
       const ordenados = sortByProximity(parsed, 'fecha');
-      ul1.innerHTML = ordenados.slice(0, 10).map(c => {
-        const dias = daysUntil(c.fecha);
-        const tag  = dias === 0 ? '🎂 HOY' : dias <= 7 ? `en ${dias}d` : c.fecha;
-        return `<li>${c.nombre} <span style="color:var(--accent2);margin-left:auto">${tag}</span></li>`;
-      }).join('');
+      const proximos = ordenados.filter(c => daysUntil(c.fecha) <= CUMPLE_VENTANA);
+      ul1.innerHTML = proximos.length
+        ? proximos.map(c => {
+            const dias = daysUntil(c.fecha);
+            const tag  = dias === 0 ? '🎂 HOY' : dias === 1 ? 'mañana' : dias <= 7 ? `en ${dias}d` : c.fecha;
+            return `<li>${c.nombre} <span style="color:var(--accent2);margin-left:auto">${tag}</span></li>`;
+          }).join('')
+        : `<li style="color:var(--text2)">Ninguno en los próximos ${CUMPLE_VENTANA} días</li>`;
       const dashCumple = document.getElementById('dash-cumple');
       if (dashCumple) {
         const prox = ordenados[0];
