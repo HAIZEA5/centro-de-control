@@ -439,9 +439,42 @@
 
         <!-- Listas rápidas -->
         <div class="cards-row">
-          <div class="card"><h3>Próximos cumpleaños</h3><ul class="list" id="age-cumples"></ul></div>
-          <div class="card"><h3>Eventos y vacaciones</h3><ul class="list" id="age-eventos"></ul></div>
-          <div class="card"><h3>Vencimientos importantes</h3><ul class="list" id="age-vencimientos"></ul></div>
+          <div class="card">
+            <h3>Próximos cumpleaños</h3>
+            <ul class="list" id="age-cumples"></ul>
+            <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px">
+              <input type="text" id="age-inline-cumple-nombre" placeholder="Nombre" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <input type="text" id="age-inline-cumple-fecha" placeholder="DD/MM (ej: 14/03)" maxlength="5" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')age_addInlineCumple()" />
+              <div style="display:flex;align-items:center;gap:8px">
+                <button onclick="age_addInlineCumple()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer;font-weight:600">+ Añadir</button>
+                <span id="age-inline-cumple-ok" class="update-success">✓ Guardado</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Eventos y vacaciones</h3>
+            <ul class="list" id="age-eventos"></ul>
+            <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px">
+              <input type="text" id="age-inline-evento-nombre" placeholder="Descripción" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <input type="date" id="age-inline-evento-fecha" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <div style="display:flex;align-items:center;gap:8px">
+                <button onclick="age_addInlineEvento()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer;font-weight:600">+ Añadir</button>
+                <span id="age-inline-evento-ok" class="update-success">✓ Guardado</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Vencimientos importantes</h3>
+            <ul class="list" id="age-vencimientos"></ul>
+            <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px">
+              <input type="text" id="age-inline-venc-nombre" placeholder="Descripción" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <input type="date" id="age-inline-venc-fecha" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <div style="display:flex;align-items:center;gap:8px">
+                <button onclick="age_addInlineVenc()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer;font-weight:600">+ Añadir</button>
+                <span id="age-inline-venc-ok" class="update-success">✓ Guardado</span>
+              </div>
+            </div>
+          </div>
         </div>
         <!-- Gastos fijos eliminados de Agenda (están en Finanzas → Presupuesto & Gastos) -->
         <ul id="age-gastos-fijos" style="display:none"></ul>
@@ -574,12 +607,20 @@
                   <input type="date" id="upd-opos-fecha-lprov" />
                 </div>
                 <div class="form-group">
+                  <label>📊 Nota provisional</label>
+                  <input type="text" id="upd-opos-nota-prov" placeholder="Ej: 32.50" />
+                </div>
+                <div class="form-group">
                   <label>✍️ Alegaciones</label>
                   <input type="date" id="upd-opos-fecha-aleg" />
                 </div>
                 <div class="form-group">
                   <label>✅ Lista definitiva</label>
                   <input type="date" id="upd-opos-fecha-ldef" />
+                </div>
+                <div class="form-group">
+                  <label>🏆 Nota definitiva</label>
+                  <input type="text" id="upd-opos-nota-def" placeholder="Ej: 34.25" />
                 </div>
                 <div class="form-group">
                   <label>📝 Fecha examen</label>

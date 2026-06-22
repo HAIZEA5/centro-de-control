@@ -148,8 +148,10 @@ function guardarOpos() {
     fecha_apertura:    getv('upd-opos-fecha-apertura'),
     fecha_fin_inscr:   getv('upd-opos-fecha-fin'),
     fecha_lista_prov:  getv('upd-opos-fecha-lprov'),
+    nota_provisional:  get('upd-opos-nota-prov'),
     fecha_alegaciones: getv('upd-opos-fecha-aleg'),
     fecha_lista_def:   getv('upd-opos-fecha-ldef'),
+    nota_definitiva:   get('upd-opos-nota-def'),
     // Documentación
     doc_solicitud:      getv('upd-opos-doc-solicitud'),
     doc_titulacion:     getv('upd-opos-doc-titulacion'),
@@ -220,7 +222,8 @@ function limpiarFormOpos() {
     'upd-opos-m-misma','upd-opos-m-otras','upd-opos-m-priv',
     'upd-opos-bolsa-pos','upd-opos-bolsa-llamadas','upd-opos-bolsa-notas','upd-opos-bolsa-fecha',
     'upd-opos-url-boe','upd-opos-url-bases','upd-opos-url-temario','upd-opos-url-e1','upd-opos-url-e2',
-    'upd-opos-tope-meritos','upd-opos-nivel-euskera'];
+    'upd-opos-tope-meritos','upd-opos-nivel-euskera',
+    'upd-opos-nota-prov','upd-opos-nota-def'];
   campos.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   const cb = document.getElementById('upd-opos-bolsa-entra'); if (cb) cb.checked = false;
   const itCb = document.getElementById('upd-opos-req-it'); if (itCb) { itCb.checked = false; opos_toggleItReqs(false); }
@@ -261,8 +264,10 @@ function editarOpos(i) {
   set('upd-opos-fecha-apertura',r.fecha_apertura);
   set('upd-opos-fecha-fin',    r.fecha_fin_inscr);
   set('upd-opos-fecha-lprov',  r.fecha_lista_prov);
+  set('upd-opos-nota-prov',    r.nota_provisional);
   set('upd-opos-fecha-aleg',   r.fecha_alegaciones);
   set('upd-opos-fecha-ldef',   r.fecha_lista_def);
+  set('upd-opos-nota-def',     r.nota_definitiva);
   // Docs
   ['solicitud','titulacion','euskera','dni','cv','meritos','discap'].forEach(k => set('upd-opos-doc-'+k, r['doc_'+k]));
   set('upd-opos-doc-e1-nombre', r.doc_extra1_nombre); set('upd-opos-doc-e1', r.doc_extra1);

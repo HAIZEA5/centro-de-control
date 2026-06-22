@@ -399,9 +399,9 @@ function renderFechasPanel(r) {
   const fechas = [
     { label: 'Apertura inscripción',  val: r.fecha_apertura,    icon: '🟢' },
     { label: 'Fin inscripción',       val: r.fecha_fin_inscr,   icon: '🔴' },
-    { label: 'Lista provisional',     val: r.fecha_lista_prov,  icon: '📄' },
+    { label: 'Lista provisional',     val: r.fecha_lista_prov,  icon: '📄', extra: r.nota_provisional ? `📊 ${r.nota_provisional}` : null },
     { label: 'Alegaciones',           val: r.fecha_alegaciones, icon: '✍️' },
-    { label: 'Lista definitiva',      val: r.fecha_lista_def,   icon: '✅' },
+    { label: 'Lista definitiva',      val: r.fecha_lista_def,   icon: '✅', extra: r.nota_definitiva ? `🏆 ${r.nota_definitiva}` : null },
     { label: 'Examen',                val: r.fecha_examen,      icon: '📝', extra: r.hora_examen ? `🕐 ${r.hora_examen}` : null },
   ];
   const hoy = new Date(); hoy.setHours(0,0,0,0);
