@@ -416,8 +416,15 @@ async function loadAgenda() {
     const c   = d < 0 ? 'var(--text3)' : d === 0 ? 'var(--green)' : d <= 7 ? 'var(--yellow)' : color;
     return `<span style="color:${c};white-space:nowrap;font-size:.78rem;font-weight:${d<=1?700:400};flex-shrink:0;margin-left:auto;padding-left:6px">${txt}</span>`;
   };
-  const liItem = (texto, fecha, colorTag) =>
-    `<li><span style="flex:1;min-width:0;word-break:break-word">${texto}</span>${tagFecha(fecha, colorTag)}</li>`;
+  const liItem = (texto, fecha, colorTag) => {
+    const d = daysUntilDate(fecha);
+    const txt = d < 0 ? 'Pasado' : d === 0 ? 'HOY' : d === 1 ? 'Mañana' : `en ${d}d`;
+    const c = d < 0 ? 'var(--text3)' : d === 0 ? 'var(--green)' : d <= 7 ? 'var(--yellow)' : (colorTag || 'var(--text2)');
+    return `<li style="flex-direction:column;align-items:flex-start;gap:3px">
+      <span style="font-size:.84rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;display:block">${texto}</span>
+      <span style="font-size:.75rem;font-weight:${d<=1?700:500};color:${c}">${txt}</span>
+    </li>`;
+  };
 
   // Preferir struct sobre sheets/local para mayor control
   const struct = Store.get('age_eventos_struct', [])
