@@ -726,6 +726,18 @@ function renderFinSinking() {
         <a href="#" onclick="event.preventDefault();document.querySelector('[data-section=actualizar]')?.click();setTimeout(()=>document.querySelector('[data-tab=upd-finanzas]')?.click(),150)" style="font-size:.75rem;color:var(--accent2)">✏️ Actualizar datos</a>
       </div>
 
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 10px">
+        <span style="font-size:.72rem;color:var(--text3);font-weight:500;white-space:nowrap">+ Interés diario:</span>
+        <input type="date" id="fin-int-inline-fecha" value="${new Date().toISOString().split('T')[0]}"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:4px 8px;font-size:.75rem;width:130px" />
+        <input type="number" id="fin-int-inline-importe" placeholder="0.00 €" step="0.01" min="0"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:4px 8px;font-size:.75rem;width:90px"
+          onkeydown="if(event.key==='Enter')finAddInteresInline()" />
+        <button onclick="finAddInteresInline()"
+          style="background:var(--accent2);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer;font-weight:600">Guardar</button>
+        <span id="fin-int-inline-ok" class="update-success">✓ Guardado</span>
+      </div>
+
       <div class="fin-year-stats" style="margin-bottom:14px">
         <div class="fin-year-card">
           <div class="fin-year-label">Saldo actual</div>
@@ -1210,6 +1222,29 @@ function finFMDailyBorrar(i) {
   daily.splice(i, 1);
   Store.set('fin_fm_daily', daily);
   renderFinSinking();
+}
+
+function finAddInteresInline() {
+  const fecha = document.getElementById('fin-int-inline-fecha')?.value;
+  const importe = parseFloat(document.getElementById('fin-int-inline-importe')?.value);
+  if (!fecha || isNaN(importe) || importe <= 0) { alert('Indica fecha e importe válido.'); return; }
+
+  const lista = Store.get('cdc_intereses_fm', []);
+  const idx = lista.findIndex(e => e.fecha === fecha);
+  if (idx >= 0) lista[idx].importe = importe;
+  else lista.push({ fecha, importe });
+  Store.set('cdc_intereses_fm', lista);
+
+  const s = getSaldosActuales();
+  const saldos = Store.get('fin_saldos', {});
+  saldos.fm = s.fm;
+  saldos._ts = Date.now();
+  Store.set('fin_saldos', saldos);
+
+  document.getElementById('fin-int-inline-importe').value = '';
+  mostrarOk('fin-int-inline-ok');
+  renderFinSinking();
+  renderFinStats();
 }
 
 function addMesFondoMonetario() {
