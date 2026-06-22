@@ -110,59 +110,72 @@ function renderOposStats(data) {
 /* ── Countdown ── */
 function renderOposCountdown(data) {
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const proximos = data
-    .filter(r => r.fecha_examen && oposLocalDate(r.fecha_examen) >= hoy)
-    .sort((a,b) => oposLocalDate(a.fecha_examen) - oposLocalDate(b.fecha_examen));
   const cd = document.getElementById('opos-countdown');
-  if (!proximos.length) { cd.style.display='none'; return; }
-  const next = proximos[0];
-  const dias = Math.round((oposLocalDate(next.fecha_examen) - hoy) / 86400000);
-  const mismodia = proximos.filter(r => r.fecha_examen === next.fecha_examen);
+
+  // Recoger todos los eventos futuros: exámenes y fines de inscripción
+  const eventos = [];
+  data.forEach(r => {
+    if (r.fecha_examen && oposLocalDate(r.fecha_examen) >= hoy)
+      eventos.push({ fecha: r.fecha_examen, tipo: 'examen', conv: r.convocatoria, hora: r.hora_examen, r });
+    if (r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoy)
+      eventos.push({ fecha: r.fecha_fin_inscr, tipo: 'inscripcion', conv: r.convocatoria, r });
+  });
+  eventos.sort((a, b) => oposLocalDate(a.fecha) - oposLocalDate(b.fecha));
+
+  if (!eventos.length) { cd.style.display = 'none'; return; }
+
+  const next = eventos[0];
+  const dias = Math.round((oposLocalDate(next.fecha) - hoy) / 86400000);
+  const mismodia = eventos.filter(e => e.fecha === next.fecha && e.tipo === next.tipo);
+
   cd.style.display = 'flex';
+
+  // Label dinámico según el tipo de evento
+  const labelEl = document.querySelector('.opos-countdown-label');
+  if (labelEl) labelEl.textContent = next.tipo === 'examen' ? 'PRÓXIMO EXAMEN' : 'FIN INSCRIPCIÓN';
+
   const nombreEl = document.getElementById('opos-cd-nombre');
   if (nombreEl) {
     if (mismodia.length > 1) {
-      nombreEl.innerHTML = mismodia.map((r, i) =>
-        `<div style="${i > 0 ? 'margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.1)' : ''}">${r.convocatoria || '—'}</div>`
+      nombreEl.innerHTML = mismodia.map((e, i) =>
+        `<div style="${i > 0 ? 'margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,.1)' : ''}">${e.conv || '—'}</div>`
       ).join('');
     } else {
-      nombreEl.textContent = next.convocatoria || '—';
+      nombreEl.textContent = next.conv || '—';
     }
   }
+
   const diasEl = document.getElementById('opos-cd-dias');
   if (dias === 0) {
     diasEl.innerHTML = '<span style="font-size:1.1rem;color:var(--red);animation:pulse 1s infinite">¡HOY!</span>';
   } else {
     diasEl.textContent = dias;
   }
+
   const horaEl = document.getElementById('opos-cd-hora');
   if (horaEl) {
-    if (mismodia.length > 1) {
-      horaEl.innerHTML = mismodia.filter(r => r.hora_examen).map(r =>
-        `<span style="margin-right:10px">🕐 ${r.hora_examen}</span>`
-      ).join('');
+    if (next.tipo === 'examen') {
+      if (mismodia.length > 1) {
+        horaEl.innerHTML = mismodia.filter(e => e.hora).map(e =>
+          `<span style="margin-right:10px">🕐 ${e.hora}</span>`
+        ).join('');
+      } else {
+        horaEl.textContent = next.hora ? `🕐 ${next.hora}` : '';
+      }
     } else {
-      horaEl.textContent = next.hora_examen ? `🕐 ${next.hora_examen}` : '';
+      horaEl.textContent = formatFecha(next.fecha);
     }
   }
 
-  // Próximo hito administrativo (la fecha más cercana que no sea el examen)
-  const hitos = [
-    { label: 'Fin inscripción',   val: next.fecha_fin_inscr,   icon: '🔴' },
-    { label: 'Lista provisional', val: next.fecha_lista_prov,  icon: '📄' },
-    { label: 'Alegaciones',       val: next.fecha_alegaciones, icon: '✍️' },
-    { label: 'Lista definitiva',  val: next.fecha_lista_def,   icon: '✅' },
-  ].filter(h => h.val)
-   .map(h => ({ ...h, d: new Date(h.val) }))
-   .filter(h => h.d >= hoy)
-   .sort((a,b) => a.d - b.d);
-
+  // Siguiente hito diferente
+  const siguiente = eventos.find(e => e.fecha !== next.fecha || e.tipo !== next.tipo);
   const hitoEl = document.getElementById('opos-cd-hito');
   if (hitoEl) {
-    if (hitos.length) {
-      const h = hitos[0];
-      const dh = Math.round((h.d - hoy) / 86400000);
-      hitoEl.textContent = `${h.icon} ${h.label}: ${formatFecha(h.val)}${dh === 0 ? ' — ¡Hoy!' : dh === 1 ? ' — mañana' : ` — en ${dh}d`}`;
+    if (siguiente) {
+      const ds = Math.round((oposLocalDate(siguiente.fecha) - hoy) / 86400000);
+      const icon = siguiente.tipo === 'examen' ? '📝' : '🔴';
+      const label = siguiente.tipo === 'examen' ? 'Examen' : 'Fin inscr.';
+      hitoEl.textContent = `${icon} ${label}: ${formatFecha(siguiente.fecha)} — en ${ds}d`;
     } else {
       hitoEl.textContent = '';
     }
