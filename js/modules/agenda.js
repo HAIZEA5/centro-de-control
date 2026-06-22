@@ -449,7 +449,18 @@ async function loadAgenda() {
     ul2.innerHTML = eventos.map(e => liItem(e.nombre, e.fecha)).join('');
   } else if (local.eventos) {
     const lineas = local.eventos.split('\n').filter(l => l.trim());
-    ul2.innerHTML = lineas.map(l => `<li>${l.trim()}</li>`).join('') || '<li style="color:var(--text2)">Sin eventos</li>';
+    const parsedEvs = lineas.map(l => {
+      const m = l.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+      if (!m) return { texto: l.trim(), fecha: null };
+      const y = m[3].length === 2 ? '20'+m[3] : m[3];
+      const fecha = `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+      const texto = l.replace(/[\-—]\s*\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/, '').trim();
+      return { texto, fecha };
+    });
+    const futuros = parsedEvs.filter(e => !e.fecha || daysUntilDate(e.fecha) >= 0);
+    ul2.innerHTML = futuros.length
+      ? futuros.map(e => e.fecha ? liItem(e.texto, e.fecha) : `<li>${e.texto}</li>`).join('')
+      : '<li style="color:var(--text2)">Sin eventos próximos</li>';
   } else {
     ul2.innerHTML = '<li style="color:var(--text2)">Sin eventos — añade en ✏️ Actualizar</li>';
   }
