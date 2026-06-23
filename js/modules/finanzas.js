@@ -1165,6 +1165,15 @@ function renderFinPresupuestoYGastos() {
             </div>`;
           }).join('');
         })()}
+        <div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:8px;display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center">
+          <span style="font-size:.78rem;color:var(--text2)">Nómina</span>
+          <span style="font-size:.82rem;font-weight:700;color:var(--green);text-align:right">${fmt(sueldo)}</span>
+          <span style="font-size:.78rem;color:var(--text2)">Gastos fijos</span>
+          <span style="font-size:.82rem;font-weight:700;color:var(--red);text-align:right">-${fmt(totalFijo)}</span>
+          <div style="grid-column:1/-1;border-top:1px solid var(--border2);margin:4px 0"></div>
+          <span style="font-size:.85rem;font-weight:700;color:var(--text1)">Disponible</span>
+          <span style="font-size:.95rem;font-weight:800;color:${(sueldo-totalFijo)>=0?'var(--green)':'var(--red)'};text-align:right">${fmt(sueldo - totalFijo)}</span>
+        </div>
       </div>
     </div>`;
 }
