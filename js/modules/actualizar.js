@@ -669,21 +669,18 @@ function ufin_addInteresFM() {
   if (!fecha || isNaN(importe) || importe <= 0) { alert('Indica fecha e importe válido.'); return; }
 
   const lista = ufin_getInteresFM();
-  // Reemplaza si ya existe entrada para la misma fecha
   const idx = lista.findIndex(e => e.fecha === fecha);
+  const importeAnterior = idx >= 0 ? (parseFloat(lista[idx].importe) || 0) : 0;
   if (idx >= 0) lista[idx].importe = importe;
   else lista.push({ fecha, importe });
 
   Store.set('cdc_intereses_fm', lista);
 
-  // Actualizar fin_saldos.fm con el nuevo total para que Supabase lo persista
-  if (typeof getSaldosActuales === 'function') {
-    const s = getSaldosActuales();
-    const saldos = Store.get('fin_saldos', {});
-    saldos.fm = s.fm;
-    saldos._ts = Date.now();
-    Store.set('fin_saldos', saldos);
-  }
+  // Ajustar saldo: sumar nuevo interés, restar el anterior si era reemplazo
+  const saldos = Store.get('fin_saldos', {});
+  saldos.fm = parseFloat(((saldos.fm || 0) + importe - importeAnterior).toFixed(2));
+  saldos._ts = Date.now();
+  Store.set('fin_saldos', saldos);
 
   document.getElementById('ufin-int-importe').value = '';
   mostrarOk('ufin-int-ok');
@@ -694,9 +691,17 @@ function ufin_addInteresFM() {
 
 // Borra el registro de interés de una fecha concreta
 function ufin_delInteresFM(fecha) {
-  const lista = ufin_getInteresFM().filter(e => e.fecha !== fecha);
-  Store.set('cdc_intereses_fm', lista);
+  const lista = ufin_getInteresFM();
+  const entrada = lista.find(e => e.fecha === fecha);
+  const importeEntrada = entrada ? (parseFloat(entrada.importe) || 0) : 0;
+  Store.set('cdc_intereses_fm', lista.filter(e => e.fecha !== fecha));
+  const saldos = Store.get('fin_saldos', {});
+  saldos.fm = parseFloat(((saldos.fm || 0) - importeEntrada).toFixed(2));
+  saldos._ts = Date.now();
+  Store.set('fin_saldos', saldos);
   ufin_renderInteresFM();
+  if (typeof renderFinSinking === 'function') renderFinSinking();
+  if (typeof renderFinStats === 'function') renderFinStats();
 }
 
 /* ════════════════════════════════
