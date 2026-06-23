@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 20;
+const OPOS_SEED_VERSION = 21;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -26,8 +26,8 @@ const OPOS_SEED = [
     tasa_pagada:    'SI',
     // Docs
     doc_solicitud:  'Listo',
-    doc_dni:        'Pendiente',
-    doc_titulacion: 'Pendiente',
+    doc_dni:        'Listo',
+    doc_titulacion: 'Al ser seleccionado',
     doc_euskera:    'No aplica',
     doc_cv:         'No aplica',
     doc_meritos:    'No aplica',
@@ -35,7 +35,7 @@ const OPOS_SEED = [
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:     'Listo',
     doc_extra2_nombre: 'Lista definitiva de admitidos',
-    doc_extra2:     'Pendiente',
+    doc_extra2:     'Listo',
     // Notas
     notas: '376 plazas (362 libre + 14 promoción interna). Examen tipo test · BEC Barakaldo. Requiere: certificado escolaridad/ESO.',
     // URLs
@@ -64,8 +64,8 @@ const OPOS_SEED = [
     hora_examen:    '17:30',
     tasa_pagada:    'SI',
     doc_solicitud:  'Listo',
-    doc_dni:        'Pendiente',
-    doc_titulacion: 'Pendiente',
+    doc_dni:        'Listo',
+    doc_titulacion: 'Al ser seleccionado',
     doc_euskera:    'No aplica',
     doc_cv:         'No aplica',
     doc_meritos:    'No aplica',
@@ -73,7 +73,7 @@ const OPOS_SEED = [
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:     'Listo',
     doc_extra2_nombre: 'Lista definitiva de admitidos',
-    doc_extra2:     'Pendiente',
+    doc_extra2:     'Listo',
     notas: '272 plazas (turno libre). Examen tipo test · BEC Barakaldo. Requiere: certificado escolaridad/ESO.',
     url_boe:    'https://www.osakidetza.euskadi.eus/ope-2023-2024-2025/webosk00-procon/es/',
     url_bases:  'https://opeosakidetza.com/ope/operario-servicios-osakidetza',
@@ -100,8 +100,8 @@ const OPOS_SEED = [
     hora_examen:    '13:30',
     tasa_pagada:    'SI',
     doc_solicitud:  'Listo',
-    doc_dni:        'Pendiente',
-    doc_titulacion: 'Pendiente',
+    doc_dni:        'Listo',
+    doc_titulacion: 'Al ser seleccionado',
     doc_euskera:    'No aplica',
     doc_cv:         'No aplica',
     doc_meritos:    'No aplica',
@@ -109,7 +109,7 @@ const OPOS_SEED = [
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:     'Listo',
     doc_extra2_nombre: 'Lista definitiva de admitidos',
-    doc_extra2:     'Pendiente',
+    doc_extra2:     'Listo',
     doc_extra3_nombre: 'Certificado IT Txartela (Word av. + Excel bás.)',
     doc_extra3:     'Listo',
     notas: '756 plazas (708 libre + 48 promoción interna). Requiere: ESO/FP1 + certificado IT Txartela. Examen tipo test · BEC Barakaldo.',
@@ -137,8 +137,8 @@ const OPOS_SEED = [
     hora_examen:    '17:30',
     tasa_pagada:    'SI',
     doc_solicitud:  'Listo',
-    doc_dni:        'Pendiente',
-    doc_titulacion: 'Pendiente',
+    doc_dni:        'Listo',
+    doc_titulacion: 'Al ser seleccionado',
     doc_euskera:    'No aplica',
     doc_cv:         'No aplica',
     doc_meritos:    'No aplica',
@@ -146,7 +146,7 @@ const OPOS_SEED = [
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:     'Listo',
     doc_extra2_nombre: 'Lista definitiva de admitidos',
-    doc_extra2:     'Pendiente',
+    doc_extra2:     'Listo',
     notas: 'Examen tipo test · BEC Barakaldo · 17:30h. Requiere: Bachiller o FP2.',
     url_boe:    'https://www.osakidetza.euskadi.eus/ope-2023-2024-2025/webosk00-procon/es/',
     url_bases:  'https://opeosakidetza.com/guia-ope-osakidetza',
@@ -168,7 +168,7 @@ const OPOS_SEED = [
     tasa_pagada:     'SI',
     doc_solicitud:   'Listo',
     doc_dni:         'Pendiente',
-    doc_titulacion:  'Pendiente',
+    doc_titulacion:  'Al ser seleccionado',
     doc_euskera:     'No aplica',
     doc_cv:          'No aplica',
     doc_meritos:     'No aplica',
