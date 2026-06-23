@@ -27,6 +27,7 @@ const FIN_DATA = {
       { nombre: 'Seguro Vida Kutxabank',   importe: 12.58,  cuenta:'KTX', hasta:null,       nota:'~15.61€ - 3.03€ descuento' },
       { nombre: 'CTV – Transferencia',     importe: 150.00, cuenta:'KTX', hasta:null,       nota:'Ahorro vivienda mensual' },
       { nombre: 'Aporte cuenta conjunta',  importe: 400.00, cuenta:'RVP', hasta:null,       nota:'Variable ~300-500€/mes' },
+      { nombre: 'Revolut Personal',        importe: 400.00, cuenta:'RVP', hasta:null,       nota:'' },
     ],
     gastos_fijos_conjunta: [
       { nombre: 'Mercadona (semanal)',     importe: 280.00, cuenta:'RVC', nota:'~70€/semana estimado' },
