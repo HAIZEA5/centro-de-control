@@ -1233,12 +1233,6 @@ function finAddInteresInline() {
   else lista.push({ fecha, importe });
   Store.set('cdc_intereses_fm', lista);
 
-  const s = getSaldosActuales();
-  const saldos = Store.get('fin_saldos', {});
-  saldos.fm = s.fm;
-  saldos._ts = Date.now();
-  Store.set('fin_saldos', saldos);
-
   document.getElementById('fin-int-inline-importe').value = '';
   mostrarOk('fin-int-inline-ok');
   renderFinSinking();
