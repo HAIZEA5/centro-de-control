@@ -679,6 +679,7 @@ function ufin_addInteresFM() {
   // Ajustar saldo: sumar nuevo interés, restar el anterior si era reemplazo
   const saldos = Store.get('fin_saldos', {});
   saldos.fm = parseFloat(((saldos.fm || 0) + importe - importeAnterior).toFixed(2));
+  saldos.fm_ts = Date.now();
   saldos._ts = Date.now();
   Store.set('fin_saldos', saldos);
 
