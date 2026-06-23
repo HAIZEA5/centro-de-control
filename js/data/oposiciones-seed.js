@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 25;
+const OPOS_SEED_VERSION = 26;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -215,6 +215,36 @@ const OPOS_SEED = [
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-5743',
     url_bases: 'https://www.buscaoposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_guenes-2ala7501ap1.htm',
     // Méritos: Ayto. Santurtzi (12m misma admin local) + IHOBE (12m otras AA.PP.) + B2=PL2 + cursos IVAP
+    meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
+      cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
+  },
+  {
+    convocatoria:    'Ayto. Trapagaran — Admvo. Servicios Económicos',
+    organismo: 'Ayto. Trapagaran', puesto: 'Admvo. Servicios Económicos',
+    tipo_proceso: 'concurso-oposicion', tope_meritos: 25, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    perfil:          'YO',
+    grupo:           'C1',
+    estado:          'EN PROCESO',
+    fase:            'Plazo inscripción abierto',
+    fecha_apertura:   '2026-06-22',
+    fecha_fin_inscr:  '2026-07-20',
+    fecha_lista_prov: null,
+    fecha_alegaciones:null,
+    fecha_lista_def:  null,
+    tasa_pagada:     'NO',
+    doc_solicitud:   'Pendiente',
+    doc_dni:         'Al ser seleccionado',
+    doc_titulacion:  'Al ser seleccionado',
+    doc_euskera:     'Al ser seleccionado',
+    doc_cv:          'No aplica',
+    doc_meritos:     'Con la instancia',
+    doc_discap:      'No aplica',
+    doc_extra1_nombre: 'Méritos acreditados',
+    doc_extra1:      'Pendiente',
+    notas: '2 plazas Administrativo Servicios Económicos (RPT 27 y 28). Grupo C1. PL2 preceptivo RPT 27 (29/07/1995), no preceptivo RPT 28. Concurso-oposición libre. BOE 22/06/2026, BOB nº 102 de 02/06/2026. Plazo: 20 días hábiles desde BOE → hasta 20/07/2026. Oposición (70 pts): 1ª test general 0-15 mín 7,5 + 2ª test específico 0-25 mín 12,5 + 3ª práctica 0-30 mín 15 + 4ª euskera PL2 Apto/No Apto (eliminatorio RPT 27, voluntario RPT 28). Concurso (máx 25 pts): exp AAPP C1 Administrativo últimos 10 años 0,10 pts/mes máx 12 pts + formación máx 13 pts (licenciatura/grado 4pts, TécSup 3pts, cursos 201-250h 2pts/151-200h 1,5pts/101-150h 0,75pts/50-100h 0,5pts, informática 0,5pts/cert máx 2pts, idiomas UE B1 1pt/B2 2pts, opos superadas Admvo últimos 10 años 3pts/proceso). Instancia: acreditar méritos con la solicitud (documentación interoperable IVAP verificada automáticamente). Sede: https://www.trapagaran.net',
+    url_boe:   'https://www.boe.es/boe/dias/2026/06/22/',
+    url_bases: 'https://www.bizkaia.eus/lehendakaritza/Bao_bob/2026/06/BOB-2026a102.pdf',
+    // Concurso-oposición: exp C1 Admvo AAPP + formación
     meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
       cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
   },
