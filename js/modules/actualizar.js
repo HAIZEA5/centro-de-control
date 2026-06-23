@@ -346,8 +346,6 @@ function renderUpdOposList() {
 ════════════════════════════════ */
 function setupUpdFinanzas() {
   const _d = new Date(); const hoy = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
-  const fechaEl = document.getElementById('ufin-fecha');
-  if (fechaEl) fechaEl.value = hoy;
   const fmdFecha = document.getElementById('fin-fmd-fecha');
   if (fmdFecha) fmdFecha.value = hoy;
 
