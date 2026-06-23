@@ -317,8 +317,6 @@ const _FIN_CAT_GF = {
 
 function fin_getGastosFijos() {
   const stored = Store.get('fin_gastos_fijos', null);
-  if (stored) return stored;
-  // Primera vez: migrar desde FIN_DATA.presupuesto
   const p = FIN_DATA.presupuesto;
   let id = 0;
   const toEntry = (g, tipo) => ({
@@ -328,13 +326,25 @@ function fin_getGastosFijos() {
     cat: _FIN_CAT_GF[g.nombre] || 'otros',
     hasta: g.hasta || null, nota: g.nota || '', activo: true,
   });
-  const list = [
+  const fromData = [
     ...p.gastos_fijos.map(g => toEntry(g, 'personal')),
     ...p.gastos_fijos_conjunta.map(g => toEntry(g, 'conjunta')),
     ...p.suscripciones_personales.map(g => toEntry(g, 'suscripcion')),
   ];
-  Store.set('fin_gastos_fijos', list);
-  return list;
+  if (!stored) {
+    Store.set('fin_gastos_fijos', fromData);
+    return fromData;
+  }
+  // Añadir entradas nuevas de FIN_DATA que no estén ya en el store
+  let changed = false;
+  fromData.forEach(entry => {
+    if (!stored.find(s => s.nombre === entry.nombre)) {
+      stored.push(entry);
+      changed = true;
+    }
+  });
+  if (changed) Store.set('fin_gastos_fijos', stored);
+  return stored;
 }
 
 function fin_saveGastosFijos(list) {
