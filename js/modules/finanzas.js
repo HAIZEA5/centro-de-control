@@ -1166,9 +1166,6 @@ function renderFinPresupuestoYGastos() {
             </div>`;
           }).join('');
         })()}
-        ${conjunta.length ? `
-          <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:12px;margin-bottom:6px">Conjunta · ${fmt(totalConj)}/mes</div>
-          ${conjunta.map(filaGasto).join('')}` : ''}
       </div>
     </div>`;
 }
