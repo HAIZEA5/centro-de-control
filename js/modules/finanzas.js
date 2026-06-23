@@ -1129,18 +1129,13 @@ function renderFinPresupuestoYGastos() {
           ${conjunta.length ? `<div class="fin-budget-titulo" style="margin-top:8px">Conjunta</div>${conjunta.map(g=>filaPresup(g,'pink')).join('')}` : ''}
           <div class="fin-budget-row fin-budget-total"><span>Subtotal</span><strong>${fmt(totalFijo)}</strong></div>
         </div>
-        <div class="fin-budget-block">
-          <div class="fin-budget-titulo">Suscripciones</div>
-          ${subs.map(g => filaPresup(g,'blue')).join('')}
-          <div class="fin-budget-row fin-budget-total"><span>Subtotal</span><strong>${fmt(totalSubs)}</strong></div>
-        </div>
       </div>
 
       <!-- Columna derecha: Gastos fijos detallados con día de cobro -->
       <div class="card">
         <h3 style="margin-bottom:12px">Gastos fijos con día de cobro</h3>
-        <div style="font-size:.7rem;color:var(--text3);margin-bottom:10px">Personal · ${fmt(totalFijo)}/mes &nbsp;|&nbsp; Subs · ${fmt(totalSubs)}/mes</div>
-        ${[...personal, ...subs].map(filaGasto).join('')}
+        <div style="font-size:.7rem;color:var(--text3);margin-bottom:10px">Personal · ${fmt(totalFijo)}/mes</div>
+        ${personal.map(filaGasto).join('')}
         ${conjunta.length ? `
           <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:12px;margin-bottom:6px">Conjunta · ${fmt(totalConj)}/mes</div>
           ${conjunta.map(filaGasto).join('')}` : ''}
