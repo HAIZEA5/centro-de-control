@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 23;
+const OPOS_SEED_VERSION = 24;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -215,33 +215,6 @@ const OPOS_SEED = [
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-5743',
     url_bases: 'https://www.buscaoposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_guenes-2ala7501ap1.htm',
     // Méritos: Ayto. Santurtzi (12m misma admin local) + IHOBE (12m otras AA.PP.) + B2=PL2 + cursos IVAP
-    meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
-      cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
-  },
-  {
-    convocatoria:  'Ayto. Larrabetzu — Administrativo',
-    organismo: 'Ayto. Larrabetzu', puesto: 'Administrativo',
-    tipo_proceso: 'concurso', tope_meritos: 100, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
-    perfil:        'YO',
-    grupo:         'C1',
-    estado:        'EN PROCESO',
-    fase:          'Pendiente lista provisional',
-    fecha_apertura:   '2026-04-15',
-    fecha_fin_inscr:  '2026-04-29',
-    fecha_lista_prov: null,
-    fecha_alegaciones:null,
-    fecha_lista_def:  null,
-    tasa_pagada:   'SI',
-    doc_solicitud: 'Listo',
-    doc_dni:       'Con la solicitud',
-    doc_titulacion:'Con la solicitud',
-    doc_euskera:   'Al ser seleccionado',
-    doc_cv:        'No aplica',
-    doc_meritos:   'Con la solicitud',
-    doc_discap:    'No aplica',
-    notas: 'BOLSA DE TRABAJO — Concurso de méritos puro (sin examen). BOB nº 69, 15/04/2026. Grupo C1, PL2 preceptivo. Plazo inscripción: 10 días hábiles desde 15/04 (~hasta 29/04/2026). Baremo: Experiencia AAPP (Admvo/Aux Admvo) 0,75 pts/mes → máx 75 pts + Formación máx 25 pts (cursos IVAP/INAP: <25h=0,5pts; 25-90h=2pts; >91h=5pts; IT Txartela Windows/Word av/Excel bás/PPT 1pt c/u). Mínimo 40 pts para entrar en bolsa. DNI + méritos con la solicitud. PL2 + titulación C1 al ser seleccionado. 📋 Lista provisional: pendiente publicación en BOB/sede electrónica.',
-    url_boe:   'https://www.bizkaia.eus/eu/bao',
-    url_bases: 'https://www.bizkaia.eus/eu/bao/emaitzak',
     meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
       cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
   },
