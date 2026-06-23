@@ -1136,7 +1136,6 @@ function renderFinPresupuestoYGastos() {
         <div class="fin-budget-block" style="margin-bottom:10px">
           <div class="fin-budget-titulo">Gastos fijos personales</div>
           ${personal.map(g => filaPresup(g,'red')).join('')}
-          ${conjunta.length ? `<div class="fin-budget-titulo" style="margin-top:8px">Conjunta</div>${conjunta.map(g=>filaPresup(g,'pink')).join('')}` : ''}
           <div class="fin-budget-row fin-budget-total"><span>Subtotal</span><strong>${fmt(totalFijo)}</strong></div>
         </div>
       </div>
