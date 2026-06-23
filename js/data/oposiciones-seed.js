@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 21;
+const OPOS_SEED_VERSION = 22;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -193,11 +193,11 @@ const OPOS_SEED = [
     perfil:          'YO',
     grupo:           'C2',
     estado:          'EN PROCESO',
-    fase:            'Pendiente examen',
+    fase:            'Alegaciones lista provisional',
     fecha_apertura:   '2026-03-12',
     fecha_fin_inscr:  '2026-04-15',
-    fecha_lista_prov: null,
-    fecha_alegaciones:null,
+    fecha_lista_prov: '2026-05-29',
+    fecha_alegaciones:'2026-06-12',
     fecha_lista_def:  null,
     tasa_pagada:     'SI',
     doc_solicitud:   'Listo',
@@ -209,7 +209,9 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '3 plazas (turno libre). Sistema: oposición · test teórico (40p) + práctico (60p, hay que superar los 2 supuestos). Penalización 1/3. 35 puntos de méritos. Requiere PL2 euskera. BOB nº 197 de 15/10/2025. 📋 Inscripción: solo instancia online. Méritos (acreditar tras oposición): vida laboral + contratos + certificados cursos. DNI + titulación + euskera: al ser seleccionado.',
+    doc_extra2_nombre: 'Lista provisional admitidos',
+    doc_extra2:      'Listo',
+    notas: '3 plazas (turno libre). Sistema: oposición · test teórico (40p) + práctico (60p, hay que superar los 2 supuestos). Penalización 1/3. 35 puntos de méritos. Requiere PL2 euskera. BOB nº 197 de 15/10/2025. ✅ ADMITIDO en lista provisional (29/05/2026). 📋 Méritos (acreditar tras oposición): vida laboral + contratos + certificados cursos. DNI + titulación + euskera: al ser seleccionado.',
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-5743',
     url_bases: 'https://www.buscaoposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_guenes-2ala7501ap1.htm',
     // Méritos: Ayto. Santurtzi (12m misma admin local) + IHOBE (12m otras AA.PP.) + B2=PL2 + cursos IVAP
