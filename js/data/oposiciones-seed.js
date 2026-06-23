@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 24;
+const OPOS_SEED_VERSION = 25;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -215,36 +215,6 @@ const OPOS_SEED = [
     url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-5743',
     url_bases: 'https://www.buscaoposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_guenes-2ala7501ap1.htm',
     // Méritos: Ayto. Santurtzi (12m misma admin local) + IHOBE (12m otras AA.PP.) + B2=PL2 + cursos IVAP
-    meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
-      cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
-  },
-  {
-    convocatoria:    'Ayto. Trapagaran — Admvo. Servicios Económicos',
-    organismo: 'Ayto. Trapagaran', puesto: 'Admvo. Servicios Económicos',
-    tipo_proceso: 'concurso-oposicion', tope_meritos: 27, req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
-    perfil:          'YO',
-    grupo:           'C1',
-    estado:          'EN PROCESO',
-    fase:            'Pendiente examen',
-    fecha_apertura:   '2026-04-21',
-    fecha_fin_inscr:  '2026-05-14',
-    fecha_lista_prov: null,
-    fecha_alegaciones:null,
-    fecha_lista_def:  null,
-    tasa_pagada:     'SI',
-    doc_solicitud:   'Listo',
-    doc_dni:         'Al ser seleccionado',
-    doc_titulacion:  'Al ser seleccionado',
-    doc_euskera:     'Al ser seleccionado',
-    doc_cv:          'No aplica',
-    doc_meritos:     'Tras oposición',
-    doc_discap:      'No aplica',
-    doc_extra1_nombre: 'Justificante inscripción',
-    doc_extra1:      'Listo',
-    notas: '1 plaza de Administrativo de Servicios Generales. Grupo C1, PL2 preceptivo. Concurso-oposición libre. BOE 20/04/2026. Plazo cerrado 14/05/2026. Bases originales BOB nº 201 de 21/10/2025, rectificación BOB nº 57 de 25/03/2026. Oposición (60 pts): test general 0-10 mín 5 + test específico 0-20 mín 10 + práctico 0-30 mín 15 + euskera eliminatorio. Baremo concurso (máx 27 pts): experiencia AAPP C1 últimos 10 años 0,175 pts/mes máx 14 pts + formación máx 13 pts (licenciatura 4pts, FP sup 3pts, cursos por horas, IT Txartela 0,50 pts/certif máx 2pts, idiomas UE) + euskera NO puntúa (suprimido por Decreto 375/2026). Sin puntuación por experiencia privada. 📋 Inscripción: solo instancia. Méritos (acreditar tras oposición): vida laboral + contratos. DNI + titulación + euskera: al ser seleccionado.',
-    url_boe:   'https://www.preparaoposiciones.com/blog/convocatorias/oposicion-administrativo-ayuntamiento-valle-de-trapaga-trapagaran-2026/',
-    url_bases: 'https://www.canaloposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_valle_de_trapaga_trapagaran-2ala7536ap1.htm',
-    // Concurso-oposición: baremo experiencia + euskera + formación
     meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
       cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
   },
