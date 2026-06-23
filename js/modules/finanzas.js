@@ -483,7 +483,6 @@ function renderFinGastosFijos() {
   el.innerHTML = `
     <div class="fin-year-stats" style="margin-bottom:16px">
       <div class="fin-year-card"><div class="fin-year-label">Fijos personales</div><div class="fin-year-val red">${fmt(totalFijos)}/mes</div></div>
-      <div class="fin-year-card"><div class="fin-year-label">Suscripciones</div><div class="fin-year-val" style="color:var(--blue)">${fmt(totalSubs)}/mes</div></div>
       <div class="fin-year-card"><div class="fin-year-label">Conjunta estimado</div><div class="fin-year-val" style="color:var(--pink)">${fmt(totalConj)}/mes</div></div>
       <div class="fin-year-card"><div class="fin-year-label">Total comprometido</div><div class="fin-year-val red">${fmt(totalTodo)}/mes</div></div>
     </div>
@@ -491,11 +490,6 @@ function renderFinGastosFijos() {
     <div class="card" style="margin-bottom:12px">
       <h3 style="margin-bottom:12px">💸 Gastos fijos personales</h3>
       ${personal.length ? personal.map(renderRow).join('') : '<p style="color:var(--text3);font-size:.85rem">Sin gastos fijos personales.</p>'}
-    </div>
-
-    <div class="card" style="margin-bottom:12px">
-      <h3 style="margin-bottom:12px">📱 Suscripciones personales</h3>
-      ${subs.length ? subs.map(renderRow).join('') : '<p style="color:var(--text3);font-size:.85rem">Sin suscripciones.</p>'}
     </div>
 
     <div class="card" style="margin-bottom:${pausados.length?'12':'0'}px">
