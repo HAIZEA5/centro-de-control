@@ -1131,16 +1131,34 @@ function renderFinPresupuestoYGastos() {
         </div>
       </div>
 
-      <!-- Columna derecha: Gastos fijos detallados con día de cobro -->
+      <!-- Columna derecha: Gastos fijos detallados con saldo restante -->
       <div class="card">
         <h3 style="margin-bottom:12px">Gastos fijos con día de cobro</h3>
-        <div style="font-size:.7rem;color:var(--text3);margin-bottom:10px">Personal · ${fmt(totalFijo)}/mes</div>
-        ${personal.map(filaGasto).join('')}
+        <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text3);margin-bottom:10px">
+          <span>Personal · ${fmt(totalFijo)}/mes</span>
+          <span>Nómina: <strong style="color:var(--green)">${fmt(sueldo)}</strong></span>
+        </div>
+        ${(() => {
+          let restante = sueldo;
+          return personal.map(g => {
+            restante -= g.importe;
+            const ct = ctaColor[g.cuenta] || 'var(--text2)';
+            const mesRest = g.hasta ? calcMesesRestantes(g.hasta) : null;
+            return `<div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2)">
+              <div>
+                <span style="font-size:.8rem;font-weight:600">${g.nombre}</span>
+                ${g.dia ? `<span style="font-size:.65rem;color:var(--text3);margin-left:5px">día ${g.dia}</span>` : ''}
+                ${g.hasta ? `<span style="font-size:.65rem;color:var(--orange);margin-left:4px">hasta ${g.hasta}</span>` : ''}
+                <br><span style="font-size:.68rem;color:${ct}">● ${g.cuenta}</span>
+              </div>
+              <span style="font-size:.8rem;font-weight:700;color:var(--red)">-${fmt(g.importe)}</span>
+              <span style="font-size:.82rem;font-weight:700;color:${restante>=0?'var(--green)':'var(--red)'};min-width:70px;text-align:right">${fmt(restante)}</span>
+            </div>`;
+          }).join('');
+        })()}
         ${conjunta.length ? `
           <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:12px;margin-bottom:6px">Conjunta · ${fmt(totalConj)}/mes</div>
           ${conjunta.map(filaGasto).join('')}` : ''}
-        ${pausados.length ? `
-          <div style="font-size:.7rem;color:var(--text3);margin-top:12px;font-style:italic">⏸ ${pausados.length} gasto${pausados.length!==1?'s':''} pausado${pausados.length!==1?'s':''} (ver en Actualizar)</div>` : ''}
       </div>
     </div>`;
 }
