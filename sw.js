@@ -1,5 +1,5 @@
 // ─── SERVICE WORKER — Centro de Control ───
-const CACHE = 'cdc-v3';
+const CACHE = 'cdc-v4';
 
 const SHELL = [
   '/',
@@ -16,7 +16,6 @@ const SHELL = [
   '/js/utils/fmt.js',
   '/js/data/supabase-sync.js',
   '/js/data/oposiciones-seed.js',
-  '/js/modules/actualizar.js',
   '/js/modules/agenda.js',
   '/js/modules/carnet.js',
   '/js/modules/excel.js',
