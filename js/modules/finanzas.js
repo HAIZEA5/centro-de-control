@@ -727,7 +727,17 @@ function renderFinSinking() {
             </div>`;
           })()}
         </div>
-        <a href="#" onclick="event.preventDefault();document.querySelector('[data-section=actualizar]')?.click();setTimeout(()=>document.querySelector('[data-tab=upd-finanzas]')?.click(),150)" style="font-size:.75rem;color:var(--accent2)">✏️ Actualizar datos</a>
+        <div style="min-width:260px">
+          <div style="font-size:.72rem;color:var(--text3);font-weight:600;margin-bottom:6px">💹 Añadir interés</div>
+          <div style="display:grid;grid-template-columns:120px 1fr auto;gap:6px;align-items:end">
+            <div><label style="font-size:.68rem;color:var(--text3)">Fecha</label><input type="date" id="ufin-int-fecha" class="upd-input" style="font-size:.78rem;padding:4px 6px" /></div>
+            <div><label style="font-size:.68rem;color:var(--text3)">Interés neto (€)</label><input type="number" id="ufin-int-importe" class="upd-input" step="0.01" placeholder="0.15" style="font-size:.78rem;padding:4px 6px" /></div>
+            <button class="upd-btn" style="margin-bottom:0;padding:5px 10px;font-size:.78rem" onclick="ufin_addInteresFM()">Guardar</button>
+          </div>
+          <span id="ufin-int-ok" class="update-success" style="display:none;font-size:.75rem;margin-top:4px">✓ Guardado</span>
+          <div id="ufin-int-total" style="font-size:.78rem;color:var(--accent2);font-weight:600;margin-top:6px"></div>
+          <div id="ufin-int-lista" style="margin-top:6px;max-height:140px;overflow-y:auto"></div>
+        </div>
       </div>
 
       <div class="fin-year-stats" style="margin-bottom:14px">
@@ -793,6 +803,7 @@ function renderFinSinking() {
 
   renderFinCTVSimulador();
   setTimeout(() => _renderFMChart(fmHistorial, fmExtra, s.fm, fm.objetivo), 60);
+  setTimeout(() => { if (typeof ufin_renderInteresFM === 'function') ufin_renderInteresFM(); }, 0);
 }
 
 function _renderFMChart(fmHistorial, fmExtra, saldoActual, objetivo) {
