@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 26;
+const OPOS_SEED_VERSION = 27;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -669,6 +669,86 @@ const OPOS_SEED = [
     notas: 'Técnico/a Auxiliar de Gestión. Pendiente de convocatoria. Revisar BOB.',
     meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2', cursos:[] },
   },
+  // ══════════════════════════════════════════════════════
+  //  GOBIERNO VASCO
+  // ══════════════════════════════════════════════════════
+  {
+    convocatoria:    'Gobierno Vasco — Administrativo (Escala Administrativa)',
+    organismo: 'Gobierno Vasco', puesto: 'Administrativo',
+    tipo_proceso: 'libre', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    perfil:          'YO',
+    grupo:           'C1',
+    estado:          'EN SEGUIMIENTO',
+    fase:            'Próximamente',
+    fecha_apertura:   '2026-08-01',
+    fecha_fin_inscr:  null,
+    fecha_lista_prov: null,
+    fecha_alegaciones:null,
+    fecha_lista_def:  null,
+    fecha_examen:     '2027-01-15',
+    tasa_pagada:     'NO',
+    doc_solicitud:   'Pendiente',
+    doc_dni:         'Al ser seleccionado',
+    doc_titulacion:  'Al ser seleccionado',
+    doc_euskera:     'Al ser seleccionado',
+    doc_cv:          'No aplica',
+    doc_meritos:     'No aplica',
+    doc_discap:      'No aplica',
+    notas: '⭐ GOBIERNO VASCO — Escala Administrativa (C taldea / Grupo C). Convocatoria prevista ago-2026 · 1ª prueba ene-2027. ⚠️ Sin prueba de euskera en el examen: hay que tener el perfil acreditado ANTES de la fecha fin de instancias. ✨ Se pueden conservar notas de pruebas para futuros procesos selectivos. Fuente: opobizkaia.com (jun-2026). Pendiente publicación oficial.',
+    url_boe:   'https://www.euskadi.eus/empleo-publico/',
+    url_bases: 'https://www.opobizkaia.com/',
+    meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2', cursos:[] },
+  },
+
+  // ── Ayuntamientos nuevos ──
+  {
+    convocatoria:    'Ayto. Tolosa — Administrativo',
+    organismo: 'Ayto. Tolosa', puesto: 'Administrativo',
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    perfil:          'YO',
+    grupo:           'C1',
+    estado:          'EN PROCESO',
+    fase:            'Inscripción abierta',
+    fecha_apertura:   '2026-06-04',
+    fecha_fin_inscr:  '2026-07-02',
+    fecha_lista_prov: null,
+    fecha_alegaciones:null,
+    fecha_lista_def:  null,
+    tasa_pagada:     'NO',
+    doc_solicitud:   'Pendiente',
+    doc_dni:         'Al ser seleccionado',
+    doc_titulacion:  'Al ser seleccionado',
+    doc_euskera:     'Al ser seleccionado',
+    doc_cv:          'No aplica',
+    doc_meritos:     'Tras oposición',
+    doc_discap:      'No aplica',
+    notas: '1 plaza de Administrativo/a (C1). Ayuntamiento de Tolosa (Gipuzkoa). Bases BOG nº 97 de 22/05/2026. BOE-A-2026-11978 (03/06/2026). Plazo inscripción hasta 02/07/2026 (24/06 festivo local). 📋 Inscripción: instancia. Méritos: acreditar tras oposición.',
+    url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-11978',
+    meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
+      cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
+  },
+  {
+    convocatoria:    'Ayto. Sopela — Aux. Cultura y Educación',
+    organismo: 'Ayto. Sopela', puesto: 'Aux. Cultura y Educación',
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    perfil:          'YO',
+    grupo:           'C1',
+    estado:          'EN SEGUIMIENTO',
+    fase:            'Pendiente BOE',
+    tasa_pagada:     'NO',
+    doc_solicitud:   'Pendiente',
+    doc_dni:         'Al ser seleccionado',
+    doc_titulacion:  'Al ser seleccionado',
+    doc_euskera:     'Al ser seleccionado',
+    doc_cv:          'No aplica',
+    doc_meritos:     'Tras oposición',
+    doc_discap:      'No aplica',
+    notas: '1 plaza de Técnico/a Auxiliar de Cultura y Educación. Subgrupo C1 (Bachiller). PL2 preceptivo. Bases BOB nº 115 de 17/06/2026. Pendiente publicación en BOE para abrir plazo de instancias. Web oficial: sopela.eus.',
+    url_bases: 'https://udala.sopela.eus/empleo-publico/',
+    meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
+      cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
+  },
+
   {
     convocatoria:    'Ayto. Leioa — Administrativo',
     organismo: 'Ayto. Leioa', puesto: 'Administrativo',
