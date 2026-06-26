@@ -1476,7 +1476,7 @@ function renderFinCTVSimulador() {
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <span style="font-size:.75rem;color:#34d399;font-weight:700">${fmt(aportadoAnio)} aportado</span>
           <span style="font-size:.72rem;color:var(--text3)">· libre: ${fmt(libreAnio)}</span>
-          ${diasRestAnio < 60 ? `<span style="font-size:.7rem;background:#ff000018;color:var(--red);padding:2px 8px;border-radius:6px;font-weight:600">⚡ ${diasRestAnio}d para cierre IRPF</span>` : `<span style="font-size:.7rem;color:var(--text3)">${diasRestAnio}d para cierre fiscal</span>`}
+          ${diasRestAnio < 60 ? `<span style="font-size:.7rem;background:#ff000018;color:var(--red);padding:2px 8px;border-radius:6px;font-weight:600">⚡ ${diasRestAnio}d para cierre IRPF</span>` : `<span style="font-size:.7rem;color:var(--text3)">${Math.floor(diasRestAnio/30)}m para cierre fiscal</span>`}
         </div>
       </div>
       <!-- Barra anual -->
