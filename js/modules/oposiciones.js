@@ -3,6 +3,26 @@
 // Parsea YYYY-MM-DD como fecha local (evita desfase UTC en Spain UTC+2)
 const oposLocalDate = str => str ? new Date(str + 'T00:00:00') : null;
 
+// Deriva la fase automáticamente a partir de las fechas del proceso
+function opos_getFaseAuto(r) {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const d = f => oposLocalDate(f);
+  if (r.estado === 'DESISTIDO' || r.estado === 'Descartado') return r.fase || r.estado;
+  if (r.fecha_examen && d(r.fecha_examen) < hoy) {
+    // Post-examen: si hay lista definitiva publicada, estamos en resultado
+    if (r.fecha_lista_def && d(r.fecha_lista_def) < hoy) return 'Pendiente resultado';
+    return 'Pendiente notas';
+  }
+  if (r.fecha_lista_def && d(r.fecha_lista_def) < hoy) return 'Pendiente examen';
+  if (r.fecha_lista_def) return 'Pendiente lista definitiva'; // fecha puesta pero futura
+  if (r.fecha_alegaciones && d(r.fecha_alegaciones) < hoy) return 'Pendiente lista definitiva';
+  if (r.fecha_lista_prov && d(r.fecha_lista_prov) < hoy) return 'Pendiente alegaciones';
+  if (r.fecha_fin_inscr && d(r.fecha_fin_inscr) < hoy) return 'Pendiente lista provisional';
+  if (r.fecha_apertura && d(r.fecha_apertura) <= hoy) return 'Inscripción abierta';
+  if (r.fecha_apertura && d(r.fecha_apertura) > hoy) return 'Próximamente';
+  return r.fase || '—';
+}
+
 async function loadOposiciones() {
   if (typeof opos_applySeed === 'function') opos_applySeed();
 
@@ -199,7 +219,7 @@ function renderOposTable(data) {
   // ── Barra de filtros (se inyecta una sola vez) ──
   const wrap = document.getElementById('opos-table')?.closest('.card');
   if (wrap && !document.getElementById('opos-filtros-bar')) {
-    const fases     = [...new Set(data.map(r => r.fase).filter(Boolean))].sort();
+    const fases     = [...new Set(data.map(r => opos_getFaseAuto(r)).filter(f => f && f !== '—'))].sort();
     const perfiles  = [...new Set(data.map(r => r.perfil).filter(Boolean))].sort();
     const organismos = [...new Set(data.map(r => _oposOrgPuesto(r).org).filter(Boolean))].sort();
     const bar = document.createElement('div');
@@ -259,7 +279,7 @@ function opos_renderFiltered() {
     const { org, pto } = _oposOrgPuesto(r);
     if (texto  && !(r.convocatoria || '').toLowerCase().includes(texto) &&
                   !org.toLowerCase().includes(texto) && !pto.toLowerCase().includes(texto)) return false;
-    if (fase      && r.fase   !== fase)     return false;
+    if (fase      && opos_getFaseAuto(r) !== fase) return false;
     if (perfil    && r.perfil !== perfil)   return false;
     if (organismo && org      !== organismo) return false;
     return true;
@@ -308,13 +328,19 @@ function opos_renderFiltered() {
       <td data-label="Bolsa">${r.bolsa_entrada === true || r.bolsa_entrada === 'true' ? `<span class="badge badge--green">Sí ${r.bolsa_posicion ? '#'+r.bolsa_posicion : ''}</span>` : '<span class="badge badge--yellow">—</span>'}</td>
       <td data-label="Méritos">${meritosTotal > 0 ? `<span style="color:var(--accent2);font-weight:700">${meritosTotal.toFixed(2)} pts</span>` : r.tipo_proceso === 'libre' ? '<span style="color:var(--text3);font-size:.75rem">Libre</span>' : '—'}</td>
       <td data-label="Fase">${(() => {
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
-        const fasesActivas = ['Preparación','Inscripción abierta','Fase Oposición','Pendiente pago'];
-        const examenPasado = r.fecha_examen && oposLocalDate(r.fecha_examen) < hoy;
-        if (examenPasado && r.fase && fasesActivas.includes(r.fase)) {
-          return `<span class="chip" style="background:#f59e0b22;color:#f59e0b;border-color:#f59e0b55" title="Fase estimada — actualiza en Actualizar">Pdte. de notas ⚡</span>`;
-        }
-        return r.fase ? `<span class="chip">${r.fase}</span>` : '—';
+        const fase = opos_getFaseAuto(r);
+        const colores = {
+          'Inscripción abierta':        'background:#22c55e22;color:#22c55e;border-color:#22c55e55',
+          'Pendiente lista provisional':'background:#3b82f622;color:#60a5fa;border-color:#3b82f655',
+          'Pendiente alegaciones':      'background:#8b5cf622;color:#a78bfa;border-color:#8b5cf655',
+          'Pendiente lista definitiva': 'background:#f59e0b22;color:#fbbf24;border-color:#f59e0b55',
+          'Pendiente examen':           'background:#f9731622;color:#fb923c;border-color:#f9731655',
+          'Pendiente notas':            'background:#ef444422;color:#f87171;border-color:#ef444455',
+          'Pendiente resultado':        'background:#10b98122;color:#34d399;border-color:#10b98155',
+          'Próximamente':               'background:#64748b22;color:#94a3b8;border-color:#64748b55',
+        };
+        const estilo = colores[fase] || '';
+        return fase && fase !== '—' ? `<span class="chip" style="${estilo}">${fase}</span>` : '—';
       })()}</td>
     </tr>
     <tr class="opos-detalle-row hidden" id="opos-det-${realIdx}">
