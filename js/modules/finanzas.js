@@ -1443,10 +1443,13 @@ function renderFinCTVSimulador() {
   const anioCompra = filaMeta ? anoActual + filaMeta.anio - 1 : null;
   const totalBeneficios = (sim23?.totalIntereses || 0) + (sim23?.bonusFinal || 0) + ahorroITP + (sim23?.rows.reduce((a, r) => a + r.haciendaRecibida, 0) || 0);
 
-  // Días restantes del año fiscal
+  // Meses restantes del año fiscal y ahorro mensual necesario para cubrir el límite anual
   const finAnio = new Date(anoActual, 11, 31);
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   const diasRestAnio = Math.ceil((finAnio - hoy) / 86400000);
+  const mesesRestAnio = Math.max(1, parseFloat((diasRestAnio / 30.44).toFixed(1)));
+  const mesesRestAnioInt = Math.max(1, Math.round(mesesRestAnio));
+  const necesarioPorMes = libreAnio > 0 ? Math.ceil(libreAnio / mesesRestAnioInt) : 0;
 
   el.innerHTML = `
     <!-- KPIs principales -->
@@ -1480,7 +1483,9 @@ function renderFinCTVSimulador() {
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <span style="font-size:.75rem;color:#34d399;font-weight:700">${fmt(aportadoAnio)} aportado</span>
           <span style="font-size:.72rem;color:var(--text3)">· libre: ${fmt(libreAnio)}</span>
-          ${diasRestAnio < 60 ? `<span style="font-size:.7rem;background:#ff000018;color:var(--red);padding:2px 8px;border-radius:6px;font-weight:600">⚡ ${diasRestAnio}d para cierre IRPF</span>` : `<span style="font-size:.7rem;color:var(--text3)">${diasRestAnio}d para cierre fiscal</span>`}
+          ${diasRestAnio < 60
+            ? `<span style="font-size:.7rem;background:#ff000018;color:var(--red);padding:2px 8px;border-radius:6px;font-weight:600">⚡ ${mesesRestAnioInt} mes${mesesRestAnioInt!==1?'es':''} para cierre IRPF · ${fmt(necesarioPorMes)}/mes</span>`
+            : `<span style="font-size:.7rem;color:var(--text3)">${mesesRestAnioInt} mes${mesesRestAnioInt!==1?'es':''} para cierre fiscal${necesarioPorMes>0?' · '+fmt(necesarioPorMes)+'/mes':''}</span>`}
         </div>
       </div>
       <!-- Barra anual -->
