@@ -968,11 +968,12 @@ function finDeudaAnadir() {
   const tae = parseFloat(document.getElementById('fin-deuda-tae')?.value) || 0;
   const cuenta = document.getElementById('fin-deuda-cuenta')?.value || 'KTX';
   const nota = document.getElementById('fin-deuda-nota')?.value?.trim() || '';
-  if (!nombre || isNaN(cantidad) || isNaN(cuotas) || cuotas < 1) {
-    alert('Rellena nombre, cantidad y plazo (meses).'); return;
+  if (!nombre || isNaN(cantidad) || isNaN(cuotas) || cuotas < 0) {
+    alert('Rellena nombre, cantidad y plazo (0 = pago único).'); return;
   }
+  const cuotasReal = cuotas === 0 ? 1 : cuotas;
   const deudas = fin_getDeudas();
-  deudas.push({ id: Date.now(), nombre, cantidad_total: cantidad, cuotas_pagadas: 0, cuotas_total: cuotas, tae, cuenta, nota });
+  deudas.push({ id: Date.now(), nombre, cantidad_total: cantidad, cuotas_pagadas: 0, cuotas_total: cuotasReal, tae, cuenta, nota });
   Store.set('fin_deudas', deudas);
   renderFinDeudas();
   renderFinStats();
