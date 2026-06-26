@@ -190,16 +190,39 @@ function _dashOposiciones() {
       </div>`;
   }
 
+  // Pendientes de apuntarse: plazo abierto y solicitud no enviada
+  const pendApuntarse = lista.filter(r => {
+    if (!r.fecha_fin_inscr) return false;
+    const fin = new Date(r.fecha_fin_inscr + 'T23:59:59');
+    return fin >= hoy && r.doc_solicitud !== 'Listo';
+  }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
+
+  const pendHTML = pendApuntarse.length ? `
+    <div style="margin-bottom:8px;margin-top:${proximaHTML ? '4px' : '0'}">
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--red);margin-bottom:5px">⚠️ Falta apuntarse</div>
+      ${pendApuntarse.map(r => {
+        const fin = new Date(r.fecha_fin_inscr + 'T12:00:00');
+        const dias = Math.round((fin - hoy) / 86400000);
+        const color = dias <= 3 ? 'var(--red)' : dias <= 7 ? 'var(--orange)' : 'var(--yellow)';
+        const { org, pto } = typeof _oposOrgPuesto === 'function' ? _oposOrgPuesto(r) : { org: r.organismo || '', pto: r.puesto || '' };
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:.78rem">
+          <span style="color:var(--text1);font-weight:600">${org} <span style="color:var(--text3);font-weight:400">· ${pto}</span></span>
+          <span style="color:${color};font-weight:700;white-space:nowrap;margin-left:8px">${dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : `${dias}d`}</span>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
   el.innerHTML = `
+    ${pendHTML}
     ${proximaHTML}
     <div class="dash-row">
-      <span class="dash-row-label">Total convocatorias</span>
-      <span class="dash-row-val">${lista.length} (${activas.length > 0 ? activas.length + ' activa' + (activas.length!==1?'s':'') : 'ninguna activa'})</span>
+      <span class="dash-row-label">Convocatorias activas</span>
+      <span class="dash-row-val">${activas.length} de ${lista.length}</span>
     </div>
     ${pctMedio !== null ? `
     <div class="dash-row">
       <span class="dash-row-label">Progreso temas</span>
-      <span class="dash-row-val">${pctMedio}% medio · ${temas.length} temas</span>
+      <span class="dash-row-val">${pctMedio}% · ${temas.length} temas</span>
     </div>` : ''}
     ${sesiones.length ? `
     <div class="dash-row">
