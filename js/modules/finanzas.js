@@ -1473,10 +1473,13 @@ function renderFinCTVSimulador() {
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
         <div style="font-weight:700;font-size:.87rem;color:var(--accent2)">📥 Aportaciones CTV — ${anoActual}</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <span style="font-size:.75rem;color:#34d399;font-weight:700">${fmt(aportadoAnio)} aportado</span>
-          <span style="font-size:.72rem;color:var(--text3)">· libre: ${fmt(libreAnio)}</span>
-          ${diasRestAnio < 60 ? `<span style="font-size:.7rem;background:#ff000018;color:var(--red);padding:2px 8px;border-radius:6px;font-weight:600">⚡ ${diasRestAnio}d para cierre IRPF</span>` : `<span style="font-size:.7rem;color:var(--text3)">${Math.floor(diasRestAnio/30)}m para cierre fiscal</span>`}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:.75rem;color:#34d399;font-weight:700">${fmt(aportadoAnio)} aportado</span>
+            <span style="font-size:.72rem;color:var(--text3)">· libre: ${fmt(libreAnio)}</span>
+            ${diasRestAnio < 60 ? `<span style="font-size:.7rem;background:#ff000018;color:var(--red);padding:2px 8px;border-radius:6px;font-weight:600">⚡ ${diasRestAnio}d para cierre IRPF</span>` : `<span style="font-size:.7rem;color:var(--text3)">${Math.floor(diasRestAnio/30)}m para cierre fiscal</span>`}
+          </div>
+          ${libreAnio > 0 ? (() => { const meses = Math.max(1, Math.floor(diasRestAnio/30)); return `<span style="font-size:.7rem;color:var(--accent2);font-weight:600">→ ${fmt(Math.ceil(libreAnio/meses))}/mes para completar el límite</span>`; })() : `<span style="font-size:.7rem;color:#34d399;font-weight:600">✓ Límite alcanzado</span>`}
         </div>
       </div>
       <!-- Barra anual -->
