@@ -1458,7 +1458,8 @@ function renderFinCTVSimulador() {
   const diasRestAnio = Math.ceil((finAnio - hoy) / 86400000);
   const mesesRestAnio = Math.max(1, parseFloat((diasRestAnio / 30.44).toFixed(1)));
   const mesesRestAnioInt = Math.max(1, Math.round(mesesRestAnio));
-  const necesarioPorMes = libreAnio > 0 ? Math.ceil(libreAnio / mesesRestAnioInt) : 0;
+  const pendienteReal = Math.max(0, libreAnio - ctv);
+  const necesarioPorMes = pendienteReal > 0 ? Math.ceil(pendienteReal / mesesRestAnioInt) : 0;
 
   el.innerHTML = `
     <!-- KPIs principales -->
