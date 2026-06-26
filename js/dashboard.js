@@ -193,6 +193,7 @@ function _dashOposiciones() {
   // Pendientes de apuntarse: plazo abierto y solicitud no enviada
   const pendApuntarse = lista.filter(r => {
     if (!r.fecha_fin_inscr) return false;
+    if ((r.estado || '').toUpperCase() === 'EN SEGUIMIENTO') return false;
     const fin = new Date(r.fecha_fin_inscr + 'T23:59:59');
     return fin >= hoy && r.doc_solicitud !== 'Listo';
   }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
