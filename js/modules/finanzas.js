@@ -846,8 +846,8 @@ function _renderFMChart(fmHistorial, fmExtra, saldoActual, objetivo) {
 ══════════════════════════════════════════════════════ */
 function _renderFMProyeccion(saldoActual) {
   const aportacion = parseFloat(Store.get('fin_fm_aportacion', 50));
-  const APY = 0.0138;
-  const r = Math.pow(1 + APY, 1/12) - 1;
+  const APY = parseFloat(Store.get('fin_fm_apy', 1.38));
+  const r = Math.pow(1 + APY / 100, 1/12) - 1;
 
   function proyectar(meses) {
     let s = saldoActual;
@@ -866,13 +866,22 @@ function _renderFMProyeccion(saldoActual) {
   return `
   <div class="card" style="margin-bottom:16px;border-left:3px solid var(--accent2)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <h3>📈 Proyección Fondo Monetario (~1.38% TIR)</h3>
-      <div style="display:flex;align-items:center;gap:8px">
-        <label style="font-size:.75rem;color:var(--text3)">Aportación/mes:</label>
-        <input type="number" id="fin-fm-apor-input" value="${aportacion}" min="0" step="5"
-          style="width:80px;font-size:.82rem;padding:4px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)"
-          onchange="Store.set('fin_fm_aportacion', parseFloat(this.value)||0); renderFinSinking();" />
-        <span style="font-size:.75rem;color:var(--text3)">€</span>
+      <h3>📈 Proyección Fondo Monetario (~${APY.toFixed(2)}% TIR)</h3>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:.75rem;color:var(--text3)">Interés anual:</label>
+          <input type="number" id="fin-fm-apy-input" value="${APY}" min="0" max="20" step="0.01"
+            style="width:70px;font-size:.82rem;padding:4px 8px;background:var(--bg3);border:1px solid rgba(99,102,241,.5);border-radius:6px;color:var(--accent2);font-weight:700;text-align:center"
+            onchange="Store.set('fin_fm_apy', parseFloat(this.value)||1.38); renderFinSinking();" />
+          <span style="font-size:.75rem;color:var(--accent2);font-weight:700">%</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="font-size:.75rem;color:var(--text3)">Aportación/mes:</label>
+          <input type="number" id="fin-fm-apor-input" value="${aportacion}" min="0" step="5"
+            style="width:80px;font-size:.82rem;padding:4px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)"
+            onchange="Store.set('fin_fm_aportacion', parseFloat(this.value)||0); renderFinSinking();" />
+          <span style="font-size:.75rem;color:var(--text3)">€</span>
+        </div>
       </div>
     </div>
     <div class="fin-year-stats">
@@ -900,7 +909,7 @@ function _renderFMProyeccion(saldoActual) {
     <div style="font-size:.72rem;color:var(--text3);margin-top:10px">
       Saldo base: <strong style="color:var(--text2)">${fmt(saldoActual)}</strong> ·
       Sin aportaciones a 5 años: <strong>${fmt(soloInteres5)}</strong> ·
-      TIR estimada Revolut Money Market ~1.38%
+      TIR actual: <strong style="color:var(--accent2)">${APY.toFixed(2)}%</strong>
     </div>
   </div>`;
 }
