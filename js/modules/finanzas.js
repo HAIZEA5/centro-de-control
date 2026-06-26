@@ -746,7 +746,7 @@ function renderFinSinking() {
         </div>
         <div class="fin-year-card"><div class="fin-year-label">Objetivo</div><div class="fin-year-val">${fmt(fm.objetivo)}</div></div>
         <div class="fin-year-card"><div class="fin-year-label">Intereses totales</div><div class="fin-year-val green">${fmt(totalIntereses)}</div></div>
-        <div class="fin-year-card"><div class="fin-year-label">Rentabilidad est.</div><div class="fin-year-val" style="color:var(--text2)">~1.38%</div></div>
+        <div class="fin-year-card"><div class="fin-year-label">Rentabilidad est.</div><div class="fin-year-val" style="color:var(--accent2)">~${parseFloat(Store.get('fin_fm_apy', 1.38)).toFixed(2)}%</div></div>
       </div>
 
       <!-- Gráfica de crecimiento hacia objetivo -->
