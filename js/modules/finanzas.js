@@ -918,7 +918,19 @@ function _renderFMProyeccion(saldoActual) {
    PANEL: DEUDAS — CRUD DINÁMICO
 ══════════════════════════════════════════════════════ */
 function fin_getDeudas() {
-  if (localStorage.getItem('fin_deudas') !== null) return Store.get('fin_deudas', []);
+  if (localStorage.getItem('fin_deudas') !== null) {
+    const deudas = Store.get('fin_deudas', []);
+    // Fusionar seeds de FIN_DATA que no estén ya en localStorage (por id o nombre)
+    let changed = false;
+    (FIN_DATA.deudas || []).filter(d => d.id && String(d.id).startsWith('seed-')).forEach(d => {
+      if (!deudas.find(x => x.id === d.id || x.nombre === d.nombre)) {
+        deudas.push({ id: d.id, nombre: d.nombre, cantidad_total: d.cantidad_total, cuotas_pagadas: d.cuotas_pagadas || 0, cuotas_total: d.cuotas_total || 1, tae: d.tae || 0, cuenta: d.cuenta || 'KTX', nota: d.nota || '' });
+        changed = true;
+      }
+    });
+    if (changed) Store.set('fin_deudas', deudas);
+    return deudas;
+  }
   // Migrar iPhone de FIN_DATA en el primer acceso
   const deudas = [];
   (FIN_DATA.deudas || []).forEach(d => {

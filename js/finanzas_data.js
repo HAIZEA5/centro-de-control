@@ -83,6 +83,7 @@ const FIN_DATA = {
 
   deudas: [
     {
+      id: 'seed-iphone',
       nombre: 'iPhone (Banco Cetelem / Klarna)',
       importe_cuota: 42.37,
       fecha_inicio: '2025-04-05',
@@ -91,6 +92,16 @@ const FIN_DATA = {
       cuotas_pagadas: 14,
       cuenta: 'KTX',
       nota: 'Finaliza Marzo 2027. 10 cuotas restantes.',
+    },
+    {
+      id: 'seed-hacienda-2026',
+      nombre: 'Hacienda',
+      cantidad_total: 700,
+      cuotas_total: 1,
+      cuotas_pagadas: 0,
+      tae: 0,
+      cuenta: 'KTX',
+      nota: 'Pago 06/07/2026',
     },
   ],
 
