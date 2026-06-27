@@ -200,9 +200,6 @@ function _dashOposiciones() {
 
   const hayPendientes = inscAbiertas.some(r => r.doc_solicitud !== 'Listo');
 
-  // DEBUG TEMPORAL — borrar después
-  const _dbg = `<div style="font-size:.65rem;color:#888;margin-bottom:4px">📊 total:${lista.length} | inscAbiertas:${inscAbiertas.length} | seedV:${localStorage.getItem('opos_seed_v')} | hoy:${hoy.toISOString().slice(0,10)}</div>`;
-
   const pendHTML = inscAbiertas.length ? `
     <div style="margin-bottom:10px">
       <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${hayPendientes ? 'var(--red)' : 'var(--green)'};margin-bottom:6px">${hayPendientes ? '⚠️ Inscripciones abiertas' : '✅ Inscripciones abiertas'}</div>
@@ -225,7 +222,6 @@ function _dashOposiciones() {
     </div>` : '';
 
   el.innerHTML = `
-    ${_dbg}
     ${pendHTML}
     ${proximaHTML}
     <div class="dash-row">
