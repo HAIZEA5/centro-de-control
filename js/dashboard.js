@@ -190,28 +190,33 @@ function _dashOposiciones() {
       </div>`;
   }
 
-  // Pendientes de apuntarse: plazo abierto y solicitud no enviada
-  const pendApuntarse = lista.filter(r => {
+  // Inscripciones con plazo abierto (todas, pendientes y ya hechas)
+  const inscAbiertas = lista.filter(r => {
     if (!r.fecha_fin_inscr) return false;
     if ((r.estado || '').toUpperCase() === 'EN SEGUIMIENTO') return false;
     const fin = new Date(r.fecha_fin_inscr + 'T23:59:59');
-    return fin >= hoy && r.doc_solicitud !== 'Listo';
+    return fin >= hoy;
   }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
 
-  const pendHTML = pendApuntarse.length ? `
+  const hayPendientes = inscAbiertas.some(r => r.doc_solicitud !== 'Listo');
+
+  const pendHTML = inscAbiertas.length ? `
     <div style="margin-bottom:10px">
-      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--red);margin-bottom:6px">⚠️ Falta inscribirse</div>
-      ${pendApuntarse.map(r => {
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${hayPendientes ? 'var(--red)' : 'var(--green)'};margin-bottom:6px">${hayPendientes ? '⚠️ Inscripciones abiertas' : '✅ Inscripciones abiertas'}</div>
+      ${inscAbiertas.map(r => {
         const fin = new Date(r.fecha_fin_inscr + 'T12:00:00');
         const dias = Math.round((fin - hoy) / 86400000);
-        const color = dias <= 3 ? 'var(--red)' : dias <= 7 ? 'var(--orange)' : 'var(--yellow)';
-        const diasLabel = dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : `${dias} días`;
+        const listo = r.doc_solicitud === 'Listo';
+        const color = listo ? 'var(--green)' : dias <= 3 ? 'var(--red)' : dias <= 7 ? 'var(--orange)' : 'var(--yellow)';
+        const diasLabel = dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : `${dias}d`;
         const fechaStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'short'});
         const { org, pto } = typeof _oposOrgPuesto === 'function' ? _oposOrgPuesto(r) : { org: r.organismo || '', pto: r.puesto || '' };
-        return `<div style="padding:6px 8px;margin-bottom:4px;background:${color}12;border-left:3px solid ${color};border-radius:0 6px 6px 0">
-          <div style="font-size:.79rem;color:var(--text1);font-weight:600;line-height:1.3">${org}</div>
-          <div style="font-size:.73rem;color:var(--text3);margin-bottom:2px">${pto}</div>
-          <div style="font-size:.75rem;color:${color};font-weight:700">📅 Hasta el ${fechaStr} · <span style="font-weight:800">${diasLabel}</span></div>
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:.79rem;color:var(--text1);font-weight:600">${org} <span style="color:var(--text3);font-weight:400">· ${pto}</span></div>
+            <div style="font-size:.72rem;color:var(--text3)">hasta ${fechaStr}</div>
+          </div>
+          <span style="color:${color};font-weight:700;font-size:.8rem;white-space:nowrap;margin-left:8px">${listo ? '✅' : `⏳ ${diasLabel}`}</span>
         </div>`;
       }).join('')}
     </div>` : '';
