@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 30;
+const OPOS_SEED_VERSION = 31;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -833,3 +833,6 @@ function opos_applySeed() {
   localStorage.setItem(vKey, String(OPOS_SEED_VERSION));
   console.info(`[Oposiciones] Seed v${OPOS_SEED_VERSION}: ${añadidas} añadidas, ${actualizadas} actualizadas.`);
 }
+
+// Ejecutar seed inmediatamente al cargar el script (antes de que app.js arranque el dashboard)
+opos_applySeed();
