@@ -320,6 +320,7 @@ function opos_renderFiltered() {
       <td data-label="Convocatoria">
         <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'} ${itBadge}</div>
         <div style="font-size:.74rem;color:var(--text3);margin-top:2px">${org || ''} ${tipoBadge}</div>
+        ${r.nota_ej1 ? `<div style="font-size:.73rem;color:#34d399;margin-top:3px;font-weight:600">🎯 Ej1: ${r.nota_ej1.split('·')[0].trim()}</div>` : ''}
       </td>
       <td data-label="Grupo">${r.grupo || '—'}</td>
       <td data-label="Estado">${badgeEstado(r.estado)}</td>
