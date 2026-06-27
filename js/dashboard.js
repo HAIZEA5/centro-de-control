@@ -199,16 +199,19 @@ function _dashOposiciones() {
   }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
 
   const pendHTML = pendApuntarse.length ? `
-    <div style="margin-bottom:8px;margin-top:${proximaHTML ? '4px' : '0'}">
-      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--red);margin-bottom:5px">⚠️ Falta apuntarse</div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--red);margin-bottom:6px">⚠️ Falta inscribirse</div>
       ${pendApuntarse.map(r => {
         const fin = new Date(r.fecha_fin_inscr + 'T12:00:00');
         const dias = Math.round((fin - hoy) / 86400000);
         const color = dias <= 3 ? 'var(--red)' : dias <= 7 ? 'var(--orange)' : 'var(--yellow)';
+        const diasLabel = dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : `${dias} días`;
+        const fechaStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'short'});
         const { org, pto } = typeof _oposOrgPuesto === 'function' ? _oposOrgPuesto(r) : { org: r.organismo || '', pto: r.puesto || '' };
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:.78rem">
-          <span style="color:var(--text1);font-weight:600">${org} <span style="color:var(--text3);font-weight:400">· ${pto}</span></span>
-          <span style="color:${color};font-weight:700;white-space:nowrap;margin-left:8px">${dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : `${dias}d`}</span>
+        return `<div style="padding:6px 8px;margin-bottom:4px;background:${color}12;border-left:3px solid ${color};border-radius:0 6px 6px 0">
+          <div style="font-size:.79rem;color:var(--text1);font-weight:600;line-height:1.3">${org}</div>
+          <div style="font-size:.73rem;color:var(--text3);margin-bottom:2px">${pto}</div>
+          <div style="font-size:.75rem;color:${color};font-weight:700">📅 Hasta el ${fechaStr} · <span style="font-weight:800">${diasLabel}</span></div>
         </div>`;
       }).join('')}
     </div>` : '';
