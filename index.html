@@ -784,7 +784,9 @@
       }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
       if (!abiertas.length) return;
       const hayPend = abiertas.some(r => r.doc_solicitud !== 'Listo');
-      const rows = abiertas.map(r => {
+      const mostrar = abiertas.slice(0, 4);
+      const extra = abiertas.length - mostrar.length;
+      const rows = mostrar.map(r => {
         const fin = new Date(r.fecha_fin_inscr + 'T12:00:00');
         const dias = Math.round((fin - hoy) / 86400000);
         const listo = r.doc_solicitud === 'Listo';
@@ -800,7 +802,8 @@
       }).join('');
       const label = hayPend ? '⚠️ Inscripciones abiertas' : '✅ Inscripciones abiertas';
       const col = hayPend ? 'var(--red)' : 'var(--green)';
-      const bloque = '<div style="margin-bottom:10px"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:' + col + ';margin-bottom:6px">' + label + '</div>' + rows + '</div>';
+      const extraTxt = extra > 0 ? '<div style="font-size:.72rem;color:var(--text3);padding-top:4px">+ ' + extra + ' más…</div>' : '';
+      const bloque = '<div style="margin-bottom:10px"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:' + col + ';margin-bottom:6px">' + label + '</div>' + rows + extraTxt + '</div>';
       if (!el.querySelector('[data-inscr]')) {
         const div = document.createElement('div');
         div.setAttribute('data-inscr','1');
