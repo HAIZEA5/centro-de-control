@@ -804,7 +804,7 @@ function opos_applySeed() {
     } else {
       const seedFields = ['fase','grupo','estado','fecha_examen','hora_examen','fecha_apertura','fecha_fin_inscr',
         'fecha_lista_prov','fecha_alegaciones','fecha_lista_def',
-        'url_boe','url_bases','url_temario','url_extra1','url_extra2','notas',
+        'url_boe','url_bases','url_temario','url_extra1','url_extra2','notas','nota_ej1',
         'doc_solicitud','doc_dni','doc_titulacion','doc_euskera','doc_cv','doc_meritos','doc_discap',
         'doc_extra1_nombre','doc_extra1','doc_extra2_nombre','doc_extra2','doc_extra3_nombre','doc_extra3',
         'meritos_calc','tipo_proceso','tope_meritos','req_euskera','nivel_euskera','req_titulacion','req_it_txartelas'];
