@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 27;
+const OPOS_SEED_VERSION = 28;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -37,6 +37,7 @@ const OPOS_SEED = [
     doc_extra2_nombre: 'Lista definitiva de admitidos',
     doc_extra2:     'Listo',
     // Notas
+    nota_ej1: '47/100 aciertos · posición 15.633 · Puntuación 47,0000',
     notas: '376 plazas (362 libre + 14 promoción interna). Examen tipo test · BEC Barakaldo. Requiere: certificado escolaridad/ESO.',
     // URLs
     url_boe:    'https://www.osakidetza.euskadi.eus/ope-2023-2024-2025/webosk00-procon/es/',
@@ -74,6 +75,7 @@ const OPOS_SEED = [
     doc_extra1:     'Listo',
     doc_extra2_nombre: 'Lista definitiva de admitidos',
     doc_extra2:     'Listo',
+    nota_ej1: '41/100 aciertos · posición 16.665 · Puntuación 41,0000',
     notas: '272 plazas (turno libre). Examen tipo test · BEC Barakaldo. Requiere: certificado escolaridad/ESO.',
     url_boe:    'https://www.osakidetza.euskadi.eus/ope-2023-2024-2025/webosk00-procon/es/',
     url_bases:  'https://opeosakidetza.com/ope/operario-servicios-osakidetza',
@@ -112,6 +114,7 @@ const OPOS_SEED = [
     doc_extra2:     'Listo',
     doc_extra3_nombre: 'Certificado IT Txartela (Word av. + Excel bás.)',
     doc_extra3:     'Listo',
+    nota_ej1: '45/100 aciertos · posición 12.971 · Puntuación 45,0000',
     notas: '756 plazas (708 libre + 48 promoción interna). Requiere: ESO/FP1 + certificado IT Txartela. Examen tipo test · BEC Barakaldo.',
     url_boe:    'https://www.osakidetza.euskadi.eus/ope-2023-2024-2025/webosk00-procon/es/',
     url_bases:  'https://opeosakidetza.com/ope/auxiliar-administrativo-osakidetza',
@@ -147,6 +150,7 @@ const OPOS_SEED = [
     doc_extra1:     'Listo',
     doc_extra2_nombre: 'Lista definitiva de admitidos',
     doc_extra2:     'Listo',
+    nota_ej1: '33/100 aciertos · posición 7.217 · Puntuación 33,0000 (examen en euskera)',
     notas: 'Examen tipo test · BEC Barakaldo · 17:30h. Requiere: Bachiller o FP2.',
     url_boe:    'https://www.osakidetza.euskadi.eus/ope-2023-2024-2025/webosk00-procon/es/',
     url_bases:  'https://opeosakidetza.com/guia-ope-osakidetza',

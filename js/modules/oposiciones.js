@@ -471,6 +471,12 @@ function renderFechasPanel(r) {
     }).join('')}
   </div>
 
+  ${r.nota_ej1 ? `
+  <div style="margin-top:14px;padding:14px 16px;background:#10b98115;border-radius:10px;border:1px solid #10b98155">
+    <div style="font-weight:700;font-size:.82rem;color:#34d399;margin-bottom:6px">🎯 Resultado Ejercicio 1</div>
+    <div style="font-size:.9rem;color:var(--text1);font-weight:600">${r.nota_ej1}</div>
+  </div>` : ''}
+
   ${r.notas ? `
   <div style="margin-top:14px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
     <div style="font-weight:700;font-size:.82rem;color:var(--accent2);margin-bottom:8px">📋 Bases / Baremo</div>
