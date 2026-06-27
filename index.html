@@ -743,69 +743,34 @@
     </div>
   </main>
 
-  <script src="js/data/supabase-sync.js?v=20260623a"></script>
-  <script src="js/utils/store.js?v=20260623a"></script>
-  <script src="js/utils/fmt.js?v=20260623a"></script>
+  <script src="js/data/supabase-sync.js?v=7338518d"></script>
+  <script src="js/utils/store.js?v=622bfe1d"></script>
+  <script src="js/utils/fmt.js?v=7c2241c7"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-  <script src="js/config.js?v=20260623a"></script>
-  <script src="js/finanzas_data.js?v=20260623a"></script>
-  <script src="js/auth.js?v=20260623a"></script>
-  <script src="js/sheets.js?v=20260623a"></script>
-  <script src="js/modules/finanzas.js?v=20260623a"></script>
-  <script src="js/modules/piso.js?v=20260623a"></script>
-  <script src="js/modules/carnet.js?v=20260623a"></script>
-  <script src="js/data/oposiciones-seed.js?v=20260627a"></script>
-  <script src="js/modules/oposiciones.js?v=20260623a"></script>
-  <script src="js/modules/agenda.js?v=20260623a"></script>
-  <script src="js/modules/it-txartelas.js?v=20260623a"></script>
-  <script src="js/modules/tareas.js?v=20260623a"></script>
-  <script src="js/modules/excel.js?v=20260623a"></script>
-  <script src="js/modules/actualizar.js?v=20260623a"></script>
-  <script src="js/dashboard.js?v=20260627a"></script>
-  <script src="js/app.js?v=20260623a"></script>
+  <script src="js/config.js?v=da960882"></script>
+  <script src="js/finanzas_data.js?v=c16084b0"></script>
+  <script src="js/auth.js?v=c66ab0d6"></script>
+  <script src="js/sheets.js?v=045fe7b3"></script>
+  <script src="js/modules/finanzas.js?v=f3bb1b95"></script>
+  <script src="js/modules/piso.js?v=b5539605"></script>
+  <script src="js/modules/carnet.js?v=d9605bc5"></script>
+  <script src="js/data/oposiciones-seed.js?v=7b76e90a"></script>
+  <script src="js/modules/oposiciones.js?v=1c6dc8c2"></script>
+  <script src="js/modules/agenda.js?v=b77faeac"></script>
+  <script src="js/modules/it-txartelas.js?v=6088ab42"></script>
+  <script src="js/modules/tareas.js?v=582ca478"></script>
+  <script src="js/modules/excel.js?v=3bccf60f"></script>
+  <script src="js/modules/actualizar.js?v=62d360fe"></script>
+  <script src="js/dashboard.js?v=596c4021"></script>
+  <script src="js/app.js?v=627656ed"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(regs => {
         regs.forEach(r => r.unregister());
       });
     }
-    // Widget oposiciones: inscripciones abiertas (inline para evitar caché)
-    function _patchDashOpos() {
-      const el = document.getElementById('dash-opos-content');
-      if (!el) return;
-      const lista = Store.get('opos_convocatorias', []);
-      if (!lista.length) return;
-      const hoy = new Date(); hoy.setHours(0,0,0,0);
-      const abiertas = lista.filter(r => {
-        if (!r.fecha_fin_inscr) return false;
-        if ((r.estado||'').toUpperCase() === 'EN SEGUIMIENTO') return false;
-        return new Date(r.fecha_fin_inscr + 'T23:59:59') >= hoy;
-      }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
-      if (!abiertas.length) return;
-      const hayPend = abiertas.some(r => r.doc_solicitud !== 'Listo');
-      const rows = abiertas.map(r => {
-        const fin = new Date(r.fecha_fin_inscr + 'T12:00:00');
-        const dias = Math.round((fin - hoy) / 86400000);
-        const listo = r.doc_solicitud === 'Listo';
-        const col = listo ? 'var(--green)' : dias <= 3 ? 'var(--red)' : dias <= 7 ? 'var(--orange)' : 'var(--yellow)';
-        const dLabel = dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : dias + 'd';
-        const fStr = fin.toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
-        const org = r.organismo || r.convocatoria || '';
-        const pto = r.puesto || '';
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
-          <div><div style="font-size:.79rem;color:var(--text1);font-weight:600">${org} <span style="color:var(--text3);font-weight:400">· ${pto}</span></div>
-          <div style="font-size:.72rem;color:var(--text3)">hasta ${fStr}</div></div>
-          <span style="color:${col};font-weight:700;font-size:.8rem;white-space:nowrap;margin-left:8px">${listo ? '✅' : '⏳ '+dLabel}</span>
-        </div>`;
-      }).join('');
-      const label = hayPend ? '⚠️ Inscripciones abiertas' : '✅ Inscripciones abiertas';
-      const col = hayPend ? 'var(--red)' : 'var(--green)';
-      const bloque = `<div style="margin-bottom:10px"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${col};margin-bottom:6px">${label}</div>${rows}</div>`;
-      el.innerHTML = bloque + el.innerHTML;
-    }
-    document.addEventListener('DOMContentLoaded', () => setTimeout(_patchDashOpos, 400));
   </script>
 </body>
 </html>
