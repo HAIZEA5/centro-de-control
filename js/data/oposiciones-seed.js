@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 28;
+const OPOS_SEED_VERSION = 29;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
