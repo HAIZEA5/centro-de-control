@@ -772,12 +772,10 @@
       });
     }
     // Inscripciones abiertas — en index.html (nunca cacheado en file://)
-    // Reemplaza TODO el contenido del widget con inscripciones + stats limpios
-    var _inscRendering = false;
+    var _inscObs = null;
     function _renderInscripciones() {
-      if (_inscRendering) return;
       const el = document.getElementById('dash-opos-content');
-      if (!el) return;
+      if (!el || el.querySelector('[data-inscr]')) return;
       if (typeof opos_applySeed === 'function') opos_applySeed();
       const lista = (typeof Store !== 'undefined') ? Store.get('opos_convocatorias', []) : [];
       if (!lista.length) return;
@@ -787,6 +785,7 @@
         if ((r.estado||'').toUpperCase() === 'EN SEGUIMIENTO') return false;
         return new Date(r.fecha_fin_inscr + 'T23:59:59') >= hoy;
       }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
+      if (!abiertas.length) return;
       const hayPend = abiertas.some(r => r.doc_solicitud !== 'Listo');
       const mostrar = abiertas.slice(0, 4);
       const extra = abiertas.length - mostrar.length;
@@ -805,23 +804,27 @@
           + '<span style="color:' + col + ';font-weight:700;font-size:.8rem;white-space:nowrap;margin-left:8px">' + (listo ? '✅' : '⏳ ' + dLabel) + '</span></div>';
       }).join('');
       const extraTxt = extra > 0 ? '<div style="font-size:.72rem;color:var(--text3);padding-top:4px">+ ' + extra + ' más…</div>' : '';
-      const label = abiertas.length ? (hayPend ? '⚠️ Inscripciones abiertas' : '✅ Inscripciones abiertas') : '';
+      const label = hayPend ? '⚠️ Inscripciones abiertas' : '✅ Inscripciones abiertas';
       const col = hayPend ? 'var(--red)' : 'var(--green)';
-      const inscHTML = abiertas.length ? '<div style="margin-bottom:10px"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:' + col + ';margin-bottom:6px">' + label + '</div>' + rows + extraTxt + '</div>' : '';
-      const activas = lista.filter(r => ['ABIERTA','EN PROCESO'].includes((r.estado||'').toUpperCase()));
-      const statsHTML = '<div class="dash-row"><span class="dash-row-label">Convocatorias activas</span><span class="dash-row-val">' + activas.length + ' de ' + lista.length + '</span></div>';
-      _inscRendering = true;
-      el.innerHTML = inscHTML + statsHTML;
-      _inscRendering = false;
+      const div = document.createElement('div');
+      div.setAttribute('data-inscr', '1');
+      div.innerHTML = '<div style="margin-bottom:10px"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:' + col + ';margin-bottom:6px">' + label + '</div>' + rows + extraTxt + '</div>';
+      // Desconectar observer antes de tocar el DOM para evitar bucle infinito
+      if (_inscObs) _inscObs.disconnect();
+      el.insertBefore(div, el.firstChild);
+      // Eliminar nodos sueltos del dashboard cacheado (fechas sueltas, etc.)
+      Array.from(el.children).forEach(function(c) {
+        if (!c.getAttribute('data-inscr') && /^\s*\d{1,2}\s+\w/.test(c.textContent)) c.remove();
+      });
+      if (_inscObs) _inscObs.observe(el, { childList: true, subtree: false });
     }
     document.addEventListener('DOMContentLoaded', function() {
       if (typeof opos_applySeed === 'function') opos_applySeed();
       const target = document.getElementById('dash-opos-content');
       if (target) {
-        new MutationObserver(function() { _renderInscripciones(); })
-          .observe(target, { childList: true, subtree: false });
+        _inscObs = new MutationObserver(function() { _renderInscripciones(); });
+        _inscObs.observe(target, { childList: true, subtree: false });
       }
-      // También lanzar con delay por si el widget ya estaba renderizado
       setTimeout(_renderInscripciones, 300);
     });
   </script>
