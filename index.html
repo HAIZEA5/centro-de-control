@@ -812,9 +812,9 @@
       // Desconectar observer antes de tocar el DOM para evitar bucle infinito
       if (_inscObs) _inscObs.disconnect();
       el.insertBefore(div, el.firstChild);
-      // Eliminar nodos sueltos del dashboard cacheado (fechas sueltas, etc.)
-      Array.from(el.children).forEach(function(c) {
-        if (!c.getAttribute('data-inscr') && /^\s*\d{1,2}\s+\w/.test(c.textContent)) c.remove();
+      // Eliminar filas de "Próximo examen" del dashboard cacheado (.dash-row con style inline)
+      el.querySelectorAll('.dash-row[style]').forEach(function(r) {
+        if (!r.closest('[data-inscr]')) r.remove();
       });
       if (_inscObs) _inscObs.observe(el, { childList: true, subtree: false });
     }
