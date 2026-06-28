@@ -198,6 +198,7 @@ function _dashOposiciones() {
     return fin >= hoy;
   }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
 
+  console.log('[DASH-DEBUG] lista:', lista.length, '| inscAbiertas:', inscAbiertas.length, '| detalle:', JSON.stringify(inscAbiertas.map(r=>({c:r.convocatoria,f:r.fecha_fin_inscr,e:r.estado}))));
   const hayPendientes = inscAbiertas.some(r => r.doc_solicitud !== 'Listo');
 
   const pendHTML = inscAbiertas.length ? `
