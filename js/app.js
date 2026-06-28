@@ -9,6 +9,7 @@ function initApp() {
   setupNavigation();
   setupMobileMenu();
   setupOposFormTabs();
+  if (typeof opos_applySeed === 'function') opos_applySeed();
   loadDashboard();
   loadAllModules();
   initActualizar();
