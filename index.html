@@ -809,13 +809,10 @@
       const div = document.createElement('div');
       div.setAttribute('data-inscr', '1');
       div.innerHTML = '<div style="margin-bottom:10px"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:' + col + ';margin-bottom:6px">' + label + '</div>' + rows + extraTxt + '</div>';
-      // Desconectar observer antes de tocar el DOM para evitar bucle infinito
+      // Desconectar observer, reemplazar TODO el contenido con solo el bloque de inscripciones
       if (_inscObs) _inscObs.disconnect();
-      el.insertBefore(div, el.firstChild);
-      // Eliminar filas de "Próximo examen" del dashboard cacheado (.dash-row con style inline)
-      el.querySelectorAll('.dash-row[style]').forEach(function(r) {
-        if (!r.closest('[data-inscr]')) r.remove();
-      });
+      el.innerHTML = '';
+      el.appendChild(div);
       if (_inscObs) _inscObs.observe(el, { childList: true, subtree: false });
     }
     document.addEventListener('DOMContentLoaded', function() {
