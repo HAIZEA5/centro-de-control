@@ -809,6 +809,11 @@
       div.setAttribute('data-inscr','1');
       div.innerHTML = '<div style="margin-bottom:10px"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:' + col + ';margin-bottom:6px">' + label + '</div>' + rows + extraTxt + '</div>';
       el.insertBefore(div, el.firstChild);
+      // Eliminar nodos sueltos que el dashboard.js cacheado pone (ej: "29 jun 2026")
+      Array.from(el.children).forEach(function(child) {
+        if (child.getAttribute('data-inscr')) return;
+        if (/^\d{1,2} \w{3} \d{4}/.test(child.textContent.trim())) child.remove();
+      });
     }
     document.addEventListener('DOMContentLoaded', function() {
       // Ejecutar seed antes que nada
