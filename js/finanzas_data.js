@@ -14,7 +14,7 @@ const FIN_DATA = {
   cuentas: {
     kutxabank_personal:  { id:'KTX', nombre:'Kutxabank Personal',   saldo: 1293.28, iban_last4:'7421', color:'#60a5fa' },
     revolut_personal:    { id:'RVP', nombre:'Revolut Personal',     saldo: 387.09,  iban_last4:'3928', color:'#a78bfa' },
-    revolut_conjunta:    { id:'RVC', nombre:'Revolut Conjunta',     saldo: 705.70,  iban_last4:'7765', color:'#f472b6' },
+    revolut_conjunta:    { id:'RVC', nombre:'Revolut Conjunta',     saldo: 371.84,  iban_last4:'7765', color:'#f472b6' },
     ctv_vivienda:        { id:'CTV', nombre:'CTV – Cuenta Vivienda',saldo: 5950.00, iban_last4:'—',    color:'#34d399' },
     baskepensiones:      { id:'BP',  nombre:'Baskepensiones 60',    saldo: 199.71,  iban_last4:'6999', color:'#fbbf24' },
   },
