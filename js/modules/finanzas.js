@@ -56,7 +56,6 @@ function getSaldosActuales() {
   const useJS = !isManual || (FIN_DATA.data_version || '2000-01-01') > savedDate;
   const lastHist = FIN_DATA.revolut_fondo_monetario.historial.at(-1);
   const fmBaseJS = lastHist?.saldo_final ?? 291.28;
-  const fmBase = useJS ? fmBaseJS : (saved.fm ?? fmBaseJS);
   // En modo JS, corte al fin del mes del último historial para no doblar intereses ya incluidos
   const fmTsJS = (() => {
     if (!lastHist) return 0;
@@ -64,6 +63,17 @@ function getSaldosActuales() {
     const m = { ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11 }[mon.toLowerCase().replace('.','')];
     return m !== undefined ? new Date(parseInt(yr), m + 1, 0, 23, 59, 59).getTime() : 0;
   })();
+  // cdc del propio mes del último historial: registrados después de que se fijó el JS data
+  const _lhMonStart = (() => {
+    if (!lastHist) return 0;
+    const [mon, yr] = lastHist.mes.split(' ');
+    const m = { ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11 }[mon.toLowerCase().replace('.','')];
+    return m !== undefined ? new Date(parseInt(yr), m, 1).getTime() : 0;
+  })();
+  const cdcEnUltimoMes = useJS ? Store.get('cdc_intereses_fm', [])
+    .filter(e => { const t = new Date(e.fecha + 'T23:59:59').getTime(); return t >= _lhMonStart && t <= fmTsJS; })
+    .reduce((acc, e) => acc + (parseFloat(e.importe) || 0), 0) : 0;
+  const fmBase = useJS ? (fmBaseJS + cdcEnUltimoMes) : (saved.fm ?? fmBaseJS);
   const fmTs = useJS ? fmTsJS : (saved.fm_ts || saved._ts || 0);
   const interesesDiarios = (Store.get('fin_revolut_intereses', [])).reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
   const interesesRegistrados = Store.get('cdc_intereses_fm', [])
@@ -688,9 +698,21 @@ function renderFinSinking() {
     delete f._clave;
   });
 
-  const fmHistorial = [...histConIntereses, ...filasSueltas];
   const s = getSaldosActuales();
-  const totalIntereses = fmHistorial.reduce((a,h) => a + (h.interes || 0), 0) + s.interesesDiarios;
+  // Añadir interesesDiarios al último mes visible del historial
+  if (s.interesesDiarios > 0) {
+    if (filasSueltas.length > 0) {
+      const lastF = filasSueltas[filasSueltas.length - 1];
+      lastF.interes    = parseFloat(((lastF.interes || 0) + s.interesesDiarios).toFixed(2));
+      if (lastF.saldo_final !== null) lastF.saldo_final = parseFloat((lastF.saldo_final + s.interesesDiarios).toFixed(2));
+    } else if (histConIntereses.length > 0) {
+      const lastH = histConIntereses[histConIntereses.length - 1];
+      lastH.interes = parseFloat(((lastH.interes || 0) + s.interesesDiarios).toFixed(2));
+      if (lastH.saldo_final != null) lastH.saldo_final = parseFloat((lastH.saldo_final + s.interesesDiarios).toFixed(2));
+    }
+  }
+  const fmHistorial = [...histConIntereses, ...filasSueltas];
+  const totalIntereses = fmHistorial.reduce((a,h) => a + (h.interes || 0), 0);
 
   // Compras futuras planeadas
   const compras = Store.get('local_finanzas').compras || '';
