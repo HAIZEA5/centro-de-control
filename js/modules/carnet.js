@@ -27,47 +27,6 @@ function car_getPracticas() { return Store.get('car_practicas', []); }
 function car_getConfig()    { return Store.get('car_config'); }
 function car_savePracticas(d) { Store.set('car_practicas', d); }
 
-// ── Guardar estado examen teórico ──
-function car_guardarTeoricoEstado() {
-  const estado = document.getElementById('upd-car-teorico-estado')?.value;
-  const fecha  = document.getElementById('upd-car-teorico-fecha')?.value;
-  const cfg = car_getConfig();
-  cfg.teorico_estado = estado;
-  cfg.teorico_fecha  = fecha;
-  Store.set('car_config', cfg);
-  mostrarOk('upd-car-teorico-ok');
-  loadCarnet();
-}
-
-// ── Guardar próxima convocatoria ──
-function car_guardarProxima() {
-  const estado = document.getElementById('upd-car-prox-estado')?.value;
-  const fecha  = document.getElementById('upd-car-prox-fecha')?.value;
-  const cfg = car_getConfig();
-  cfg.prox_estado = estado;
-  cfg.prox_fecha  = fecha;
-  Store.set('car_config', cfg);
-  mostrarOk('upd-car-prox-ok');
-  loadCarnet();
-}
-
-// ── Guardar práctica ──
-function car_guardarPractica() {
-  const fecha = document.getElementById('upd-car-prac-fecha')?.value;
-  const min   = parseInt(document.getElementById('upd-car-prac-min')?.value ?? '0');
-  const nota  = document.getElementById('upd-car-prac-nota')?.value?.trim();
-
-  if (!fecha) { alert('Indica la fecha de la práctica.'); return; }
-
-  const practicas = car_getPracticas();
-  practicas.push({ fecha, min: isNaN(min) ? 0 : min, nota: nota || '' });
-  car_savePracticas(practicas);
-
-  document.getElementById('upd-car-prac-min').value = '';
-  document.getElementById('upd-car-prac-nota').value = '';
-  mostrarOk('upd-car-prac-ok');
-  loadCarnet();
-}
 
 function car_borrarPractica(i) { const d = car_getPracticas(); d.splice(i,1); car_savePracticas(d); loadCarnet(); }
 
@@ -87,13 +46,6 @@ function loadCarnet() {
   const inpFecha  = document.getElementById('upd-car-prox-fecha');
   if (selEstado && cfg.prox_estado !== undefined) selEstado.value = cfg.prox_estado;
   if (inpFecha  && cfg.prox_fecha)                inpFecha.value  = cfg.prox_fecha;
-
-  // Poner fecha de hoy en el input de práctica
-  const pracFecha = document.getElementById('upd-car-prac-fecha');
-  if (pracFecha && !pracFecha.value) {
-    const _d = new Date();
-    pracFecha.value = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
-  }
 
   renderCarStats(practicas, cfg);
   renderCarPracticas(practicas);
@@ -147,7 +99,7 @@ function renderCarPracticas(practicas) {
   const el = document.getElementById('car-practicas-lista');
   if (!el) return;
   if (!practicas.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin clases registradas. Usa el formulario de abajo para añadir.</p>';
+    el.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin clases registradas.</p>';
     return;
   }
   const totalMin = practicas.reduce((s,p) => s+(p.min||0), 0);

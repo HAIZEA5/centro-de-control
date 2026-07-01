@@ -23,6 +23,10 @@
   localStorage.setItem(KEY, String(VER));
 })();
 
+// ── Helpers de datos de agenda ──
+function age_getDatos() { return Store.get('local_agenda'); }
+function age_saveDatos(d) { Store.set('local_agenda', d); loadAgenda(); }
+
 // ── Estado del calendario ──
 let _calYear  = new Date().getFullYear();
 let _calMonth = new Date().getMonth(); // 0-indexed
@@ -321,7 +325,7 @@ function renderAgeGastosFijos() {
     : [];
 
   if (!todos.length) {
-    el.innerHTML = '<li style="color:var(--text3)">Sin gastos fijos — añade desde ✏️ Actualizar → Finanzas.</li>';
+    el.innerHTML = '<li style="color:var(--text3)">Sin gastos fijos.</li>';
     return;
   }
 
@@ -395,7 +399,7 @@ async function loadAgenda() {
       ul1.innerHTML = lineas.map(l => `<li>${l.trim()}</li>`).join('') || '<li style="color:var(--text2)">Sin cumpleaños</li>';
     }
   } else {
-    ul1.innerHTML = '<li style="color:var(--text2)">Sin cumpleaños — añade en ✏️ Actualizar</li>';
+    ul1.innerHTML = '<li style="color:var(--text2)">Sin cumpleaños</li>';
   }
 
   // ── Eventos ──
@@ -462,7 +466,7 @@ async function loadAgenda() {
       ? futuros.map(e => e.fecha ? liItem(e.texto, e.fecha) : `<li>${e.texto}</li>`).join('')
       : '<li style="color:var(--text2)">Sin eventos próximos</li>';
   } else {
-    ul2.innerHTML = '<li style="color:var(--text2)">Sin eventos — añade en ✏️ Actualizar</li>';
+    ul2.innerHTML = '<li style="color:var(--text2)">Sin eventos</li>';
   }
 
   // ── Vencimientos ──
@@ -527,4 +531,56 @@ function daysUntil(ddmm) {
 
 function sortByProximity(arr, field) {
   return [...arr].sort((a, b) => daysUntil(a[field]) - daysUntil(b[field]));
+}
+
+function age_addInlineCumple() {
+  const nombre = document.getElementById('age-inline-cumple-nombre')?.value.trim();
+  const fecha  = document.getElementById('age-inline-cumple-fecha')?.value.trim();
+  if (!nombre || !fecha) { alert('Rellena nombre y fecha (DD/MM)'); return; }
+  if (!/^\d{1,2}\/\d{1,2}$/.test(fecha)) { alert('Formato de fecha: DD/MM (ej: 14/03)'); return; }
+  const d = age_getDatos();
+  const lineas = (d.cumples || '').split('\n').filter(l => l.trim());
+  lineas.push(`${nombre} — ${fecha}`);
+  d.cumples = lineas.join('\n');
+  age_saveDatos(d);
+  document.getElementById('age-inline-cumple-nombre').value = '';
+  document.getElementById('age-inline-cumple-fecha').value = '';
+  mostrarOk('age-inline-cumple-ok');
+  if (typeof age_renderCumplesList === 'function') age_renderCumplesList();
+}
+
+function age_addInlineEvento() {
+  const nombre   = document.getElementById('age-inline-evento-nombre')?.value.trim();
+  const fechaISO = document.getElementById('age-inline-evento-fecha')?.value;
+  if (!nombre || !fechaISO) { alert('Rellena descripción y fecha'); return; }
+  const ev = { id: Date.now(), nombre, fecha: fechaISO, hora: '', cat: 'personal', ubicacion: '', notas: '' };
+  const lista = Store.get('age_eventos_struct', []);
+  lista.push(ev);
+  Store.set('age_eventos_struct', lista);
+  const [y, m, dd] = fechaISO.split('-');
+  const d = age_getDatos();
+  const lineas = (d.eventos || '').split('\n').filter(l => l.trim());
+  lineas.push(`${nombre} — ${dd}/${m}/${y}`);
+  d.eventos = lineas.join('\n');
+  age_saveDatos(d);
+  document.getElementById('age-inline-evento-nombre').value = '';
+  document.getElementById('age-inline-evento-fecha').value = '';
+  mostrarOk('age-inline-evento-ok');
+  if (typeof age_renderEventosList === 'function') age_renderEventosList();
+}
+
+function age_addInlineVenc() {
+  const nombre   = document.getElementById('age-inline-venc-nombre')?.value.trim();
+  const fechaISO = document.getElementById('age-inline-venc-fecha')?.value;
+  if (!nombre || !fechaISO) { alert('Rellena descripción y fecha'); return; }
+  const [y, m, dd] = fechaISO.split('-');
+  const d = age_getDatos();
+  const lineas = (d.vencimientos || '').split('\n').filter(l => l.trim());
+  lineas.push(`${nombre} — ${dd}/${m}/${y}`);
+  d.vencimientos = lineas.join('\n');
+  age_saveDatos(d);
+  document.getElementById('age-inline-venc-nombre').value = '';
+  document.getElementById('age-inline-venc-fecha').value = '';
+  mostrarOk('age-inline-venc-ok');
+  if (typeof age_renderVencList === 'function') age_renderVencList();
 }

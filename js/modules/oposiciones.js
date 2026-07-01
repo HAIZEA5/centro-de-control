@@ -3,26 +3,6 @@
 // Parsea YYYY-MM-DD como fecha local (evita desfase UTC en Spain UTC+2)
 const oposLocalDate = str => str ? new Date(str + 'T00:00:00') : null;
 
-// Deriva la fase automáticamente a partir de las fechas del proceso
-function opos_getFaseAuto(r) {
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const d = f => oposLocalDate(f);
-  if (r.estado === 'DESISTIDO' || r.estado === 'Descartado') return r.fase || r.estado;
-  if (r.fecha_examen && d(r.fecha_examen) < hoy) {
-    // Post-examen: si hay lista definitiva publicada, estamos en resultado
-    if (r.fecha_lista_def && d(r.fecha_lista_def) < hoy) return 'Pendiente resultado';
-    return 'Pendiente notas';
-  }
-  if (r.fecha_lista_def && d(r.fecha_lista_def) < hoy) return 'Pendiente examen';
-  if (r.fecha_lista_def) return 'Pendiente lista definitiva'; // fecha puesta pero futura
-  if (r.fecha_alegaciones && d(r.fecha_alegaciones) < hoy) return 'Pendiente lista definitiva';
-  if (r.fecha_lista_prov && d(r.fecha_lista_prov) < hoy) return 'Pendiente alegaciones';
-  if (r.fecha_fin_inscr && d(r.fecha_fin_inscr) < hoy) return 'Pendiente lista provisional';
-  if (r.fecha_apertura && d(r.fecha_apertura) <= hoy) return 'Inscripción abierta';
-  if (r.fecha_apertura && d(r.fecha_apertura) > hoy) return 'Próximamente';
-  return r.fase || '—';
-}
-
 async function loadOposiciones() {
   if (typeof opos_applySeed === 'function') opos_applySeed();
 
@@ -219,7 +199,7 @@ function renderOposTable(data) {
   // ── Barra de filtros (se inyecta una sola vez) ──
   const wrap = document.getElementById('opos-table')?.closest('.card');
   if (wrap && !document.getElementById('opos-filtros-bar')) {
-    const fases     = [...new Set(data.map(r => opos_getFaseAuto(r)).filter(f => f && f !== '—'))].sort();
+    const fases     = [...new Set(data.map(r => r.fase).filter(Boolean))].sort();
     const perfiles  = [...new Set(data.map(r => r.perfil).filter(Boolean))].sort();
     const organismos = [...new Set(data.map(r => _oposOrgPuesto(r).org).filter(Boolean))].sort();
     const bar = document.createElement('div');
@@ -279,7 +259,7 @@ function opos_renderFiltered() {
     const { org, pto } = _oposOrgPuesto(r);
     if (texto  && !(r.convocatoria || '').toLowerCase().includes(texto) &&
                   !org.toLowerCase().includes(texto) && !pto.toLowerCase().includes(texto)) return false;
-    if (fase      && opos_getFaseAuto(r) !== fase) return false;
+    if (fase      && r.fase   !== fase)     return false;
     if (perfil    && r.perfil !== perfil)   return false;
     if (organismo && org      !== organismo) return false;
     return true;
@@ -320,7 +300,6 @@ function opos_renderFiltered() {
       <td data-label="Convocatoria">
         <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'} ${itBadge}</div>
         <div style="font-size:.74rem;color:var(--text3);margin-top:2px">${org || ''} ${tipoBadge}</div>
-        ${r.nota_ej1 ? `<div style="font-size:.73rem;color:#34d399;margin-top:3px;font-weight:600">🎯 Ej1: ${r.nota_ej1.split('·')[0].trim()}</div>` : ''}
       </td>
       <td data-label="Grupo">${r.grupo || '—'}</td>
       <td data-label="Estado">${badgeEstado(r.estado)}</td>
@@ -329,19 +308,13 @@ function opos_renderFiltered() {
       <td data-label="Bolsa">${r.bolsa_entrada === true || r.bolsa_entrada === 'true' ? `<span class="badge badge--green">Sí ${r.bolsa_posicion ? '#'+r.bolsa_posicion : ''}</span>` : '<span class="badge badge--yellow">—</span>'}</td>
       <td data-label="Méritos">${meritosTotal > 0 ? `<span style="color:var(--accent2);font-weight:700">${meritosTotal.toFixed(2)} pts</span>` : r.tipo_proceso === 'libre' ? '<span style="color:var(--text3);font-size:.75rem">Libre</span>' : '—'}</td>
       <td data-label="Fase">${(() => {
-        const fase = opos_getFaseAuto(r);
-        const colores = {
-          'Inscripción abierta':        'background:#22c55e22;color:#22c55e;border-color:#22c55e55',
-          'Pendiente lista provisional':'background:#3b82f622;color:#60a5fa;border-color:#3b82f655',
-          'Pendiente alegaciones':      'background:#8b5cf622;color:#a78bfa;border-color:#8b5cf655',
-          'Pendiente lista definitiva': 'background:#f59e0b22;color:#fbbf24;border-color:#f59e0b55',
-          'Pendiente examen':           'background:#f9731622;color:#fb923c;border-color:#f9731655',
-          'Pendiente notas':            'background:#ef444422;color:#f87171;border-color:#ef444455',
-          'Pendiente resultado':        'background:#10b98122;color:#34d399;border-color:#10b98155',
-          'Próximamente':               'background:#64748b22;color:#94a3b8;border-color:#64748b55',
-        };
-        const estilo = colores[fase] || '';
-        return fase && fase !== '—' ? `<span class="chip" style="${estilo}">${fase}</span>` : '—';
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        const fasesActivas = ['Preparación','Inscripción abierta','Fase Oposición','Pendiente pago'];
+        const examenPasado = r.fecha_examen && oposLocalDate(r.fecha_examen) < hoy;
+        if (examenPasado && r.fase && fasesActivas.includes(r.fase)) {
+          return `<span class="chip" style="background:#f59e0b22;color:#f59e0b;border-color:#f59e0b55" title="Fase estimada">Pdte. de notas ⚡</span>`;
+        }
+        return r.fase ? `<span class="chip">${r.fase}</span>` : '—';
       })()}</td>
     </tr>
     <tr class="opos-detalle-row hidden" id="opos-det-${realIdx}">
@@ -424,12 +397,12 @@ function renderDetalleHTML(r, i) {
 /* ── Panel: Fechas ── */
 function renderFechasPanel(r) {
   const fechas = [
-    { label: 'Apertura inscripción',  val: r.fecha_apertura,    field: 'fecha_apertura',    icon: '🟢' },
-    { label: 'Fin inscripción',       val: r.fecha_fin_inscr,   field: 'fecha_fin_inscr',   icon: '🔴' },
-    { label: 'Lista provisional',     val: r.fecha_lista_prov,  field: 'fecha_lista_prov',  icon: '📄' },
-    { label: 'Alegaciones',           val: r.fecha_alegaciones, field: 'fecha_alegaciones', icon: '✍️' },
-    { label: 'Lista definitiva',      val: r.fecha_lista_def,   field: 'fecha_lista_def',   icon: '✅' },
-    { label: 'Examen',                val: r.fecha_examen,      field: 'fecha_examen',      icon: '📝', extra: r.hora_examen ? `🕐 ${r.hora_examen}` : null },
+    { label: 'Apertura inscripción',  val: r.fecha_apertura,    icon: '🟢' },
+    { label: 'Fin inscripción',       val: r.fecha_fin_inscr,   icon: '🔴' },
+    { label: 'Lista provisional',     val: r.fecha_lista_prov,  icon: '📄', extra: r.nota_provisional ? `📊 ${r.nota_provisional}` : null },
+    { label: 'Alegaciones',           val: r.fecha_alegaciones, icon: '✍️' },
+    { label: 'Lista definitiva',      val: r.fecha_lista_def,   icon: '✅', extra: r.nota_definitiva ? `🏆 ${r.nota_definitiva}` : null },
+    { label: 'Examen',                val: r.fecha_examen,      icon: '📝', extra: r.hora_examen ? `🕐 ${r.hora_examen}` : null },
   ];
   const hoy = new Date(); hoy.setHours(0,0,0,0);
 
@@ -442,8 +415,6 @@ function renderFechasPanel(r) {
     const d = f.val ? oposLocalDate(f.val) : null;
     return d && d >= hoy;
   });
-
-  const conv = (r.convocatoria || '').replace(/'/g, "\\'");
 
   return `
   <div class="det-fechas-grid">
@@ -464,19 +435,10 @@ function renderFechasPanel(r) {
           ${d && !pasado && !hoyEs && dias !== null ? `<div class="det-fecha-dias">${'en '+dias+' día'+(dias===1?'':'s')}</div>` : ''}
           ${hoyEs ? '<div class="det-fecha-dias" style="color:var(--green);font-weight:700">¡Hoy!</div>' : ''}
           ${pasado ? '<div class="det-fecha-dias pasado-txt">Pasado</div>' : ''}
-          <input type="date" value="${f.val||''}" onclick="event.stopPropagation()"
-            onchange="opos_setField('${conv}','${f.field}',this.value)"
-            style="margin-top:5px;font-size:.7rem;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:2px 5px;color:var(--text);font-family:inherit;width:100%;max-width:130px;outline:none" />
         </div>
       </div>`;
     }).join('')}
   </div>
-
-  ${r.nota_ej1 ? `
-  <div style="margin-top:14px;padding:14px 16px;background:#10b98115;border-radius:10px;border:1px solid #10b98155">
-    <div style="font-weight:700;font-size:.82rem;color:#34d399;margin-bottom:6px">🎯 Resultado Ejercicio 1</div>
-    <div style="font-size:.9rem;color:var(--text1);font-weight:600">${r.nota_ej1}</div>
-  </div>` : ''}
 
   ${r.notas ? `
   <div style="margin-top:14px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
@@ -534,7 +496,6 @@ function renderDocsPanel(r) {
     { key: 'doc_extra3',     label: r.doc_extra3_nombre || 'Documento extra 3', show: !!r.doc_extra3 },
   ].filter(d => d.show);
   const colorEstado = { 'Listo': 'badge--green', 'Pendiente': 'badge--yellow', 'No aplica': 'badge--red', '': 'badge--blue' };
-  const DOC_OPCIONES = ['', 'Listo', 'Pendiente', 'Al ser seleccionado', 'Tras oposición', 'No aplica'];
   const ckKey = 'opos_checklist_' + (r.convocatoria || '').replace(/\s+/g,'_');
   const ck = Store.get(ckKey);
   const checkItems = [
@@ -543,7 +504,6 @@ function renderDocsPanel(r) {
     { id:'boli',   label:'Bolígrafo azul o negro' },
     { id:'lista',  label:'Comprobante de lista definitiva de admitidos' },
   ];
-  const conv = (r.convocatoria || '').replace(/'/g, "\\'");
 
   return `
   <div style="margin-bottom:16px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
@@ -563,10 +523,7 @@ function renderDocsPanel(r) {
       return `
       <div class="det-doc-card">
         <span class="det-doc-label">${d.label}</span>
-        <select class="badge ${cls}" onchange="opos_setField('${conv}','${d.key}',this.value)"
-          style="cursor:pointer;border:none;outline:none;font-size:.72rem;font-weight:600;font-family:inherit;appearance:none;-webkit-appearance:none;padding:3px 8px;border-radius:20px">
-          ${DOC_OPCIONES.map(o => `<option value="${o}"${o===est?' selected':''}>${o||'—'}</option>`).join('')}
-        </select>
+        <span class="badge ${cls}">${est || '—'}</span>
       </div>`;
     }).join('')}
   </div>
@@ -679,7 +636,7 @@ function renderMeritosPanel(r, i) {
       <div class="meritos-total-label">TOTAL MÉRITOS</div>
       <div class="meritos-total-val">${total.toFixed(2)}</div>
       <div class="meritos-total-sub">puntos</div>
-      <div style="margin-top:16px;font-size:.75rem;color:var(--text3);text-align:center">Edita los datos en ✏️ Actualizar</div>
+      <div style="margin-top:16px;font-size:.75rem;color:var(--text3);text-align:center"></div>
     </div>
   </div>
   ${r.notas ? `
@@ -710,42 +667,18 @@ function calcMeritosTotal(r) {
 /* ── Panel: Bolsa ── */
 function renderBolsaPanel(r) {
   const entra = r.bolsa_entrada === true || r.bolsa_entrada === 'true';
-  const conv = (r.convocatoria || '').replace(/'/g, "\\'");
-  const inp = (id, type, val, placeholder, extra='') =>
-    `<input type="${type}" value="${val||''}" placeholder="${placeholder}"
-      onchange="opos_setField('${conv}','${id}',this.value)"
-      style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-family:inherit;font-size:.83rem;outline:none;width:100%" ${extra}/>`;
   return `
   <div class="det-bolsa">
     <div class="bolsa-estado ${entra ? 'bolsa-si' : 'bolsa-no'}">
       <span class="bolsa-icon">${entra ? '✅' : '⏳'}</span>
-      <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div class="bolsa-titulo">${entra ? 'En bolsa' : 'Sin bolsa / Pendiente'}</div>
-          <select onchange="opos_setField('${conv}','bolsa_entrada',this.value==='si')"
-            style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-family:inherit;font-size:.8rem;cursor:pointer">
-            <option value="no" ${!entra?'selected':''}>⏳ Pendiente</option>
-            <option value="si" ${entra?'selected':''}>✅ En bolsa</option>
-          </select>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div>
-            <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">📅 Fecha de entrada</div>
-            ${inp('bolsa_fecha','date',r.bolsa_fecha,'')}
-          </div>
-          <div>
-            <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">🏅 Posición en bolsa</div>
-            ${inp('bolsa_posicion','number',r.bolsa_posicion,'Ej: 42','min="1"')}
-          </div>
-          <div>
-            <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">🔄 Llamadas recibidas</div>
-            ${inp('bolsa_llamadas','number',r.bolsa_llamadas,'0','min="0"')}
-          </div>
-          <div>
-            <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">📝 Notas</div>
-            ${inp('bolsa_notas','text',r.bolsa_notas,'Notas sobre la bolsa…')}
-          </div>
-        </div>
+      <div>
+        <div class="bolsa-titulo">${entra ? 'En bolsa' : 'Sin bolsa / Pendiente'}</div>
+        ${entra ? `
+          <div class="bolsa-dato">📅 Fecha de entrada: <strong>${r.bolsa_fecha ? formatFecha(r.bolsa_fecha) : '—'}</strong></div>
+          <div class="bolsa-dato">🏅 Posición: <strong>${r.bolsa_posicion ? '#'+r.bolsa_posicion : '—'}</strong></div>
+          <div class="bolsa-dato">🔄 Llamadas recibidas: <strong>${r.bolsa_llamadas || '0'}</strong></div>
+          <div class="bolsa-dato">📝 Notas: <span style="color:var(--text2)">${r.bolsa_notas || '—'}</span></div>
+        ` : `<div style="color:var(--text3);font-size:.87rem;margin-top:4px">Actualiza cuando entre en bolsa</div>`}
       </div>
     </div>
   </div>`;
@@ -753,28 +686,21 @@ function renderBolsaPanel(r) {
 
 /* ── Panel: Enlaces ── */
 function renderEnlacesPanel(r) {
-  const conv = (r.convocatoria || '').replace(/'/g, "\\'");
   const links = [
-    { label: 'BOE / BOE-A',              field: 'url_boe',     val: r.url_boe,     icon: '📰' },
-    { label: 'Bases de la convocatoria',  field: 'url_bases',   val: r.url_bases,   icon: '📋' },
-    { label: 'Temario oficial',           field: 'url_temario', val: r.url_temario, icon: '📚' },
-    { label: 'Enlace extra 1',            field: 'url_extra1',  val: r.url_extra1,  icon: '🔗' },
-    { label: 'Enlace extra 2',            field: 'url_extra2',  val: r.url_extra2,  icon: '🔗' },
+    { label: 'BOE / BOE-A',    val: r.url_boe,    icon: '📰' },
+    { label: 'Bases de la convocatoria', val: r.url_bases, icon: '📋' },
+    { label: 'Temario oficial', val: r.url_temario, icon: '📚' },
+    { label: 'Enlace extra 1',  val: r.url_extra1, icon: '🔗' },
+    { label: 'Enlace extra 2',  val: r.url_extra2, icon: '🔗' },
   ];
-  return `<div style="display:flex;flex-direction:column;gap:10px;padding:4px 0">
-    ${links.map(l => `
-    <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:1.1rem;flex-shrink:0">${l.icon}</span>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">${l.label}</div>
-        <input type="url" value="${l.val ? l.val.replace(/"/g,'&quot;') : ''}" placeholder="https://…"
-          onchange="opos_setField('${conv}','${l.field}',this.value)"
-          style="background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-family:inherit;font-size:.78rem;outline:none;width:100%" />
-      </div>
-      ${l.val ? `<a href="${l.val}" target="_blank" rel="noopener"
-        style="flex-shrink:0;font-size:1rem;color:var(--accent);text-decoration:none;padding:4px" title="Abrir">↗</a>` : ''}
-    </div>`).join('')}
-  </div>`;
+  const activos = links.filter(l => l.val);
+  if (!activos.length) return `<p style="color:var(--text3);font-size:.87rem;padding:12px 0">Sin enlaces guardados.</p>`;
+  return `<div class="det-enlaces">${activos.map(l => `
+    <a href="${l.val}" target="_blank" rel="noopener" class="det-enlace-card">
+      <span class="det-enlace-icon">${l.icon}</span>
+      <span class="det-enlace-label">${l.label}</span>
+      <span style="margin-left:auto;color:var(--text3)">↗</span>
+    </a>`).join('')}</div>`;
 }
 
 /* ── Panel: Historial ── */
@@ -1064,34 +990,6 @@ function guardarUbicacionExamen(conv, key) {
   }
 }
 
-function opos_setField(conv, field, value) {
-  const data = Store.get('opos_convocatorias', []);
-  const idx = data.findIndex(r => r.convocatoria === conv);
-  if (idx < 0) return;
-  data[idx][field] = value;
-  Store.set('opos_convocatorias', data);
-  if (window._oposData) window._oposData[idx] = data[idx];
-  const r = data[idx];
-  const docFields = ['doc_solicitud','doc_dni','doc_titulacion','doc_euskera','doc_cv','doc_meritos','doc_discap',
-    'doc_extra1','doc_extra2','doc_extra3'];
-  const fechaFields = ['fecha_apertura','fecha_fin_inscr','fecha_lista_prov','fecha_alegaciones','fecha_lista_def','fecha_examen','hora_examen'];
-  const bolsaFields = ['bolsa_entrada','bolsa_fecha','bolsa_posicion','bolsa_llamadas','bolsa_notas'];
-  const enlaceFields = ['url_boe','url_bases','url_temario','url_extra1','url_extra2'];
-  if (docFields.includes(field)) {
-    const panel = document.getElementById('det-docs-' + idx);
-    if (panel) panel.innerHTML = renderDocsPanel(r);
-  } else if (fechaFields.includes(field)) {
-    const panel = document.getElementById('det-fechas-' + idx);
-    if (panel) panel.innerHTML = renderFechasPanel(r);
-  } else if (bolsaFields.includes(field)) {
-    const panel = document.getElementById('det-bolsa-' + idx);
-    if (panel) panel.innerHTML = renderBolsaPanel(r);
-  } else if (enlaceFields.includes(field)) {
-    const panel = document.getElementById('det-enlaces-' + idx);
-    if (panel) panel.innerHTML = renderEnlacesPanel(r);
-  }
-}
-
 function opos_toggleCheck(key, field, checked) {
   const ck = Store.get(key);
   ck[field] = checked;
@@ -1206,17 +1104,13 @@ function radarBorrar(i) {
 }
 
 function radarConvertir(i) {
-  const radar = Store.get(RADAR_KEY, []);
-  const r = radar[i];
+  const r = Store.get(RADAR_KEY, [])[i];
   if (!r) return;
-  const conv = prompt(`Nombre de la convocatoria para "${r.organismo}":`, r.organismo + (r.puesto ? ' — ' + r.puesto : ''));
-  if (!conv?.trim()) return;
-  const data = Store.get('opos_convocatorias', []);
-  data.push({ convocatoria: conv.trim(), organismo: r.organismo, puesto: r.puesto, fase: 'Seguimiento', estado: 'PENDIENTE', grupo: 'C1', perfil: 'Yo' });
-  Store.set('opos_convocatorias', data);
-  // Eliminar del radar
-  radar.splice(i, 1);
-  Store.set(RADAR_KEY, radar);
+  const lista = getOposLocal();
+  const existe = lista.some(o => (o.convocatoria || '').toLowerCase().includes((r.organismo || '').toLowerCase()));
+  if (existe) { alert('Ya hay una convocatoria de este organismo.'); return; }
+  lista.push({ convocatoria: r.organismo, estado: 'pendiente', perfil: 'Yo', _id: Date.now(), historial: [{ fecha: new Date().toLocaleDateString('es-ES'), texto: 'Añadida desde radar' }] });
+  Store.set('local_oposiciones', lista);
   renderOposiciones();
-  renderRadar();
+  alert(`Añadida: ${r.organismo}`);
 }

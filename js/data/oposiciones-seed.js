@@ -246,7 +246,7 @@ const OPOS_SEED = [
     doc_extra1_nombre: 'Méritos acreditados',
     doc_extra1:      'Pendiente',
     notas: '2 plazas Administrativo Servicios Económicos (RPT 27 y 28). Grupo C1. PL2 preceptivo RPT 27 (29/07/1995), no preceptivo RPT 28. Concurso-oposición libre. BOE 22/06/2026, BOB nº 102 de 02/06/2026. Plazo: 20 días hábiles desde BOE → hasta 20/07/2026. Oposición (70 pts): 1ª test general 0-15 mín 7,5 + 2ª test específico 0-25 mín 12,5 + 3ª práctica 0-30 mín 15 + 4ª euskera PL2 Apto/No Apto (eliminatorio RPT 27, voluntario RPT 28). Concurso (máx 25 pts): exp AAPP C1 Administrativo últimos 10 años 0,10 pts/mes máx 12 pts + formación máx 13 pts (licenciatura/grado 4pts, TécSup 3pts, cursos 201-250h 2pts/151-200h 1,5pts/101-150h 0,75pts/50-100h 0,5pts, informática 0,5pts/cert máx 2pts, idiomas UE B1 1pt/B2 2pts, opos superadas Admvo últimos 10 años 3pts/proceso). Instancia: acreditar méritos con la solicitud (documentación interoperable IVAP verificada automáticamente). Sede: https://www.trapagaran.net',
-    url_boe:   'https://www.boe.es/boe/dias/2026/06/22/',
+    url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-14174',
     url_bases: 'https://www.bizkaia.eus/lehendakaritza/Bao_bob/2026/06/BOB-2026a102.pdf',
     // Concurso-oposición: exp C1 Admvo AAPP + formación
     meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',

@@ -12,9 +12,9 @@
 const FIN_DATA = {
 
   cuentas: {
-    kutxabank_personal:  { id:'KTX', nombre:'Kutxabank Personal',   saldo: 873.21,  iban_last4:'7421', color:'#60a5fa' },
-    revolut_personal:    { id:'RVP', nombre:'Revolut Personal',     saldo: 133.05,  iban_last4:'3928', color:'#a78bfa' },
-    revolut_conjunta:    { id:'RVC', nombre:'Revolut Conjunta',     saldo: 475.70,  iban_last4:'7765', color:'#f472b6' },
+    kutxabank_personal:  { id:'KTX', nombre:'Kutxabank Personal',   saldo: 1293.28, iban_last4:'7421', color:'#60a5fa' },
+    revolut_personal:    { id:'RVP', nombre:'Revolut Personal',     saldo: 387.09,  iban_last4:'3928', color:'#a78bfa' },
+    revolut_conjunta:    { id:'RVC', nombre:'Revolut Conjunta',     saldo: 371.84,  iban_last4:'7765', color:'#f472b6' },
     ctv_vivienda:        { id:'CTV', nombre:'CTV – Cuenta Vivienda',saldo: 5950.00, iban_last4:'—',    color:'#34d399' },
     baskepensiones:      { id:'BP',  nombre:'Baskepensiones 60',    saldo: 199.71,  iban_last4:'6999', color:'#fbbf24' },
   },
@@ -71,7 +71,7 @@ const FIN_DATA = {
       { mes:'Mar 2026', aportacion: -100.00, saldo_anterior: 5759.03, saldo_final: 5664.92, interes:  5.89 },
       { mes:'Abr 2026', aportacion:  130.00, saldo_anterior: 5664.92, saldo_final: 5800.74, interes:  5.82 },
       { mes:'May 2026', aportacion:-5797.91, saldo_anterior: 5800.74, saldo_final:    5.19, interes:  2.36, nota:'Retirada total para CTV – Cuenta Vivienda' },
-      { mes:'Jun 2026', aportacion:  285.80, saldo_anterior:    5.19, saldo_final:  291.28, interes:  0.49, nota:'Parcial – datos hasta 26 jun' },
+      { mes:'Jun 2026', aportacion:  305.80, saldo_anterior:    5.19, saldo_final:  311.28, interes:  0.49, nota:'285,80€ (hasta 26 jun) + 20€ (30 jun)' },
     ],
   },
 

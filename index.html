@@ -1,10 +1,7 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#1a1b2e" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -32,7 +29,6 @@
       <li><a href="#oposiciones" class="nav-link" data-section="oposiciones">📚 Oposiciones</a></li>
       <li><a href="#agenda"      class="nav-link" data-section="agenda">📅 Agenda</a></li>
       <li><a href="#tareas"      class="nav-link" data-section="tareas">📋 Tareas</a></li>
-      <li><a href="#actualizar"  class="nav-link" data-section="actualizar">✏️ Actualizar</a></li>
     </ul>
     <div class="sidebar-footer"><span class="version">v1.0</span></div>
   </nav>
@@ -164,7 +160,7 @@
             </div>
           </div>
           <canvas id="fin-patrimonio-chart" style="height:120px;width:100%"></canvas>
-          <p id="fin-patr-empty" style="font-size:.78rem;color:var(--text3);text-align:center;padding:20px 0;display:none">Guarda saldos varias veces para ver la evolución. Puedes añadir meses pasados en <strong>Actualizar → Finanzas</strong>.</p>
+          <p id="fin-patr-empty" style="font-size:.78rem;color:var(--text3);text-align:center;padding:20px 0;display:none">Guarda saldos varias veces para ver la evolución.</p>
         </div>
 
         <!-- Tabs -->
@@ -174,7 +170,6 @@
           <button class="fin-tab" data-fintab="fin-panel-sinking">Ahorro</button>
           <button class="fin-tab" data-fintab="fin-panel-deudas">Deudas</button>
           <button class="fin-tab" data-fintab="fin-panel-presupuesto">Presupuesto & Gastos</button>
-          <button class="fin-tab" data-fintab="fin-panel-ajustar">⚙️ Ajustar</button>
         </div>
 
         <!-- Panel: Resumen -->
@@ -277,46 +272,6 @@
           <div id="fin-presupuesto-content" class="mt"></div>
         </div>
 
-        <!-- Panel: Ajustar saldos / wishlist / intereses -->
-        <div id="fin-panel-ajustar" class="fin-panel">
-          <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start;margin-top:14px">
-
-            <div>
-              <!-- ACTUALIZAR SALDOS -->
-              <div class="card" style="margin-bottom:14px">
-                <h3 style="margin-bottom:4px">💳 Actualizar saldos de cuentas</h3>
-                <div id="ufin-saldos-form">
-                  <div class="upd-fin-saldo-row"><label style="color:#60a5fa">● Kutxabank</label><input type="number" class="upd-input" id="ufin-s-ktx" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#a78bfa">● Revolut Personal</label><input type="number" class="upd-input" id="ufin-s-rvp" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#f472b6">● Revolut Conjunta</label><input type="number" class="upd-input" id="ufin-s-rvc" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#34d399">● CTV – Vivienda</label><input type="number" class="upd-input" id="ufin-s-ctv" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#fbbf24">● Baskepensiones</label><input type="number" class="upd-input" id="ufin-s-bp" step="0.01" placeholder="0.00" /></div>
-                  <div class="upd-fin-saldo-row"><label style="color:#818cf8">● Fondo Monetario</label><input type="number" class="upd-input" id="ufin-s-fm" step="0.01" placeholder="0.00" /></div>
-                </div>
-                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
-                  <button class="btn-primary" onclick="ufin_guardarSaldos()">💾 Guardar saldos</button>
-                  <button onclick="ufin_resetSaldos()" style="background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:.8rem">↩ Restaurar</button>
-                  <span id="ufin-saldos-ok" style="color:var(--green);font-size:.85rem;display:none">✅ Guardado</span>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- COLUMNA DERECHA: Wishlist -->
-            <div class="card" style="position:sticky;top:80px">
-              <h3 style="margin-bottom:10px">🛒 Lista de deseos</h3>
-              <div class="form-group" style="margin-bottom:12px">
-                <textarea id="upd-fin-compras" rows="8" placeholder="Sofá — 800€&#10;Lavadora — 400€" style="width:100%;font-size:.82rem"></textarea>
-              </div>
-              <div class="form-actions">
-                <button class="btn-primary" onclick="ufin_guardarWishlist()">Guardar</button>
-                <span class="update-success" id="upd-fin-ok">✓ Guardado</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
       </section>
 
       <!-- CARNET -->
@@ -334,77 +289,6 @@
           <h3>🚘 Clases prácticas</h3>
           <div id="car-practicas-lista"><p style="color:var(--text3);font-size:.87rem">Sin clases registradas.</p></div>
         </div>
-
-        <!-- ── Editar estado teórico ── -->
-        <div class="card mt">
-          <h3>📋 Estado del examen teórico</h3>
-          <div class="update-form">
-            <div class="form-group">
-              <label>Resultado</label>
-              <select id="upd-car-teorico-estado">
-                <option value="">— Sin realizar —</option>
-                <option value="aprobado">✅ Aprobado</option>
-                <option value="suspendido">❌ Suspendido</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Fecha (opcional)</label>
-              <input type="date" id="upd-car-teorico-fecha" />
-            </div>
-          </div>
-          <div class="form-actions">
-            <button class="btn-primary" onclick="car_guardarTeoricoEstado()">Guardar</button>
-            <span class="update-success" id="upd-car-teorico-ok">✓ Guardado</span>
-          </div>
-        </div>
-
-        <!-- ── Examen práctico ── -->
-        <div class="card mt">
-          <h3>🚗 Examen práctico</h3>
-          <div class="update-form">
-            <div class="form-group">
-              <label>Estado</label>
-              <select id="upd-car-prox-estado">
-                <option value="">— Sin convocar —</option>
-                <option value="pendiente">⏳ Pendiente de fecha</option>
-                <option value="en_proceso">🔄 En proceso / Preparando</option>
-                <option value="convocado">📅 Fecha convocada</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Fecha del examen</label>
-              <input type="date" id="upd-car-prox-fecha" />
-            </div>
-          </div>
-          <div class="form-actions">
-            <button class="btn-primary" onclick="car_guardarProxima()">Guardar</button>
-            <span class="update-success" id="upd-car-prox-ok">✓ Guardado</span>
-          </div>
-        </div>
-
-        <!-- ── Añadir clase práctica ── -->
-        <div class="card mt">
-          <h3>🚘 Añadir clase práctica</h3>
-          <div class="update-form">
-            <div class="form-group">
-              <label>Fecha</label>
-              <input type="date" id="upd-car-prac-fecha" />
-            </div>
-            <div class="form-group">
-              <label>Duración (min)</label>
-              <input type="number" id="upd-car-prac-min" placeholder="60" min="1" />
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:14px">
-            <label>Notas</label>
-            <input type="text" id="upd-car-prac-nota" placeholder="Ej: Rotondas, aparcamiento en paralelo…" />
-          </div>
-          <div class="form-actions">
-            <button class="btn-primary" onclick="car_guardarPractica()">Guardar clase</button>
-            <span class="update-success" id="upd-car-prac-ok">✓ Guardado</span>
-          </div>
-        </div>
-
       </section>
 
       <!-- OPOSICIONES -->
@@ -554,140 +438,45 @@
 
         <!-- Listas rápidas -->
         <div class="cards-row">
-          <div class="card"><h3>Próximos cumpleaños</h3><ul class="list" id="age-cumples"></ul></div>
-          <div class="card"><h3>Eventos y vacaciones</h3><ul class="list" id="age-eventos"></ul></div>
-          <div class="card"><h3>Vencimientos importantes</h3><ul class="list" id="age-vencimientos"></ul></div>
+          <div class="card">
+            <h3>Próximos cumpleaños</h3>
+            <ul class="list" id="age-cumples"></ul>
+            <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px">
+              <input type="text" id="age-inline-cumple-nombre" placeholder="Nombre" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <input type="text" id="age-inline-cumple-fecha" placeholder="DD/MM (ej: 14/03)" maxlength="5" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')age_addInlineCumple()" />
+              <div style="display:flex;align-items:center;gap:8px">
+                <button onclick="age_addInlineCumple()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer;font-weight:600">+ Añadir</button>
+                <span id="age-inline-cumple-ok" class="update-success">✓ Guardado</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Eventos y vacaciones</h3>
+            <ul class="list" id="age-eventos"></ul>
+            <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px">
+              <input type="text" id="age-inline-evento-nombre" placeholder="Descripción" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <input type="date" id="age-inline-evento-fecha" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <div style="display:flex;align-items:center;gap:8px">
+                <button onclick="age_addInlineEvento()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer;font-weight:600">+ Añadir</button>
+                <span id="age-inline-evento-ok" class="update-success">✓ Guardado</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Vencimientos importantes</h3>
+            <ul class="list" id="age-vencimientos"></ul>
+            <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px">
+              <input type="text" id="age-inline-venc-nombre" placeholder="Descripción" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <input type="date" id="age-inline-venc-fecha" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:5px 9px;font-size:.78rem;font-family:inherit;outline:none" />
+              <div style="display:flex;align-items:center;gap:8px">
+                <button onclick="age_addInlineVenc()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer;font-weight:600">+ Añadir</button>
+                <span id="age-inline-venc-ok" class="update-success">✓ Guardado</span>
+              </div>
+            </div>
+          </div>
         </div>
         <!-- Gastos fijos eliminados de Agenda (están en Finanzas → Presupuesto & Gastos) -->
         <ul id="age-gastos-fijos" style="display:none"></ul>
-
-        <!-- ── Gestionar eventos / cumpleaños / vencimientos ── -->
-        <div class="cards-row mt">
-
-          <div class="card">
-            <h3>🎂 Cumpleaños</h3>
-            <div id="age-cumples-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input type="text" id="age-new-cumple-nombre" class="upd-input" placeholder="Nombre" style="flex:2;min-width:120px" />
-              <input type="text" id="age-new-cumple-fecha" class="upd-input" placeholder="DD/MM (ej: 14/03)" style="flex:1;min-width:90px" maxlength="5" />
-              <button class="btn-primary" onclick="age_addCumple()">Añadir</button>
-            </div>
-          </div>
-
-          <div class="card">
-            <h3>📅 Eventos y vacaciones</h3>
-            <div id="age-eventos-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-              <input type="text" id="age-new-evento-nombre" class="upd-input" placeholder="Descripción del evento" />
-              <select id="age-new-evento-cat" class="upd-input">
-                <option value="personal">💙 Personal</option>
-                <option value="oposiciones">📚 Oposiciones</option>
-                <option value="finanzas">💚 Finanzas</option>
-                <option value="carnet">🚗 Carnet</option>
-                <option value="medico">💊 Médico / Salud</option>
-                <option value="familia">👨‍👩‍👧 Familia</option>
-                <option value="ocio">🎭 Ocio</option>
-                <option value="otro">📌 Otro</option>
-              </select>
-              <input type="date" id="age-new-evento-fecha" class="upd-input" />
-              <input type="time" id="age-new-evento-hora" class="upd-input" />
-              <input type="text" id="age-new-evento-ubicacion" class="upd-input" placeholder="Ubicación (opcional)" style="grid-column:span 2" />
-              <textarea id="age-new-evento-notas" class="upd-input" placeholder="Notas (opcional)" rows="2" style="grid-column:span 2;resize:vertical;font-family:inherit"></textarea>
-            </div>
-            <button class="btn-primary" onclick="age_addEvento()">📅 Guardar evento</button>
-          </div>
-
-          <div class="card">
-            <h3>⚠️ Vencimientos importantes</h3>
-            <div id="age-venc-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input type="text" id="age-new-venc-nombre" class="upd-input" placeholder="Descripción" style="flex:2;min-width:140px" />
-              <input type="date" id="age-new-venc-fecha" class="upd-input" style="flex:1;min-width:130px" />
-              <button class="btn-primary" onclick="age_addVenc()">Añadir</button>
-            </div>
-          </div>
-
-        </div>
-
-      </section>
-
-      <!-- ACTUALIZAR -->
-      <section id="actualizar" class="section">
-        <h2 class="section-title">Actualizar datos</h2>
-
-        <div class="update-tabs">
-          <button class="update-tab active" data-tab="upd-excel">Excel</button>
-        </div>
-
-        <!-- ═══ PANEL EXCEL ═══ -->
-        <div class="update-panel active" id="upd-excel">
-          <div class="card">
-            <h3>📊 Exportar a Excel</h3>
-            <p style="color:var(--text3);font-size:.85rem;margin-bottom:10px">Descarga todos tus datos en un archivo Excel con formato profesional: encabezados coloreados, columnas ajustadas y fechas nativas.</p>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
-              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Carnet_Tests</span>
-              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Carnet_Examenes</span>
-              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Oposiciones</span>
-              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Agenda_Cumpleanos</span>
-              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Finanzas_Saldos</span>
-              <span style="font-size:.75rem;background:var(--surface2);border-radius:6px;padding:3px 9px;color:var(--text3)">Piso_Visitados</span>
-              <span style="font-size:.75rem;color:var(--text3);padding:3px 6px">+7 más…</span>
-            </div>
-            <div class="form-actions">
-              <button id="excel-export-btn" class="btn-primary" onclick="excel_exportar()">⬇️ Descargar Excel</button>
-            </div>
-          </div>
-          <div class="card mt">
-            <h3>📥 Importar desde Excel</h3>
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
-              <p style="color:var(--text3);font-size:.85rem;margin:0">Sube el archivo Excel para actualizar los datos. <strong style="color:var(--yellow)">⚠️ Sobreescribe los datos de cada hoja importada.</strong></p>
-              <button onclick="excel_toggleAyuda()" style="white-space:nowrap;font-size:.78rem;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;flex-shrink:0">¿Cómo rellenar el Excel?</button>
-            </div>
-            <div class="form-group">
-              <label>Archivo Excel (.xlsx)</label>
-              <input type="file" id="excel-import-file" accept=".xlsx" style="color:var(--text1)" />
-            </div>
-            <div class="form-actions" style="margin-top:12px">
-              <button class="btn-primary" onclick="excel_importar(document.getElementById('excel-import-file').files[0])">⬆️ Importar Excel</button>
-            </div>
-            <div id="excel-import-progress" style="display:none;margin-top:10px;font-size:.82rem;color:var(--text2);background:var(--surface2);border-radius:8px;padding:8px 12px"></div>
-          </div>
-        </div>
-
-        <!-- Modal: ¿Cómo rellenar el Excel? -->
-        <div id="modal-excel-ayuda" onclick="if(event.target===this)excel_toggleAyuda()" style="display:none;position:fixed;inset:0;background:#00000088;z-index:9999;align-items:center;justify-content:center">
-          <div style="background:var(--surface);border-radius:16px;padding:28px 28px 24px;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px #0006">
-            <button onclick="excel_toggleAyuda()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:var(--text3);font-size:1.3rem;cursor:pointer;line-height:1">✕</button>
-            <h3 style="margin-bottom:6px;font-size:1rem">📋 Cómo rellenar el Excel</h3>
-            <p style="font-size:.8rem;color:var(--text3);margin-bottom:16px">Puedes editar celdas y añadir filas. Al importar, los datos de cada hoja sustituyen a los actuales.</p>
-            <div style="background:var(--bg3);border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:16px;font-size:.82rem;color:var(--text2)">
-              <strong>Regla principal:</strong> No cambies los nombres de las pestañas (hojas). El sistema las identifica exactamente por ese nombre.
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;font-size:.8rem">
-              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
-                <strong style="color:var(--accent)">Carnet_Tests / Exámenes / Prácticas</strong><br>
-                <span style="color:var(--text3)">Fechas en formato AAAA-MM-DD (ej: 2025-03-14)</span>
-              </div>
-              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
-                <strong style="color:var(--accent)">Oposiciones</strong><br>
-                <span style="color:var(--text3)">Una fila por convocatoria. Todas las fechas en AAAA-MM-DD.</span>
-              </div>
-              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
-                <strong style="color:var(--accent)">Finanzas_Saldos</strong><br>
-                <span style="color:var(--text3)">No borres la columna "Clave" — identifica cada cuenta (ktx, rvp…)</span>
-              </div>
-              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
-                <strong style="color:var(--accent)">Agenda_Cumpleanos</strong><br>
-                <span style="color:var(--text3)">Fecha en formato DD/MM sin año (ej: 14/03)</span>
-              </div>
-              <div style="background:var(--surface2);border-radius:8px;padding:9px 14px">
-                <strong style="color:var(--accent)">Piso_Bancos / Piso_Visitados</strong><br>
-                <span style="color:var(--text3)">Añade pisos o bancos al final de la tabla.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </section>
 
       <!-- ══════════════════════════════════════════════════════ -->
@@ -743,88 +532,33 @@
     </div>
   </main>
 
-  <script src="js/data/supabase-sync.js?v=7338518d"></script>
-  <script src="js/utils/store.js?v=622bfe1d"></script>
-  <script src="js/utils/fmt.js?v=7c2241c7"></script>
+  <script src="js/data/supabase-sync.js?v=20260701a"></script>
+  <script src="js/utils/store.js?v=20260701a"></script>
+  <script src="js/utils/fmt.js?v=20260701a"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-  <script src="js/config.js?v=da960882"></script>
-  <script src="js/finanzas_data.js?v=c16084b0"></script>
-  <script src="js/auth.js?v=c66ab0d6"></script>
-  <script src="js/sheets.js?v=045fe7b3"></script>
-  <script src="js/modules/finanzas.js?v=f3bb1b95"></script>
-  <script src="js/modules/piso.js?v=b5539605"></script>
-  <script src="js/modules/carnet.js?v=d9605bc5"></script>
-  <script src="js/data/oposiciones-seed.js?v=63f8f4d3"></script>
-  <script src="js/modules/oposiciones.js?v=1c6dc8c2"></script>
-  <script src="js/modules/agenda.js?v=b77faeac"></script>
-  <script src="js/modules/it-txartelas.js?v=6088ab42"></script>
-  <script src="js/modules/tareas.js?v=582ca478"></script>
-  <script src="js/modules/excel.js?v=3bccf60f"></script>
-  <script src="js/modules/actualizar.js?v=62d360fe"></script>
-  <script src="js/dashboard.js?v=596c4021"></script>
-  <script src="js/app.js?v=780f3a84"></script>
+  <script src="js/config.js?v=20260701a"></script>
+  <script src="js/finanzas_data.js?v=20260701a"></script>
+  <script src="js/auth.js?v=20260701a"></script>
+  <script src="js/sheets.js?v=20260701a"></script>
+  <script src="js/modules/finanzas.js?v=20260701a"></script>
+  <script src="js/modules/piso.js?v=20260701a"></script>
+  <script src="js/modules/carnet.js?v=20260701a"></script>
+  <script src="js/data/oposiciones-seed.js?v=20260701a"></script>
+  <script src="js/modules/oposiciones.js?v=20260701a"></script>
+  <script src="js/modules/agenda.js?v=20260701a"></script>
+  <script src="js/modules/it-txartelas.js?v=20260701a"></script>
+  <script src="js/modules/tareas.js?v=20260701a"></script>
+  <script src="js/modules/excel.js?v=20260701a"></script>
+  <script src="js/dashboard.js?v=20260701a"></script>
+  <script src="js/app.js?v=20260701a"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(r => r.unregister());
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
       });
     }
-    // Inscripciones abiertas — en index.html (nunca cacheado en file://)
-    var _inscObs = null;
-    function _renderInscripciones() {
-      const el = document.getElementById('dash-opos-content');
-      if (!el || el.querySelector('[data-inscr]')) return;
-      if (typeof opos_applySeed === 'function') opos_applySeed();
-      const lista = (typeof Store !== 'undefined') ? Store.get('opos_convocatorias', []) : [];
-      if (!lista.length) return;
-      const hoy = new Date(); hoy.setHours(0,0,0,0);
-      const abiertas = lista.filter(r => {
-        if (!r.fecha_fin_inscr) return false;
-        if ((r.estado||'').toUpperCase() === 'EN SEGUIMIENTO') return false;
-        return new Date(r.fecha_fin_inscr + 'T23:59:59') >= hoy;
-      }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
-      if (!abiertas.length) return;
-      const hayPend = abiertas.some(r => r.doc_solicitud !== 'Listo');
-      const mostrar = abiertas.slice(0, 4);
-      const extra = abiertas.length - mostrar.length;
-      const rows = mostrar.map(r => {
-        const fin = new Date(r.fecha_fin_inscr + 'T12:00:00');
-        const dias = Math.round((fin - hoy) / 86400000);
-        const listo = r.doc_solicitud === 'Listo';
-        const col = listo ? 'var(--green)' : dias <= 3 ? 'var(--red)' : dias <= 7 ? 'var(--orange)' : 'var(--yellow)';
-        const dLabel = dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : dias + 'd';
-        const fStr = fin.toLocaleDateString('es-ES',{day:'2-digit',month:'short'});
-        const org = r.organismo || r.convocatoria || '';
-        const pto = r.puesto || '';
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">'
-          + '<div><div style="font-size:.79rem;color:var(--text1);font-weight:600">' + org + ' <span style="color:var(--text3);font-weight:400">· ' + pto + '</span></div>'
-          + '<div style="font-size:.72rem;color:var(--text3)">hasta ' + fStr + '</div></div>'
-          + '<span style="color:' + col + ';font-weight:700;font-size:.8rem;white-space:nowrap;margin-left:8px">' + (listo ? '✅' : '⏳ ' + dLabel) + '</span></div>';
-      }).join('');
-      const extraTxt = extra > 0 ? '<div style="font-size:.72rem;color:var(--text3);padding-top:4px">+ ' + extra + ' más…</div>' : '';
-      const label = hayPend ? '⚠️ Inscripciones abiertas' : '✅ Inscripciones abiertas';
-      const col = hayPend ? 'var(--red)' : 'var(--green)';
-      const div = document.createElement('div');
-      div.setAttribute('data-inscr', '1');
-      div.innerHTML = '<div style="margin-bottom:10px"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:' + col + ';margin-bottom:6px">' + label + '</div>' + rows + extraTxt + '</div>';
-      // Desconectar observer, reemplazar TODO el contenido con solo el bloque de inscripciones
-      if (_inscObs) _inscObs.disconnect();
-      el.innerHTML = '';
-      el.appendChild(div);
-      if (_inscObs) _inscObs.observe(el, { childList: true, subtree: false });
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-      if (typeof opos_applySeed === 'function') opos_applySeed();
-      const target = document.getElementById('dash-opos-content');
-      if (target) {
-        _inscObs = new MutationObserver(function() { _renderInscripciones(); });
-        _inscObs.observe(target, { childList: true, subtree: false });
-      }
-      setTimeout(_renderInscripciones, 300);
-    });
   </script>
 </body>
 </html>
-

@@ -2,7 +2,7 @@
 const AUTH_KEY = 'cdc_auth';
 
 function isAuthenticated() {
-  return sessionStorage.getItem(AUTH_KEY) === 'ok';
+  return localStorage.getItem(AUTH_KEY) === 'ok';
 }
 
 function setupAuth() {
@@ -23,7 +23,7 @@ function setupAuth() {
 
   function tryLogin() {
     if (input.value === CONFIG.PASSWORD) {
-      sessionStorage.setItem(AUTH_KEY, 'ok');
+      localStorage.setItem(AUTH_KEY, 'ok');
       loginScreen.classList.add('hidden');
       mainApp.classList.remove('hidden');
       initApp();

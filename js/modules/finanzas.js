@@ -50,15 +50,21 @@ function getSaldosActuales() {
   const saved = Store.get('fin_saldos');
   const c = FIN_DATA.cuentas;
   const fmBase = saved.fm ?? (FIN_DATA.revolut_fondo_monetario.historial[FIN_DATA.revolut_fondo_monetario.historial.length-1]?.saldo_final ?? 291.28);
+  const interesesDiarios = (Store.get('fin_revolut_intereses', [])).reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
+  // Sumar intereses registrados en Actualizar posteriores a la última actualización de saldo
+  const fmTs = saved.fm_ts || saved._ts || 0;
+  const interesesRegistrados = Store.get('cdc_intereses_fm', [])
+    .filter(e => new Date(e.fecha + 'T23:59:59').getTime() > fmTs)
+    .reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
   return {
     ktx: saved.ktx ?? c.kutxabank_personal.saldo,
     rvp: saved.rvp ?? c.revolut_personal.saldo,
     rvc: saved.rvc ?? c.revolut_conjunta.saldo,
     ctv: saved.ctv ?? c.ctv_vivienda.saldo,
     bp:  saved.bp  ?? c.baskepensiones.saldo,
-    fm:  fmBase,
+    fm:  fmBase + interesesDiarios + interesesRegistrados,
     fmBase,
-    interesesDiarios: 0,
+    interesesDiarios,
   };
 }
 
@@ -147,10 +153,6 @@ function setupFinTabs() {
       document.querySelectorAll('.fin-panel').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById(tab.dataset.fintab)?.classList.add('active');
-      // Inicializar panel Ajustar la primera vez que se abre
-      if (tab.dataset.fintab === 'fin-panel-ajustar' && typeof setupUpdFinanzas === 'function') {
-        setupUpdFinanzas();
-      }
     });
   });
   // Generar opciones de mes dinámicamente desde transacciones + mes actual
@@ -317,6 +319,8 @@ const _FIN_CAT_GF = {
 
 function fin_getGastosFijos() {
   const stored = Store.get('fin_gastos_fijos', null);
+  if (stored) return stored;
+  // Primera vez: migrar desde FIN_DATA.presupuesto
   const p = FIN_DATA.presupuesto;
   let id = 0;
   const toEntry = (g, tipo) => ({
@@ -326,25 +330,13 @@ function fin_getGastosFijos() {
     cat: _FIN_CAT_GF[g.nombre] || 'otros',
     hasta: g.hasta || null, nota: g.nota || '', activo: true,
   });
-  const fromData = [
+  const list = [
     ...p.gastos_fijos.map(g => toEntry(g, 'personal')),
     ...p.gastos_fijos_conjunta.map(g => toEntry(g, 'conjunta')),
     ...p.suscripciones_personales.map(g => toEntry(g, 'suscripcion')),
   ];
-  if (!stored) {
-    Store.set('fin_gastos_fijos', fromData);
-    return fromData;
-  }
-  // Añadir entradas nuevas de FIN_DATA que no estén ya en el store
-  let changed = false;
-  fromData.forEach(entry => {
-    if (!stored.find(s => s.nombre === entry.nombre)) {
-      stored.push(entry);
-      changed = true;
-    }
-  });
-  if (changed) Store.set('fin_gastos_fijos', stored);
-  return stored;
+  Store.set('fin_gastos_fijos', list);
+  return list;
 }
 
 function fin_saveGastosFijos(list) {
@@ -493,6 +485,7 @@ function renderFinGastosFijos() {
   el.innerHTML = `
     <div class="fin-year-stats" style="margin-bottom:16px">
       <div class="fin-year-card"><div class="fin-year-label">Fijos personales</div><div class="fin-year-val red">${fmt(totalFijos)}/mes</div></div>
+      <div class="fin-year-card"><div class="fin-year-label">Suscripciones</div><div class="fin-year-val" style="color:var(--blue)">${fmt(totalSubs)}/mes</div></div>
       <div class="fin-year-card"><div class="fin-year-label">Conjunta estimado</div><div class="fin-year-val" style="color:var(--pink)">${fmt(totalConj)}/mes</div></div>
       <div class="fin-year-card"><div class="fin-year-label">Total comprometido</div><div class="fin-year-val red">${fmt(totalTodo)}/mes</div></div>
     </div>
@@ -500,6 +493,11 @@ function renderFinGastosFijos() {
     <div class="card" style="margin-bottom:12px">
       <h3 style="margin-bottom:12px">💸 Gastos fijos personales</h3>
       ${personal.length ? personal.map(renderRow).join('') : '<p style="color:var(--text3);font-size:.85rem">Sin gastos fijos personales.</p>'}
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <h3 style="margin-bottom:12px">📱 Suscripciones personales</h3>
+      ${subs.length ? subs.map(renderRow).join('') : '<p style="color:var(--text3);font-size:.85rem">Sin suscripciones.</p>'}
     </div>
 
     <div class="card" style="margin-bottom:${pausados.length?'12':'0'}px">
@@ -629,7 +627,7 @@ function renderFinSinking() {
   const fm = FIN_DATA.revolut_fondo_monetario;
   const fmExtra   = Store.get('fin_fm_extra', []);
   const fmDaily   = Store.get('fin_fm_daily', []).sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  // Convertir intereses registrados en Actualizar a filas del historial,
+  // Convertir intereses registrados a filas del historial,
   // solo si ese mes no existe ya en el historial base o en fmExtra
   // Agrupar intereses registrados por mes (YYYY-MM) para sumarlos al historial
   const _normMes = s => (s || '').toLowerCase().replace(/\./g, '').trim();
@@ -694,7 +692,6 @@ function renderFinSinking() {
         }).join('')}
         ${totalCompras > 0 ? `<div class="dash-row" style="margin-top:8px;font-weight:700"><span class="dash-row-label">Total estimado</span><span class="dash-row-val red">${fmt(totalCompras)}</span></div>` : ''}
       </div>
-      <a href="#finanzas" onclick="event.preventDefault();document.querySelector('a[href=\'#finanzas\']')?.click();setTimeout(()=>{document.querySelector('[data-fintab=\'fin-panel-ajustar\']')?.click();setTimeout(()=>document.getElementById('upd-fin-compras')?.scrollIntoView({behavior:'smooth'}),150)},300)" style="font-size:.75rem;color:var(--accent2)">✏️ Editar en Finanzas → Ajustar</a>
     </div>` : ''}
 
     <div class="card" style="margin-bottom:16px">
@@ -725,16 +722,17 @@ function renderFinSinking() {
             </div>`;
           })()}
         </div>
-        <div style="min-width:260px">
-          <div style="font-size:.72rem;color:var(--text3);font-weight:600;margin-bottom:6px">💹 Añadir interés</div>
-          <div style="display:grid;grid-template-columns:120px 1fr auto;gap:6px;align-items:end">
-            <div><label style="font-size:.68rem;color:var(--text3)">Fecha</label><input type="date" id="ufin-int-fecha" class="upd-input" style="font-size:.78rem;padding:4px 6px" /></div>
-            <div><label style="font-size:.68rem;color:var(--text3)">Interés neto (€)</label><input type="number" id="ufin-int-importe" class="upd-input" step="0.01" placeholder="0.15" style="font-size:.78rem;padding:4px 6px" /></div>
-            <button class="upd-btn" style="margin-bottom:0;padding:5px 10px;font-size:.78rem" onclick="ufin_addInteresFM()">Guardar</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <input type="date" id="fin-int-inline-fecha" value="${new Date().toISOString().split('T')[0]}"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:4px 8px;font-size:.75rem;width:130px" />
+          <input type="number" id="fin-int-inline-importe" placeholder="Interés (€)" step="0.01" min="0"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text1);padding:4px 8px;font-size:.75rem;width:130px"
+            onkeydown="if(event.key==='Enter')finAddInteresInline()" />
+          <div style="display:flex;align-items:center;gap:6px">
+            <span id="fin-int-inline-ok" class="update-success" style="font-size:.72rem">✓ Guardado</span>
+            <button onclick="finAddInteresInline()"
+              style="background:var(--accent2);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:.75rem;cursor:pointer;font-weight:600">Guardar</button>
           </div>
-          <span id="ufin-int-ok" class="update-success" style="display:none;font-size:.75rem;margin-top:4px">✓ Guardado</span>
-          <div id="ufin-int-total" style="font-size:.78rem;color:var(--accent2);font-weight:600;margin-top:6px"></div>
-          <div id="ufin-int-lista" style="margin-top:6px;max-height:140px;overflow-y:auto"></div>
         </div>
       </div>
 
@@ -746,7 +744,7 @@ function renderFinSinking() {
         </div>
         <div class="fin-year-card"><div class="fin-year-label">Objetivo</div><div class="fin-year-val">${fmt(fm.objetivo)}</div></div>
         <div class="fin-year-card"><div class="fin-year-label">Intereses totales</div><div class="fin-year-val green">${fmt(totalIntereses)}</div></div>
-        <div class="fin-year-card"><div class="fin-year-label">Rentabilidad est.</div><div class="fin-year-val" style="color:var(--accent2)">~${parseFloat(Store.get('fin_fm_apy', 1.38)).toFixed(2)}%</div></div>
+        <div class="fin-year-card"><div class="fin-year-label">Rentabilidad est.</div><div class="fin-year-val" style="color:var(--text2)">~1.38%</div></div>
       </div>
 
       <!-- Gráfica de crecimiento hacia objetivo -->
@@ -801,7 +799,6 @@ function renderFinSinking() {
 
   renderFinCTVSimulador();
   setTimeout(() => _renderFMChart(fmHistorial, fmExtra, s.fm, fm.objetivo), 60);
-  setTimeout(() => { if (typeof ufin_renderInteresFM === 'function') ufin_renderInteresFM(); }, 0);
 }
 
 function _renderFMChart(fmHistorial, fmExtra, saldoActual, objetivo) {
@@ -846,8 +843,8 @@ function _renderFMChart(fmHistorial, fmExtra, saldoActual, objetivo) {
 ══════════════════════════════════════════════════════ */
 function _renderFMProyeccion(saldoActual) {
   const aportacion = parseFloat(Store.get('fin_fm_aportacion', 50));
-  const APY = parseFloat(Store.get('fin_fm_apy', 1.38));
-  const r = Math.pow(1 + APY / 100, 1/12) - 1;
+  const APY = 0.0138;
+  const r = Math.pow(1 + APY, 1/12) - 1;
 
   function proyectar(meses) {
     let s = saldoActual;
@@ -866,22 +863,13 @@ function _renderFMProyeccion(saldoActual) {
   return `
   <div class="card" style="margin-bottom:16px;border-left:3px solid var(--accent2)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <h3>📈 Proyección Fondo Monetario (~${APY.toFixed(2)}% TIR)</h3>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:6px">
-          <label style="font-size:.75rem;color:var(--text3)">Interés anual:</label>
-          <input type="number" id="fin-fm-apy-input" value="${APY}" min="0" max="20" step="0.01"
-            style="width:70px;font-size:.82rem;padding:4px 8px;background:var(--bg3);border:1px solid rgba(99,102,241,.5);border-radius:6px;color:var(--accent2);font-weight:700;text-align:center"
-            onchange="Store.set('fin_fm_apy', parseFloat(this.value)||1.38); renderFinSinking();" />
-          <span style="font-size:.75rem;color:var(--accent2);font-weight:700">%</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <label style="font-size:.75rem;color:var(--text3)">Aportación/mes:</label>
-          <input type="number" id="fin-fm-apor-input" value="${aportacion}" min="0" step="5"
-            style="width:80px;font-size:.82rem;padding:4px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)"
-            onchange="Store.set('fin_fm_aportacion', parseFloat(this.value)||0); renderFinSinking();" />
-          <span style="font-size:.75rem;color:var(--text3)">€</span>
-        </div>
+      <h3>📈 Proyección Fondo Monetario (~1.38% TIR)</h3>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label style="font-size:.75rem;color:var(--text3)">Aportación/mes:</label>
+        <input type="number" id="fin-fm-apor-input" value="${aportacion}" min="0" step="5"
+          style="width:80px;font-size:.82rem;padding:4px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text)"
+          onchange="Store.set('fin_fm_aportacion', parseFloat(this.value)||0); renderFinSinking();" />
+        <span style="font-size:.75rem;color:var(--text3)">€</span>
       </div>
     </div>
     <div class="fin-year-stats">
@@ -909,7 +897,7 @@ function _renderFMProyeccion(saldoActual) {
     <div style="font-size:.72rem;color:var(--text3);margin-top:10px">
       Saldo base: <strong style="color:var(--text2)">${fmt(saldoActual)}</strong> ·
       Sin aportaciones a 5 años: <strong>${fmt(soloInteres5)}</strong> ·
-      TIR actual: <strong style="color:var(--accent2)">${APY.toFixed(2)}%</strong>
+      TIR estimada Revolut Money Market ~1.38%
     </div>
   </div>`;
 }
@@ -918,19 +906,7 @@ function _renderFMProyeccion(saldoActual) {
    PANEL: DEUDAS — CRUD DINÁMICO
 ══════════════════════════════════════════════════════ */
 function fin_getDeudas() {
-  if (localStorage.getItem('fin_deudas') !== null) {
-    const deudas = Store.get('fin_deudas', []);
-    // Fusionar seeds de FIN_DATA que no estén ya en localStorage (por id o nombre)
-    let changed = false;
-    (FIN_DATA.deudas || []).filter(d => d.id && String(d.id).startsWith('seed-')).forEach(d => {
-      if (!deudas.find(x => x.id === d.id || x.nombre === d.nombre)) {
-        deudas.push({ id: d.id, nombre: d.nombre, cantidad_total: d.cantidad_total, cuotas_pagadas: d.cuotas_pagadas || 0, cuotas_total: d.cuotas_total || 1, tae: d.tae || 0, cuenta: d.cuenta || 'KTX', nota: d.nota || '' });
-        changed = true;
-      }
-    });
-    if (changed) Store.set('fin_deudas', deudas);
-    return deudas;
-  }
+  if (localStorage.getItem('fin_deudas') !== null) return Store.get('fin_deudas', []);
   // Migrar iPhone de FIN_DATA en el primer acceso
   const deudas = [];
   (FIN_DATA.deudas || []).forEach(d => {
@@ -980,12 +956,11 @@ function finDeudaAnadir() {
   const tae = parseFloat(document.getElementById('fin-deuda-tae')?.value) || 0;
   const cuenta = document.getElementById('fin-deuda-cuenta')?.value || 'KTX';
   const nota = document.getElementById('fin-deuda-nota')?.value?.trim() || '';
-  if (!nombre || isNaN(cantidad) || isNaN(cuotas) || cuotas < 0) {
-    alert('Rellena nombre, cantidad y plazo (0 = pago único).'); return;
+  if (!nombre || isNaN(cantidad) || isNaN(cuotas) || cuotas < 1) {
+    alert('Rellena nombre, cantidad y plazo (meses).'); return;
   }
-  const cuotasReal = cuotas === 0 ? 1 : cuotas;
   const deudas = fin_getDeudas();
-  deudas.push({ id: Date.now(), nombre, cantidad_total: cantidad, cuotas_pagadas: 0, cuotas_total: cuotasReal, tae, cuenta, nota });
+  deudas.push({ id: Date.now(), nombre, cantidad_total: cantidad, cuotas_pagadas: 0, cuotas_total: cuotas, tae, cuenta, nota });
   Store.set('fin_deudas', deudas);
   renderFinDeudas();
   renderFinStats();
@@ -1158,44 +1133,26 @@ function renderFinPresupuestoYGastos() {
         <div class="fin-budget-block" style="margin-bottom:10px">
           <div class="fin-budget-titulo">Gastos fijos personales</div>
           ${personal.map(g => filaPresup(g,'red')).join('')}
+          ${conjunta.length ? `<div class="fin-budget-titulo" style="margin-top:8px">Conjunta</div>${conjunta.map(g=>filaPresup(g,'pink')).join('')}` : ''}
           <div class="fin-budget-row fin-budget-total"><span>Subtotal</span><strong>${fmt(totalFijo)}</strong></div>
+        </div>
+        <div class="fin-budget-block">
+          <div class="fin-budget-titulo">Suscripciones</div>
+          ${subs.map(g => filaPresup(g,'blue')).join('')}
+          <div class="fin-budget-row fin-budget-total"><span>Subtotal</span><strong>${fmt(totalSubs)}</strong></div>
         </div>
       </div>
 
-      <!-- Columna derecha: Gastos fijos detallados con saldo restante -->
+      <!-- Columna derecha: Gastos fijos detallados con día de cobro -->
       <div class="card">
         <h3 style="margin-bottom:12px">Gastos fijos con día de cobro</h3>
-        <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text3);margin-bottom:10px">
-          <span>Personal · ${fmt(totalFijo)}/mes</span>
-          <span>Nómina: <strong style="color:var(--green)">${fmt(sueldo)}</strong></span>
-        </div>
-        ${(() => {
-          let restante = sueldo;
-          return personal.map(g => {
-            restante -= g.importe;
-            const ct = ctaColor[g.cuenta] || 'var(--text2)';
-            const mesRest = g.hasta ? calcMesesRestantes(g.hasta) : null;
-            return `<div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2)">
-              <div>
-                <span style="font-size:.8rem;font-weight:600">${g.nombre}</span>
-                ${g.dia ? `<span style="font-size:.65rem;color:var(--text3);margin-left:5px">día ${g.dia}</span>` : ''}
-                ${g.hasta ? `<span style="font-size:.65rem;color:var(--orange);margin-left:4px">hasta ${g.hasta}</span>` : ''}
-                <br><span style="font-size:.68rem;color:${ct}">● ${g.cuenta}</span>
-              </div>
-              <span style="font-size:.8rem;font-weight:700;color:var(--red)">-${fmt(g.importe)}</span>
-              <span style="font-size:.82rem;font-weight:700;color:${restante>=0?'var(--green)':'var(--red)'};min-width:70px;text-align:right">${fmt(restante)}</span>
-            </div>`;
-          }).join('');
-        })()}
-        <div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:8px;display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center">
-          <span style="font-size:.78rem;color:var(--text2)">Nómina</span>
-          <span style="font-size:.82rem;font-weight:700;color:var(--green);text-align:right">${fmt(sueldo)}</span>
-          <span style="font-size:.78rem;color:var(--text2)">Gastos fijos</span>
-          <span style="font-size:.82rem;font-weight:700;color:var(--red);text-align:right">-${fmt(totalFijo)}</span>
-          <div style="grid-column:1/-1;border-top:1px solid var(--border2);margin:4px 0"></div>
-          <span style="font-size:.85rem;font-weight:700;color:var(--text1)">Disponible</span>
-          <span style="font-size:.95rem;font-weight:800;color:${(sueldo-totalFijo)>=0?'var(--green)':'var(--red)'};text-align:right">${fmt(sueldo - totalFijo)}</span>
-        </div>
+        <div style="font-size:.7rem;color:var(--text3);margin-bottom:10px">Personal · ${fmt(totalFijo)}/mes &nbsp;|&nbsp; Subs · ${fmt(totalSubs)}/mes</div>
+        ${[...personal, ...subs].map(filaGasto).join('')}
+        ${conjunta.length ? `
+          <div style="font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:12px;margin-bottom:6px">Conjunta · ${fmt(totalConj)}/mes</div>
+          ${conjunta.map(filaGasto).join('')}` : ''}
+        ${pausados.length ? `
+          <div style="font-size:.7rem;color:var(--text3);margin-top:12px;font-style:italic">⏸ ${pausados.length} gasto${pausados.length!==1?'s':''} pausado${pausados.length!==1?'s':''}</div>` : ''}
       </div>
     </div>`;
 }
@@ -1263,6 +1220,23 @@ function finFMDailyBorrar(i) {
   daily.splice(i, 1);
   Store.set('fin_fm_daily', daily);
   renderFinSinking();
+}
+
+function finAddInteresInline() {
+  const fecha = document.getElementById('fin-int-inline-fecha')?.value;
+  const importe = parseFloat(document.getElementById('fin-int-inline-importe')?.value);
+  if (!fecha || isNaN(importe) || importe <= 0) { alert('Indica fecha e importe válido.'); return; }
+
+  const lista = Store.get('cdc_intereses_fm', []);
+  const idx = lista.findIndex(e => e.fecha === fecha);
+  if (idx >= 0) lista[idx].importe = importe;
+  else lista.push({ fecha, importe });
+  Store.set('cdc_intereses_fm', lista);
+
+  document.getElementById('fin-int-inline-importe').value = '';
+  mostrarOk('fin-int-inline-ok');
+  renderFinSinking();
+  renderFinStats();
 }
 
 function addMesFondoMonetario() {
@@ -1465,14 +1439,10 @@ function renderFinCTVSimulador() {
   const anioCompra = filaMeta ? anoActual + filaMeta.anio - 1 : null;
   const totalBeneficios = (sim23?.totalIntereses || 0) + (sim23?.bonusFinal || 0) + ahorroITP + (sim23?.rows.reduce((a, r) => a + r.haciendaRecibida, 0) || 0);
 
-  // Meses restantes del año fiscal y ahorro mensual necesario para cubrir el límite anual
+  // Días restantes del año fiscal
   const finAnio = new Date(anoActual, 11, 31);
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   const diasRestAnio = Math.ceil((finAnio - hoy) / 86400000);
-  const mesesRestAnio = Math.max(1, parseFloat((diasRestAnio / 30.44).toFixed(1)));
-  const mesesRestAnioInt = Math.max(1, Math.round(mesesRestAnio));
-  const pendienteReal = Math.max(0, libreAnio - ctv);
-  const necesarioPorMes = pendienteReal > 0 ? Math.ceil(pendienteReal / mesesRestAnioInt) : 0;
 
   el.innerHTML = `
     <!-- KPIs principales -->
@@ -1503,12 +1473,13 @@ function renderFinCTVSimulador() {
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
         <div style="font-weight:700;font-size:.87rem;color:var(--accent2)">📥 Aportaciones CTV — ${anoActual}</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <span style="font-size:.75rem;color:#34d399;font-weight:700">${fmt(aportadoAnio)} aportado</span>
-          <span style="font-size:.72rem;color:var(--text3)">· libre: ${fmt(libreAnio)}</span>
-          ${diasRestAnio < 60
-            ? `<span style="font-size:.7rem;background:#ff000018;color:var(--red);padding:2px 8px;border-radius:6px;font-weight:600">⚡ ${mesesRestAnioInt} mes${mesesRestAnioInt!==1?'es':''} para cierre IRPF · ${fmt(necesarioPorMes)}/mes</span>`
-            : `<span style="font-size:.7rem;color:var(--text3)">${mesesRestAnioInt} mes${mesesRestAnioInt!==1?'es':''} para cierre fiscal${necesarioPorMes>0?' · '+fmt(necesarioPorMes)+'/mes':''}</span>`}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:.75rem;color:#34d399;font-weight:700">${fmt(aportadoAnio)} aportado</span>
+            <span style="font-size:.72rem;color:var(--text3)">· libre: ${fmt(libreAnio)}</span>
+            ${diasRestAnio < 60 ? `<span style="font-size:.7rem;background:#ff000018;color:var(--red);padding:2px 8px;border-radius:6px;font-weight:600">⚡ ${diasRestAnio}d para cierre IRPF</span>` : `<span style="font-size:.7rem;color:var(--text3)">${Math.floor(diasRestAnio/30)}m para cierre fiscal</span>`}
+          </div>
+          ${libreAnio > 0 ? (() => { const meses = Math.max(1, Math.floor(diasRestAnio/30)); return `<span style="font-size:.7rem;color:var(--accent2);font-weight:600">→ ${fmt(Math.ceil(libreAnio/meses))}/mes para completar el límite</span>`; })() : `<span style="font-size:.7rem;color:#34d399;font-weight:600">✓ Límite alcanzado</span>`}
         </div>
       </div>
       <!-- Barra anual -->
