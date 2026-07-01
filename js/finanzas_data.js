@@ -12,8 +12,8 @@
 const FIN_DATA = {
 
   cuentas: {
-    kutxabank_personal:  { id:'KTX', nombre:'Kutxabank Personal',   saldo: 1792.38, iban_last4:'7421', color:'#60a5fa' },
-    revolut_personal:    { id:'RVP', nombre:'Revolut Personal',     saldo: 513.05,  iban_last4:'3928', color:'#a78bfa' },
+    kutxabank_personal:  { id:'KTX', nombre:'Kutxabank Personal',   saldo: 1293.28, iban_last4:'7421', color:'#60a5fa' },
+    revolut_personal:    { id:'RVP', nombre:'Revolut Personal',     saldo: 387.09,  iban_last4:'3928', color:'#a78bfa' },
     revolut_conjunta:    { id:'RVC', nombre:'Revolut Conjunta',     saldo: 705.70,  iban_last4:'7765', color:'#f472b6' },
     ctv_vivienda:        { id:'CTV', nombre:'CTV – Cuenta Vivienda',saldo: 5950.00, iban_last4:'—',    color:'#34d399' },
     baskepensiones:      { id:'BP',  nombre:'Baskepensiones 60',    saldo: 199.71,  iban_last4:'6999', color:'#fbbf24' },
@@ -27,6 +27,8 @@ const FIN_DATA = {
       { nombre: 'Seguro Vida Kutxabank',   importe: 12.58,  cuenta:'KTX', hasta:null,       nota:'~15.61€ - 3.03€ descuento' },
       { nombre: 'CTV – Transferencia',     importe: 150.00, cuenta:'KTX', hasta:null,       nota:'Ahorro vivienda mensual' },
       { nombre: 'Aporte cuenta conjunta',  importe: 400.00, cuenta:'RVP', hasta:null,       nota:'Variable ~300-500€/mes' },
+      { nombre: 'Revolut Personal',        importe: 400.00, cuenta:'RVP', hasta:null,       nota:'' },
+      { nombre: 'Ahorro Fondo Monetario', importe: 100.00, cuenta:'RVP', hasta:null,       nota:'Aportación mensual FM' },
     ],
     gastos_fijos_conjunta: [
       { nombre: 'Mercadona (semanal)',     importe: 280.00, cuenta:'RVC', nota:'~70€/semana estimado' },
@@ -69,7 +71,7 @@ const FIN_DATA = {
       { mes:'Mar 2026', aportacion: -100.00, saldo_anterior: 5759.03, saldo_final: 5664.92, interes:  5.89 },
       { mes:'Abr 2026', aportacion:  130.00, saldo_anterior: 5664.92, saldo_final: 5800.74, interes:  5.82 },
       { mes:'May 2026', aportacion:-5797.91, saldo_anterior: 5800.74, saldo_final:    5.19, interes:  2.36, nota:'Retirada total para CTV – Cuenta Vivienda' },
-      { mes:'Jun 2026', aportacion:  305.80, saldo_anterior:    5.19, saldo_final:  311.28, interes:  0.10, nota:'285,80€ (hasta 12 jun) + 20€ (30 jun)' },
+      { mes:'Jun 2026', aportacion:  305.80, saldo_anterior:    5.19, saldo_final:  311.28, interes:  0.49, nota:'285,80€ (hasta 26 jun) + 20€ (30 jun)' },
     ],
   },
 
@@ -81,6 +83,7 @@ const FIN_DATA = {
 
   deudas: [
     {
+      id: 'seed-iphone',
       nombre: 'iPhone (Banco Cetelem / Klarna)',
       importe_cuota: 42.37,
       fecha_inicio: '2025-04-05',
@@ -89,6 +92,16 @@ const FIN_DATA = {
       cuotas_pagadas: 14,
       cuenta: 'KTX',
       nota: 'Finaliza Marzo 2027. 10 cuotas restantes.',
+    },
+    {
+      id: 'seed-hacienda-2026',
+      nombre: 'Hacienda',
+      cantidad_total: 700,
+      cuotas_total: 1,
+      cuotas_pagadas: 0,
+      tae: 0,
+      cuenta: 'KTX',
+      nota: 'Pago 06/07/2026',
     },
   ],
 
@@ -199,6 +212,13 @@ const FIN_DATA = {
     { f:'2026-06-08', i:-15.15, d:'Kutxabank Seguro Vida',         c:'salud',         ct:'KTX' },
     { f:'2026-06-08', i:  3.03, d:'Descuento campaña Seguro Vida', c:'salud',         ct:'KTX' },
     { f:'2026-06-09', i:-44.99, d:'Apple – suscripción',           c:'suscripciones', ct:'KTX' },
+    { f:'2026-06-15', i: -6.05, d:'Anthropic',                     c:'suscripciones', ct:'KTX' },
+    { f:'2026-06-17', i:-12.00, d:'Bazar Zhu',                     c:'compras',       ct:'KTX' },
+    { f:'2026-06-17', i:-17.10, d:"Lula's Bakery",                 c:'hosteleria',    ct:'KTX' },
+    { f:'2026-06-17', i:-19.99, d:'Game 245 Barakaldo',            c:'ocio',          ct:'KTX' },
+    { f:'2026-06-18', i: -5.00, d:'Renfe Cercanías',               c:'transporte',    ct:'KTX' },
+    { f:'2026-06-19', i:-249.07,d:'Forum Sport Megapark',          c:'ropa',          ct:'KTX' },
+    { f:'2026-06-24', i:-12.90, d:'Bar Aragón',                    c:'hosteleria',    ct:'KTX' },
 
     // ═══ REVOLUT PERSONAL (RVP) Ene–Jun 2026 ═══
     { f:'2026-01-01', i: -0.10, d:'Revolut – Compra BTC',          c:'ahorro',        ct:'RVP' },
@@ -402,7 +422,7 @@ const FIN_DATA = {
     { f:'2026-05-11', i:-27.83, d:'Bizum – CopyFlyPrint (imprimir)',c:'oposiciones',  ct:'RVP' },
     { f:'2026-05-11', i: -0.15, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
     { f:'2026-05-11', i: -1.99, d:'Apple – suscripción',           c:'suscripciones', ct:'RVP' },
-    { f:'2026-05-12', i:-59.99, d:'Curso Online',                  c:'formacion',     ct:'RVP' },
+    { f:'2026-05-12', i:-59.99, d:'Autoescuela',                   c:'formacion',     ct:'KTX' },
     { f:'2026-05-13', i: -0.10, d:'Revolut – Compra BTC',          c:'ahorro',        ct:'RVP' },
     { f:'2026-05-12', i: -5.00, d:'Alimentación Oihane',           c:'alimentacion',  ct:'RVP' },
     { f:'2026-05-13', i: -0.15, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
@@ -433,7 +453,7 @@ const FIN_DATA = {
     { f:'2026-05-25', i: -0.15, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
     { f:'2026-05-25', i:-11.90, d:'Bar Aragón',                    c:'hosteleria',    ct:'RVP' },
     { f:'2026-05-25', i:-17.53, d:'BM Supermercados',              c:'alimentacion',  ct:'RVP' },
-    { f:'2026-05-26', i:-94.05, d:'Autoescuela Niño – Permiso B',  c:'formacion',     ct:'RVP', ref:'Carnet conducir' },
+    { f:'2026-05-26', i:-94.05, d:'Autoescuela Niño – Permiso B',  c:'formacion',     ct:'KTX', ref:'Carnet conducir' },
     { f:'2026-05-27', i: -0.10, d:'Revolut – Compra BTC',          c:'ahorro',        ct:'RVP' },
     { f:'2026-05-26', i: -3.19, d:'BM Supermercados',              c:'alimentacion',  ct:'RVP' },
     { f:'2026-05-27', i: -0.15, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
@@ -475,7 +495,24 @@ const FIN_DATA = {
     { f:'2026-06-09', i:-18.00, d:'Floristería Edén',              c:'regalo',        ct:'RVP' },
     { f:'2026-06-09', i:-31.99, d:'Misako CC Max Center',          c:'ropa',          ct:'RVP' },
     { f:'2026-06-10', i: -0.10, d:'Revolut – Compra BTC',          c:'ahorro',        ct:'RVP' },
-    { f:'2026-06-10', i:-19.99, d:'Curso Online',                  c:'formacion',     ct:'RVP' },
+    { f:'2026-06-10', i:-19.99, d:'Autoescuela',                   c:'formacion',     ct:'RVP' },
+    { f:'2026-06-18', i:-10.00, d:'Autoescuela',                   c:'formacion',     ct:'RVP' },
+    { f:'2026-06-14', i: -0.15, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
+    { f:'2026-06-14', i: -7.00, d:'Bizum – Tania',                 c:'regalo',        ct:'RVP' },
+    { f:'2026-06-15', i: -4.00, d:'Bar Aragón',                    c:'hosteleria',    ct:'RVP' },
+    { f:'2026-06-16', i: -0.15, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
+    { f:'2026-06-16', i: -4.10, d:'Bar Aragón',                    c:'hosteleria',    ct:'RVP' },
+    { f:'2026-06-17', i: -1.90, d:'La Tortilla del Galatea',       c:'hosteleria',    ct:'RVP' },
+    { f:'2026-06-18', i: -0.30, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
+    { f:'2026-06-19', i: -7.60, d:'Eroski',                        c:'alimentacion',  ct:'RVP' },
+    { f:'2026-06-19', i: -4.24, d:'DIA',                           c:'alimentacion',  ct:'RVP' },
+    { f:'2026-06-20', i: -0.15, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
+    { f:'2026-06-20', i: -8.79, d:'Eroski',                        c:'alimentacion',  ct:'RVP' },
+    { f:'2026-06-21', i: -5.00, d:'Churrería Cánovas',             c:'hosteleria',    ct:'RVP' },
+    { f:'2026-06-21', i: -2.00, d:'Nordisven',                     c:'compras',       ct:'RVP' },
+    { f:'2026-06-22', i: -4.20, d:'DIA',                           c:'alimentacion',  ct:'RVP' },
+    { f:'2026-06-23', i: -0.15, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
+    { f:'2026-06-25', i: -0.30, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
     { f:'2026-06-11', i: -1.99, d:'Apple – suscripción',           c:'suscripciones', ct:'RVP' },
     { f:'2026-06-11', i: -0.15, d:'Bizkaibizi',                    c:'transporte',    ct:'RVP' },
 
@@ -555,6 +592,11 @@ const FIN_DATA = {
     { f:'2026-06-06', i:-63.95, d:'Mercadona',                     c:'alimentacion',  ct:'RVC' },
     { f:'2026-06-11', i:-12.92, d:'DIA',                           c:'alimentacion',  ct:'RVC' },
     { f:'2026-06-11', i:-35.07, d:'Vodafone / Lowi',               c:'suscripciones', ct:'RVC' },
+    { f:'2026-06-13', i:-36.69, d:'Mercadona',                     c:'alimentacion',  ct:'RVC' },
+    { f:'2026-06-20', i: -5.04, d:'DIA',                           c:'alimentacion',  ct:'RVC' },
+    { f:'2026-06-22', i:-59.55, d:'Mercadona',                     c:'alimentacion',  ct:'RVC' },
+    { f:'2026-06-23', i:-16.61, d:'DIA',                           c:'alimentacion',  ct:'RVC' },
+    { f:'2026-06-24', i:-101.92,d:'Decathlon',                     c:'ropa',          ct:'RVC' },
   ],
 
   // Resumen anual real (calculado de PDFs)
