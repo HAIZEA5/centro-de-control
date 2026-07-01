@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 33;
+const OPOS_SEED_VERSION = 34;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -832,6 +832,15 @@ function opos_applySeed() {
   });
 
   Store.set('opos_convocatorias', actuales);
+
+  // Inscripciones ya enviadas (persisten como estado de usuario)
+  [
+    'Ayto. Tolosa — Administrativo',
+  ].forEach(conv => {
+    const k = 'opos_inscrita_' + conv.replace(/\s+/g,'_');
+    if (!localStorage.getItem(k)) localStorage.setItem(k, 'si');
+  });
+
   localStorage.setItem(vKey, String(OPOS_SEED_VERSION));
   console.info(`[Oposiciones] Seed v${OPOS_SEED_VERSION}: ${añadidas} añadidas, ${actualizadas} actualizadas.`);
 }
