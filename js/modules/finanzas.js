@@ -640,7 +640,9 @@ function renderFinSinking() {
   });
 
   // Fusionar: sumar intereses registrados al mes existente si coincide, o añadir fila nueva si no existe
-  const histBase = [...fm.historial, ...fmExtra];
+  // fmExtra solo añade meses que no existan ya en el historial base del JS
+  const histMeses = new Set(fm.historial.map(h => _normMes(h.mes)));
+  const histBase = [...fm.historial, ...fmExtra.filter(h => !histMeses.has(_normMes(h.mes)))];
   const mesesEnHistorial = {}; // clave normalizada → índice en histBase
   histBase.forEach((h, i) => { mesesEnHistorial[_normMes(h.mes)] = i; });
 
