@@ -294,11 +294,16 @@ function opos_renderFiltered() {
       : (r.tipo_proceso === 'concurso' || r.tipo_proceso === 'concurso-oposicion')
         ? '<span class="badge badge--yellow" style="font-size:.7rem">C-O</span>'
         : '';
+    const _iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+    const _iVal = localStorage.getItem(_iKey) || '';
+    const inscrBadge = _iVal === 'si'        ? '<span title="Inscrita" style="color:var(--green);font-size:.78rem;margin-left:4px">✍️✅</span>'
+                     : _iVal === 'pendiente' ? '<span title="Inscripción pendiente" style="color:var(--yellow);font-size:.78rem;margin-left:4px">✍️⏳</span>'
+                     : '';
     return `
     <tr class="opos-row" onclick="toggleOposDetalle(${realIdx}, this)" data-idx="${realIdx}" style="cursor:pointer">
       <td data-label="Perfil">${badgePerfil(r.perfil)}</td>
       <td data-label="Convocatoria">
-        <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'} ${itBadge}</div>
+        <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'} ${itBadge}${inscrBadge}</div>
         <div style="font-size:.74rem;color:var(--text3);margin-top:2px">${org || ''} ${tipoBadge}</div>
       </td>
       <td data-label="Grupo">${r.grupo || '—'}</td>
@@ -396,6 +401,12 @@ function renderDetalleHTML(r, i) {
 
 /* ── Panel: Fechas ── */
 function renderFechasPanel(r) {
+  const inscrKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+  const inscrVal = localStorage.getItem(inscrKey) || '';
+  const _ib = (v, label, col, bg) => `<button data-inscr-key="${inscrKey}" data-inscr-val="${v}"
+    onclick="opos_setInscrita('${inscrKey}','${v}')"
+    style="padding:7px 16px;border-radius:8px;border:2px solid ${inscrVal===v?col:'var(--border)'};background:${inscrVal===v?bg:'var(--bg4)'};color:${inscrVal===v?col:'var(--text2)'};cursor:pointer;font-size:.85rem;font-weight:${inscrVal===v?'700':'400'};font-family:inherit">${label}</button>`;
+
   const fechas = [
     { label: 'Apertura inscripción',  val: r.fecha_apertura,    icon: '🟢' },
     { label: 'Fin inscripción',       val: r.fecha_fin_inscr,   icon: '🔴' },
@@ -417,6 +428,15 @@ function renderFechasPanel(r) {
   });
 
   return `
+  <div style="margin-bottom:14px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+    <div style="font-weight:700;font-size:.82rem;color:var(--accent2);margin-bottom:10px">✍️ ¿Te has inscrito?</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${_ib('si','✅ Sí','var(--green)','#00ff0022')}
+      ${_ib('no','❌ No','var(--red)','#ff000022')}
+      ${_ib('pendiente','⏳ Pendiente','var(--yellow)','#f59e0b22')}
+    </div>
+  </div>
+
   <div class="det-fechas-grid">
     ${fechas.map((f, fi) => {
       const d = f.val ? oposLocalDate(f.val) : null;
@@ -988,6 +1008,20 @@ function guardarUbicacionExamen(conv, key) {
     const panel = document.getElementById('det-fechas-' + idx);
     if (panel) panel.innerHTML = renderFechasPanel(data[idx]);
   }
+}
+
+function opos_setInscrita(key, val) {
+  localStorage.setItem(key, val);
+  const cols = { si: 'var(--green)', no: 'var(--red)', pendiente: 'var(--yellow)' };
+  const bgs  = { si: '#00ff0022',    no: '#ff000022',  pendiente: '#f59e0b22' };
+  document.querySelectorAll(`[data-inscr-key="${CSS.escape(key)}"]`).forEach(btn => {
+    const bv = btn.getAttribute('data-inscr-val');
+    const active = bv === val;
+    btn.style.border     = `2px solid ${active ? cols[bv] : 'var(--border)'}`;
+    btn.style.background = active ? bgs[bv]  : 'var(--bg4)';
+    btn.style.color      = active ? cols[bv] : 'var(--text2)';
+    btn.style.fontWeight = active ? '700' : '400';
+  });
 }
 
 function opos_toggleCheck(key, field, checked) {
