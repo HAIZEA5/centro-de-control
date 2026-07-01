@@ -49,19 +49,21 @@ function loadFinanzas() {
 function getSaldosActuales() {
   const saved = Store.get('fin_saldos');
   const c = FIN_DATA.cuentas;
+  // Si fin_saldos es anterior a la versión del JS, los datos del JS tienen prioridad
+  const savedDate = saved._ts ? new Date(saved._ts).toISOString().split('T')[0] : '2000-01-01';
+  const useJS = (FIN_DATA.data_version || '2000-01-01') > savedDate;
   const fmBase = saved.fm ?? (FIN_DATA.revolut_fondo_monetario.historial[FIN_DATA.revolut_fondo_monetario.historial.length-1]?.saldo_final ?? 291.28);
   const interesesDiarios = (Store.get('fin_revolut_intereses', [])).reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
-  // Sumar intereses registrados en Actualizar posteriores a la última actualización de saldo
   const fmTs = saved.fm_ts || saved._ts || 0;
   const interesesRegistrados = Store.get('cdc_intereses_fm', [])
     .filter(e => new Date(e.fecha + 'T23:59:59').getTime() > fmTs)
     .reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
   return {
-    ktx: saved.ktx ?? c.kutxabank_personal.saldo,
-    rvp: saved.rvp ?? c.revolut_personal.saldo,
-    rvc: saved.rvc ?? c.revolut_conjunta.saldo,
-    ctv: saved.ctv ?? c.ctv_vivienda.saldo,
-    bp:  saved.bp  ?? c.baskepensiones.saldo,
+    ktx: useJS ? c.kutxabank_personal.saldo : (saved.ktx ?? c.kutxabank_personal.saldo),
+    rvp: useJS ? c.revolut_personal.saldo    : (saved.rvp ?? c.revolut_personal.saldo),
+    rvc: useJS ? c.revolut_conjunta.saldo    : (saved.rvc ?? c.revolut_conjunta.saldo),
+    ctv: useJS ? c.ctv_vivienda.saldo        : (saved.ctv ?? c.ctv_vivienda.saldo),
+    bp:  useJS ? c.baskepensiones.saldo      : (saved.bp  ?? c.baskepensiones.saldo),
     fm:  fmBase + interesesDiarios + interesesRegistrados,
     fmBase,
     interesesDiarios,
