@@ -54,9 +54,18 @@ function getSaldosActuales() {
   const isManual = !!saved._manual;
   const savedDate = isManual && saved._ts ? new Date(saved._ts).toISOString().split('T')[0] : '2000-01-01';
   const useJS = !isManual || (FIN_DATA.data_version || '2000-01-01') > savedDate;
-  const fmBase = saved.fm ?? (FIN_DATA.revolut_fondo_monetario.historial[FIN_DATA.revolut_fondo_monetario.historial.length-1]?.saldo_final ?? 291.28);
+  const lastHist = FIN_DATA.revolut_fondo_monetario.historial.at(-1);
+  const fmBaseJS = lastHist?.saldo_final ?? 291.28;
+  const fmBase = useJS ? fmBaseJS : (saved.fm ?? fmBaseJS);
+  // En modo JS, corte al fin del mes del último historial para no doblar intereses ya incluidos
+  const fmTsJS = (() => {
+    if (!lastHist) return 0;
+    const [mon, yr] = lastHist.mes.split(' ');
+    const m = { ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11 }[mon.toLowerCase().replace('.','')];
+    return m !== undefined ? new Date(parseInt(yr), m + 1, 0, 23, 59, 59).getTime() : 0;
+  })();
+  const fmTs = useJS ? fmTsJS : (saved.fm_ts || saved._ts || 0);
   const interesesDiarios = (Store.get('fin_revolut_intereses', [])).reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
-  const fmTs = saved.fm_ts || saved._ts || 0;
   const interesesRegistrados = Store.get('cdc_intereses_fm', [])
     .filter(e => new Date(e.fecha + 'T23:59:59').getTime() > fmTs)
     .reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
