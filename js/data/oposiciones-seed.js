@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 20;
+const OPOS_SEED_VERSION = 21;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -261,8 +261,8 @@ const OPOS_SEED = [
     doc_discap:      'No aplica',
     doc_extra1_nombre: 'Justificante inscripción',
     doc_extra1:      'Listo',
-    notas: '1 plaza de Administrativo de Servicios Generales. Grupo C1, PL2 preceptivo. Concurso-oposición libre. BOE 20/04/2026. Plazo cerrado 14/05/2026. Bases originales BOB nº 201 de 21/10/2025, rectificación BOB nº 57 de 25/03/2026. Oposición (60 pts): test general 0-10 mín 5 + test específico 0-20 mín 10 + práctico 0-30 mín 15 + euskera eliminatorio. Baremo concurso (máx 27 pts): experiencia AAPP C1 últimos 10 años 0,175 pts/mes máx 14 pts + formación máx 13 pts (licenciatura 4pts, FP sup 3pts, cursos por horas, IT Txartela 0,50 pts/certif máx 2pts, idiomas UE) + euskera NO puntúa (suprimido por Decreto 375/2026). Sin puntuación por experiencia privada. 📋 Inscripción: solo instancia. Méritos (acreditar tras oposición): vida laboral + contratos. DNI + titulación + euskera: al ser seleccionado.',
-    url_boe:   'https://www.preparaoposiciones.com/blog/convocatorias/oposicion-administrativo-ayuntamiento-valle-de-trapaga-trapagaran-2026/',
+    notas: '2 plazas Administrativo/a de Servicios Económicos, turno libre. Grupo C1, PL2 preceptivo. Concurso-oposición libre. BOE nº 158 de 30/06/2026 (BOE-A-2026-14174). Bases: BOB nº 102 de 02/06/2026. Plazo cerrado 14/05/2026. Oposición (60 pts): test general 0-10 mín 5 + test específico 0-20 mín 10 + práctico 0-30 mín 15 + euskera eliminatorio. Baremo concurso (máx 27 pts): experiencia AAPP C1 últimos 10 años 0,175 pts/mes máx 14 pts + formación máx 13 pts (licenciatura 4pts, FP sup 3pts, cursos por horas, IT Txartela 0,50 pts/certif máx 2pts, idiomas UE) + euskera NO puntúa (suprimido por Decreto 375/2026). Sin puntuación por experiencia privada. 📋 Inscripción: solo instancia. Méritos (acreditar tras oposición): vida laboral + contratos. DNI + titulación + euskera: al ser seleccionado.',
+    url_boe:   'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-14174',
     url_bases: 'https://www.canaloposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_valle_de_trapaga_trapagaran-2ala7536ap1.htm',
     // Concurso-oposición: baremo experiencia + euskera + formación
     meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
