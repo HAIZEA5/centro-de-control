@@ -11,6 +11,8 @@
 
 const FIN_DATA = {
 
+  data_version: '2026-07-01',
+
   cuentas: {
     kutxabank_personal:  { id:'KTX', nombre:'Kutxabank Personal',   saldo: 1293.28, iban_last4:'7421', color:'#60a5fa' },
     revolut_personal:    { id:'RVP', nombre:'Revolut Personal',     saldo: 387.09,  iban_last4:'3928', color:'#a78bfa' },
