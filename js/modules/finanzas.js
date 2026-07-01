@@ -49,9 +49,11 @@ function loadFinanzas() {
 function getSaldosActuales() {
   const saved = Store.get('fin_saldos');
   const c = FIN_DATA.cuentas;
-  // Si fin_saldos es anterior a la versión del JS, los datos del JS tienen prioridad
-  const savedDate = saved._ts ? new Date(saved._ts).toISOString().split('T')[0] : '2000-01-01';
-  const useJS = (FIN_DATA.data_version || '2000-01-01') > savedDate;
+  // JS tiene prioridad a menos que el usuario haya guardado saldos manualmente (_manual:true)
+  // Los datos de Supabase sin _manual son antiguos y nunca deben sobreescribir el JS
+  const isManual = !!saved._manual;
+  const savedDate = isManual && saved._ts ? new Date(saved._ts).toISOString().split('T')[0] : '2000-01-01';
+  const useJS = !isManual || (FIN_DATA.data_version || '2000-01-01') > savedDate;
   const fmBase = saved.fm ?? (FIN_DATA.revolut_fondo_monetario.historial[FIN_DATA.revolut_fondo_monetario.historial.length-1]?.saldo_final ?? 291.28);
   const interesesDiarios = (Store.get('fin_revolut_intereses', [])).reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
   const fmTs = saved.fm_ts || saved._ts || 0;
@@ -1172,6 +1174,7 @@ function guardarSaldos() {
   });
   if (!ok) { alert('Revisa los valores — todos deben ser números.'); return; }
   data._ts = Date.now();
+  data._manual = true;
   Store.set('fin_saldos', data);
   // Auto-snapshot para gráfica de evolución
   fin_patrGuardarSnapshot(data);
@@ -1211,6 +1214,7 @@ function addFMDiario() {
   saldos.fm = saldo;
   saldos.fm_ts = Date.now();
   saldos._ts = Date.now();
+  saldos._manual = true;
   Store.set('fin_saldos', saldos);
   document.getElementById('fin-fmd-saldo').value = '';
   document.getElementById('fin-fmd-nota').value  = '';
