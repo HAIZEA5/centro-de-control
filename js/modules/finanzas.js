@@ -675,8 +675,17 @@ function renderFinSinking() {
         saldo_final: prev.saldo_final !== null && prev.saldo_final !== undefined ? prev.saldo_final + totalInt : prev.saldo_final
       };
     } else {
-      filasSueltas.push({ mes: mesLabel, aportacion: 0, interes: totalInt, saldo_final: null, nota: 'registrado' });
+      filasSueltas.push({ mes: mesLabel, aportacion: 0, interes: totalInt, saldo_final: null, nota: 'registrado', _clave: clave });
     }
+  });
+
+  // Calcular saldo_final acumulado para filas sueltas (meses sin historial base)
+  const _lastSaldo = histConIntereses.slice().reverse().find(h => h.saldo_final != null)?.saldo_final ?? null;
+  filasSueltas.sort((a, b) => (a._clave || '').localeCompare(b._clave || ''));
+  let _runSaldo = _lastSaldo;
+  filasSueltas.forEach(f => {
+    if (_runSaldo !== null) { f.saldo_final = parseFloat((_runSaldo + f.interes).toFixed(2)); _runSaldo = f.saldo_final; }
+    delete f._clave;
   });
 
   const fmHistorial = [...histConIntereses, ...filasSueltas];
