@@ -48,7 +48,8 @@ function renderOposStats(data) {
   data.forEach(r => {
     if (r.fecha_examen && oposLocalDate(r.fecha_examen) >= hoyStats)
       eventos.push({ fecha: r.fecha_examen, tipo: 'examen', conv: r.convocatoria });
-    if (r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoyStats)
+    const _iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+    if (r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoyStats && localStorage.getItem(_iKey) !== 'si')
       eventos.push({ fecha: r.fecha_fin_inscr, tipo: 'inscripcion', conv: r.convocatoria });
   });
   eventos.sort((a, b) => oposLocalDate(a.fecha) - oposLocalDate(b.fecha));
@@ -117,7 +118,8 @@ function renderOposCountdown(data) {
   data.forEach(r => {
     if (r.fecha_examen && oposLocalDate(r.fecha_examen) >= hoy)
       eventos.push({ fecha: r.fecha_examen, tipo: 'examen', conv: r.convocatoria, hora: r.hora_examen, r });
-    if (r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoy)
+    const _iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+    if (r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoy && localStorage.getItem(_iKey) !== 'si')
       eventos.push({ fecha: r.fecha_fin_inscr, tipo: 'inscripcion', conv: r.convocatoria, r });
   });
   eventos.sort((a, b) => oposLocalDate(a.fecha) - oposLocalDate(b.fecha));
