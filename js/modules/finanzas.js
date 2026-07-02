@@ -1078,7 +1078,7 @@ function renderFinDeudas() {
     <div id="fin-deuda-form" style="display:none;margin-top:12px">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:10px">
       <div class="form-group" style="margin:0"><label style="font-size:.73rem">Nombre</label><input id="fin-deuda-nombre" class="upd-input" placeholder="iPhone Cetelem…" /></div>
-      <div class="form-group" style="margin:0"><label style="font-size:.73rem">Cantidad total (€)</label><input id="fin-deuda-cantidad" type="number" class="upd-input" step="0.01" placeholder="1200.00" /></div>
+      <div class="form-group" style="margin:0"><label style="font-size:.73rem">Cantidad total (€)</label><input id="fin-deuda-cantidad" type="number" class="upd-input" step="0.01" placeholder="Ej: 1000.00" /></div>
       <div class="form-group" style="margin:0"><label style="font-size:.73rem">Plazo (meses)</label><input id="fin-deuda-cuotas" type="number" class="upd-input" min="1" placeholder="24" /></div>
       <div class="form-group" style="margin:0"><label style="font-size:.73rem">TAE % (0 = sin interés)</label><input id="fin-deuda-tae" type="number" class="upd-input" step="0.01" placeholder="0" value="0" /></div>
       <div class="form-group" style="margin:0"><label style="font-size:.73rem">Cuenta</label>

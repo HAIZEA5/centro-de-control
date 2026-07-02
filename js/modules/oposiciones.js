@@ -5,6 +5,7 @@ const oposLocalDate = str => str ? new Date(str + 'T00:00:00') : null;
 
 async function loadOposiciones() {
   if (typeof opos_applySeed === 'function') opos_applySeed();
+  radarInit(); // render inmediato desde localStorage, sin esperar al fetch
 
   let data = [];
   const rows = await fetchSheet(CONFIG.SHEETS.OPOSICIONES, 'Oposiciones!A:I');
@@ -21,7 +22,6 @@ async function loadOposiciones() {
   renderOposSesiones();
   setupOposTemas();
   setupOposSesiones();
-  radarInit();
 }
 
 /* ── Stats ── */
