@@ -101,26 +101,30 @@ function renderCarStats(practicas, cfg = {}) {
   }
 
   const sinDatos = !cfg.prox_estado && !cfg.prox_fecha;
+  const practicoForm = `
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-width:320px">
+      <select id="car-practico-estado" class="upd-input" style="font-size:.82rem">
+        <option value="pendiente" ${cfg.prox_estado==='pendiente'?'selected':''}>⏳ Pendiente de fecha</option>
+        <option value="en_proceso" ${cfg.prox_estado==='en_proceso'?'selected':''}>🔄 En proceso</option>
+        <option value="convocado" ${cfg.prox_estado==='convocado'?'selected':''}>📅 Convocado</option>
+      </select>
+      <input type="date" id="car-practico-fecha" class="upd-input" style="font-size:.82rem" value="${cfg.prox_fecha||''}" />
+      <button onclick="car_guardarPractico()" class="btn-primary" style="padding:9px 14px;font-size:.85rem">💾 Guardar</button>
+    </div>`;
+
   const proxCard = sinDatos
     ? `<div class="card">
         <h3>Examen práctico</h3>
-        <div style="font-size:.85rem;color:var(--text3);margin-top:4px">Sin fecha asignada</div>
-        <button onclick="car_mostrarFormPractico()" style="margin-top:10px;background:var(--accent)15;border:1.5px dashed var(--accent);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.8rem;color:var(--accent);font-weight:600">📅 Añadir fecha objetivo</button>
-        <div id="car-practico-form" style="display:none;margin-top:12px">
-          <div style="display:flex;flex-direction:column;gap:8px;max-width:280px">
-            <select id="car-practico-estado" class="upd-input" style="font-size:.82rem">
-              <option value="pendiente">⏳ Pendiente</option>
-              <option value="en_proceso">🔄 En proceso</option>
-              <option value="convocado">📅 Convocado</option>
-            </select>
-            <input type="date" id="car-practico-fecha" class="upd-input" style="font-size:.82rem" />
-            <button onclick="car_guardarPractico()" class="btn-primary" style="padding:7px 14px;font-size:.82rem">Guardar</button>
-          </div>
-        </div>
+        <div style="font-size:.85rem;color:var(--text3);margin-top:4px;margin-bottom:2px">Sin fecha asignada</div>
+        ${practicoForm}
       </div>`
     : `<div class="card">
         <h3>Examen práctico</h3>
-        <div id="car-proxima" style="font-size:1rem;line-height:1.5;color:${diasColor}">${proxHTML}</div>
+        <div id="car-proxima" style="font-size:1rem;line-height:1.5;color:${diasColor};margin-bottom:10px">${proxHTML}</div>
+        <details>
+          <summary style="font-size:.78rem;color:var(--text3);cursor:pointer;user-select:none">✏️ Cambiar fecha</summary>
+          ${practicoForm}
+        </details>
       </div>`;
 
   row.innerHTML = teoricoHTML + `<div class="cards-row">${proxCard}</div>`;
@@ -143,8 +147,6 @@ function car_addClase() {
   document.getElementById('car-nueva-fecha').value = '';
   document.getElementById('car-nueva-min').value = '';
   document.getElementById('car-nueva-nota').value = '';
-  const f = document.getElementById('car-clase-form');
-  if (f) f.style.display = 'none';
   loadCarnet();
 }
 
@@ -168,11 +170,7 @@ function renderCarPracticas(practicas) {
   const el = document.getElementById('car-practicas-lista');
   if (!el) return;
   if (!practicas.length) {
-    el.innerHTML = `<div style="padding:8px 0">
-      <p style="color:var(--text3);font-size:.87rem;margin-bottom:12px">🚘 Aún no has empezado prácticas</p>
-      <button onclick="car_mostrarFormClase()" style="background:var(--accent)15;border:1.5px dashed var(--accent);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.8rem;color:var(--accent);font-weight:600">➕ Registrar primera clase</button>
-    </div>`;
-    return;
+    el.innerHTML = `<p style="color:var(--text3);font-size:.87rem;margin-bottom:12px">🚘 Sin clases registradas aún.</p>`;
   }
   const totalMin = practicas.reduce((s,p) => s+(p.min||0), 0);
   const horas = Math.floor(totalMin/60), mins = totalMin%60;
