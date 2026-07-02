@@ -82,8 +82,6 @@ function renderOposStats(data) {
   proxEl.innerHTML = html;
   const labelEl2 = document.getElementById('opos-prox-label');
   if (labelEl2) labelEl2.textContent = nextEventos[0].tipo === 'examen' ? 'Próximo examen' : 'Fin inscripción';
-  const dashOposEl = document.getElementById('dash-opos') || document.getElementById('dash-opos-content');
-  if (dashOposEl) dashOposEl.textContent = formatFecha(nextFecha);
 
   // Horas estudiadas: mes actual y semana actual
   const _sesiones = Store.get('opos_sesiones', []);
