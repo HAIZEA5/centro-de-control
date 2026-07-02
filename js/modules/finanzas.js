@@ -274,11 +274,8 @@ function renderFinResumen() {
   el.innerHTML = `
     <div class="fin-year-stats">
       <div class="fin-year-card"><div class="fin-year-label">Nómina total 2026</div><div class="fin-year-val green">${fmt(totalNomina)}</div></div>
-      <div class="fin-year-card">
-        <div class="fin-year-label">Gastos reales 2026</div>
-        <div class="fin-year-val red">${fmt(totalGastos)}</div>
-        <div style="font-size:.62rem;color:var(--text3)">Ahorro/inversión: ${fmt(totalAhorro)} aparte</div>
-      </div>
+      <div class="fin-year-card"><div class="fin-year-label">Gastos reales 2026</div><div class="fin-year-val red">${fmt(totalGastos)}</div></div>
+      ${totalAhorro > 0 ? `<div class="fin-year-card"><div class="fin-year-label">Ahorro/inversión 2026</div><div class="fin-year-val" style="color:var(--accent2)">${fmt(totalAhorro)}</div></div>` : ''}
       <div class="fin-year-card"><div class="fin-year-label">Ahorro neto 2026</div><div class="fin-year-val ${(totalNomina-totalGastos)>=0?'green':'red'}">${fmt(totalNomina-totalGastos)}</div></div>
     </div>
 
@@ -1044,22 +1041,23 @@ function renderFinDeudas() {
           <div style="flex:1">
             <div class="fin-sf-nombre">${d.nombre}</div>
             <div class="fin-sf-meta">
-              ${fmt(cuota)}/mes · ${d.cuotas_total} cuotas
-              ${d.tae > 0 ? ` · TAE ${d.tae}%` : ' · Sin interés'}
-              ${d.cuenta ? ` · <span style="color:var(--accent2)">${d.cuenta}</span>` : ''}
+              ${d.cuotas_total === 1
+                ? (d.nota || 'Pago único')
+                : `${fmt(cuota)}/mes · ${d.cuotas_total} ${d.cuotas_total === 1 ? 'cuota' : 'cuotas'}${d.tae > 0 ? ` · TAE ${d.tae}%` : ' · Sin interés'}${d.cuenta ? ` · <span style="color:var(--accent2)">${d.cuenta}</span>` : ''}`}
             </div>
-            ${d.nota ? `<div style="font-size:.72rem;color:var(--text3);margin-top:3px">${d.nota}</div>` : ''}
+            ${d.cuotas_total > 1 && d.nota ? `<div style="font-size:.72rem;color:var(--text3);margin-top:3px">${d.nota}</div>` : ''}
           </div>
           <div style="text-align:right;flex-shrink:0">
             <div style="font-size:1.4rem;font-weight:800;color:var(--red)">${fmt(pendiente)}</div>
-            <div style="font-size:.73rem;color:var(--text3)">pendiente</div>
+            <div style="font-size:.73rem;color:var(--text3)">${d.cuotas_total === 1 ? (d.cuotas_pagadas ? '✅ Pagado' : 'pendiente') : 'pendiente'}</div>
           </div>
         </div>
+        ${d.cuotas_total > 1 ? `
         <div style="margin:12px 0">
           <div class="progress-bar"><div class="progress-fill" style="width:${pct.toFixed(1)}%;background:var(--green)"></div></div>
-        </div>
+        </div>` : ''}
         <div class="fin-sf-footer">
-          <span>Pagado: <strong>${fmt(pagado)}</strong> (${d.cuotas_pagadas}/${d.cuotas_total} cuotas)</span>
+          <span>${d.cuotas_total === 1 ? `<strong>${d.cuenta || ''}</strong>` : `Pagado: <strong>${fmt(pagado)}</strong> (${d.cuotas_pagadas}/${d.cuotas_total} cuotas)`}</span>
           <span style="display:flex;gap:6px;align-items:center">
             <button onclick="finDeudaMarcarCuota(${d.id}, -1)" title="Desmarcar cuota" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:2px 7px;cursor:pointer;color:var(--text2);font-size:.85rem">−</button>
             <button onclick="finDeudaMarcarCuota(${d.id}, 1)" title="Marcar cuota pagada" style="background:var(--green);border:none;border-radius:5px;padding:2px 7px;cursor:pointer;color:#fff;font-size:.85rem">✓ cuota</button>
@@ -1073,7 +1071,11 @@ function renderFinDeudas() {
 
   <!-- Añadir nueva deuda -->
   <div class="card" style="border:1px dashed var(--border2)">
-    <h3 style="margin-bottom:12px">➕ Añadir deuda</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="document.getElementById('fin-deuda-form').style.display=document.getElementById('fin-deuda-form').style.display==='none'?'block':'none';this.querySelector('span').textContent=document.getElementById('fin-deuda-form').style.display==='none'?'▸ Abrir':'▾ Cerrar'">
+      <h3 style="margin:0">➕ Añadir deuda</h3>
+      <span style="color:var(--text3);font-size:.85rem">▸ Abrir</span>
+    </div>
+    <div id="fin-deuda-form" style="display:none;margin-top:12px">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:10px">
       <div class="form-group" style="margin:0"><label style="font-size:.73rem">Nombre</label><input id="fin-deuda-nombre" class="upd-input" placeholder="iPhone Cetelem…" /></div>
       <div class="form-group" style="margin:0"><label style="font-size:.73rem">Cantidad total (€)</label><input id="fin-deuda-cantidad" type="number" class="upd-input" step="0.01" placeholder="1200.00" /></div>
@@ -1088,6 +1090,7 @@ function renderFinDeudas() {
     </div>
     <button class="upd-btn" onclick="finDeudaAnadir()">💾 Guardar deuda</button>
     <div id="fin-deuda-cuota-preview" style="font-size:.78rem;color:var(--text3);margin-top:8px"></div>
+    </div>
   </div>`;
 
   // Live preview cuota al escribir
@@ -1226,7 +1229,10 @@ function _finGastoVariableMes() {
   const txns = [...FIN_DATA.transacciones, ...Store.get('fin_txns', [])]
     .filter(t => t.f?.startsWith(mesStr) && (t.i < 0) && t.c !== 'interna' && t.c !== 'nomina' && t.c !== 'ahorro' && t.c !== 'deuda');
 
-  if (!txns.length) return '<p style="color:var(--text3);font-size:.85rem">Sin gastos variables registrados este mes.</p>';
+  if (!txns.length) {
+    if (hoy.getDate() < 5) return '';
+    return '<p style="color:var(--text3);font-size:.85rem">Sin gastos variables registrados este mes.</p>';
+  }
 
   const byCat = {};
   txns.forEach(t => { const c = t.c || 'otros'; byCat[c] = (byCat[c] || 0) + Math.abs(t.i); });
