@@ -122,6 +122,15 @@ function renderFinStats() {
     el.style.color = edad ? edad.color : '';
   });
 
+  // Pre-rellenar el formulario de actualizar saldos con los valores actuales
+  const cuentasActuales = { ktx: s.ktx, rvp: s.rvp, rvc: s.rvc, ctv: s.ctv, bp: s.bp, fm: s.fm };
+  Object.entries(cuentasActuales).forEach(([id, val]) => {
+    const inp = document.getElementById('fin-act-'+id);
+    if (inp && !inp._dirty) inp.value = val.toFixed(2);
+    const ac = document.getElementById('fin-act-'+id+'-ac');
+    if (ac) ac.textContent = 'Actual: ' + fmt(val);
+  });
+
   // Deuda restante iPhone — calculada desde transacciones reales
   const cuotasTxns = getFilteredReal().filter(t =>
     t.d?.toLowerCase().includes('cetelem') && t.i < 0 && t.ct === deuda.cuenta
@@ -1291,7 +1300,7 @@ function guardarSaldos() {
     if (isNaN(v)) { ok = false; return; }
     data[id] = v;
   });
-  if (!ok) { alert('Revisa los valores — todos deben ser números.'); return; }
+  if (!ok) { alert('Revisa los valores — todos deben ser números válidos.'); return; }
   data._ts = Date.now();
   data._manual = true;
   Store.set('fin_saldos', data);
@@ -1302,11 +1311,36 @@ function guardarSaldos() {
   if (saldoLog.length > 60) saldoLog.length = 60;
   Store.set('fin_saldo_log', saldoLog);
 
+  // Marcar inputs como no sucios después de guardar
+  ['ktx','rvp','rvc','ctv','bp','fm'].forEach(id => {
+    const inp = document.getElementById('fin-act-'+id);
+    if (inp) inp._dirty = false;
+  });
+
+  mostrarOk('fin-act-ok');
+
   // Auto-snapshot para gráfica de evolución
   fin_patrGuardarSnapshot(data);
   renderFinStats();
   renderFinSinking();
   fin_patrRenderChart();
+}
+
+function fin_toggleSaldosForm() {
+  const form   = document.getElementById('fin-act-form');
+  const toggle = document.getElementById('fin-act-toggle');
+  if (!form) return;
+  const isOpen = form.style.display !== 'none';
+  form.style.display   = isOpen ? 'none' : 'block';
+  if (toggle) toggle.textContent = isOpen ? '▸ Abrir' : '▾ Cerrar';
+
+  // Marcar inputs como "dirty" cuando el usuario los toca para no sobreescribir mientras edita
+  if (!isOpen) {
+    ['ktx','rvp','rvc','ctv','bp','fm'].forEach(id => {
+      const inp = document.getElementById('fin-act-'+id);
+      if (inp) inp.addEventListener('input', () => { inp._dirty = true; }, { once: true });
+    });
+  }
 }
 
 function resetSaldos() {
