@@ -427,13 +427,15 @@ function renderFechasPanel(r) {
     { label: 'Lista provisional',     val: r.fecha_lista_prov,  icon: '📄', extra: r.nota_provisional ? `📊 ${r.nota_provisional}` : null },
     { label: 'Alegaciones',           val: r.fecha_alegaciones, icon: '✍️' },
     { label: 'Lista definitiva',      val: r.fecha_lista_def,   icon: '✅', extra: r.nota_definitiva ? `🏆 ${r.nota_definitiva}` : null },
-    { label: 'Examen',                val: r.fecha_examen,      icon: '📝', extra: r.hora_examen ? `🕐 ${r.hora_examen}` : null },
+    { label: 'Examen',                val: r.fecha_examen,      icon: '📝', extra: notaGuardada ? `📊 ${notaGuardada}` : r.hora_examen ? `🕐 ${r.hora_examen}` : null },
   ];
   const hoy = new Date(); hoy.setHours(0,0,0,0);
 
   // Ubicación del examen (guardada en localStorage por convocatoria)
-  const ubKey = 'opos_ubicacion_' + (r.convocatoria || '').replace(/\s+/g,'_');
-  const ub = Store.get(ubKey);
+  const ubKey   = 'opos_ubicacion_' + (r.convocatoria || '').replace(/\s+/g,'_');
+  const ub      = Store.get(ubKey);
+  const notaKey = 'opos_nota_' + (r.convocatoria || '').replace(/\s+/g,'_');
+  const notaGuardada = localStorage.getItem(notaKey) || '';
 
   // Si un hito posterior tiene fecha pasada, los hitos anteriores sin fecha se marcan como superados
   const primerFuturoIdx = fechas.findIndex(f => {
@@ -473,6 +475,20 @@ function renderFechasPanel(r) {
       </div>`;
     }).join('')}
   </div>
+
+  ${r.fecha_examen ? `
+  <div style="margin-top:14px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid ${notaGuardada ? 'var(--accent2)44' : 'var(--border)'}">
+    <div style="font-weight:700;font-size:.82rem;color:var(--accent2);margin-bottom:10px">📊 Nota del examen</div>
+    ${notaGuardada ? `<div style="font-size:1.1rem;font-weight:800;color:var(--green);margin-bottom:10px">${notaGuardada}</div>` : ''}
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="text" id="nota-examen-input" placeholder="Ej: 35.50 / 60 ó 7.25" value="${notaGuardada}"
+        style="flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:7px 10px;font-family:inherit;font-size:.85rem;outline:none" />
+      <button onclick="opos_guardarNota('${(r.convocatoria||'').replace(/'/g,"\\'")}','${notaKey}')"
+        style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-weight:600;font-size:.8rem;font-family:inherit;white-space:nowrap">
+        💾 Guardar
+      </button>
+    </div>
+  </div>` : ''}
 
   ${r.notas ? `
   <div style="margin-top:14px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
@@ -959,6 +975,18 @@ function guardarUbicacionExamen(conv, key) {
   };
   Store.set(key, ub);
   // Re-render el panel fechas del opos activo
+  const data = window._oposData || [];
+  const idx  = data.findIndex(r => r.convocatoria === conv);
+  if (idx >= 0) {
+    const panel = document.getElementById('det-fechas-' + idx);
+    if (panel) panel.innerHTML = renderFechasPanel(data[idx]);
+  }
+}
+
+function opos_guardarNota(conv, key) {
+  const nota = document.getElementById('nota-examen-input')?.value.trim() || '';
+  if (nota) localStorage.setItem(key, nota);
+  else localStorage.removeItem(key);
   const data = window._oposData || [];
   const idx  = data.findIndex(r => r.convocatoria === conv);
   if (idx >= 0) {
