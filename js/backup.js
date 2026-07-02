@@ -3,7 +3,7 @@
 const CDC_SCHEMA_VERSION = 1;
 
 // Prefijos de claves que pertenecen a esta app (se incluyen en el backup)
-const CDC_BACKUP_PREFIXES = ['cdc_', 'car_', 'opos_', 'fin_', 'local_', 'piso_', 'tareas_', 'cdc_auth'];
+const CDC_BACKUP_PREFIXES = ['cdc_', 'car_', 'opos_', 'fin_', 'local_', 'piso_', 'tareas_', 'tar_', 'age_', 'ctv_', 'notas_', 'ufin_', 'cdc_auth'];
 
 /* ── Migraciones de schema ── */
 function cdc_runMigrations() {
