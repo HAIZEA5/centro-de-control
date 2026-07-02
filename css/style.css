@@ -1614,16 +1614,12 @@ body::before {
 }
 .cal-ev span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cal-ev-more { font-size: .6rem; color: var(--text3); padding-left: 4px; }
+.cal-dots { display: none; }
+.cal-dot  { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
 @media (max-width: 600px) {
   .cal-cell { min-height: 44px; padding: 3px 4px; }
-  .cal-ev { display: none; }
-  .cal-cell.cal-has-events::after {
-    content: "•";
-    color: var(--accent2);
-    font-size: .85rem;
-    display: block;
-    text-align: center;
-  }
+  .cal-ev   { display: none; }
+  .cal-dots { display: flex; gap: 2px; justify-content: center; flex-wrap: wrap; margin-top: 2px; }
 }
 
 /* ══ IT TXARTELAS ══ */

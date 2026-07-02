@@ -514,7 +514,7 @@
               </div>
             </div>
           </div>
-          <div class="card">
+          <div class="card" id="age-eventos-card">
             <h3>Eventos y vacaciones</h3>
             <ul class="list" id="age-eventos"></ul>
             <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px">
@@ -553,15 +553,15 @@
 
           <!-- Bandeja de entrada -->
           <div class="card">
-            <h3 style="margin-bottom:12px">📝 Bandeja de entrada</h3>
-            <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Apunta cualquier idea antes de olvidarla. Luego transfiere a la lista adecuada o a la Agenda.</p>
-            <textarea id="tar-notas-txt" rows="10"
-              placeholder="Escribe aquí lo que sea… apuntes, ideas, recordatorios sueltos…"
-              style="width:100%;resize:vertical;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:.85rem;font-family:inherit;line-height:1.6;box-sizing:border-box"></textarea>
-            <div style="display:flex;gap:10px;margin-top:10px;align-items:center">
-              <button class="btn-primary" onclick="tareas_guardarNotas()" style="padding:8px 20px">💾 Guardar nota</button>
-              <span id="tar-notas-ok" style="display:none;color:var(--green);font-size:.82rem">✓ Guardado</span>
+            <h3 style="margin-bottom:4px">📝 Bandeja de entrada</h3>
+            <p style="font-size:.8rem;color:var(--text3);margin-bottom:12px">Captura rápida. Transfiere luego a corto/largo plazo o a la Agenda.</p>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+              <input type="text" id="tar-bandeja-input" placeholder="Apunta una idea… (Intro para guardar)"
+                onkeydown="tar_addBandeja(event)"
+                style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:.85rem;font-family:inherit" />
+              <button class="btn-primary" onclick="tar_addBandeja()" style="padding:8px 14px">＋</button>
             </div>
+            <div id="tar-bandeja-lista"></div>
           </div>
 
           <!-- Corto plazo -->
@@ -611,9 +611,9 @@
   <script src="js/modules/carnet.js?v=20260702b"></script>
   <script src="js/data/oposiciones-seed.js?v=20260701b"></script>
   <script src="js/modules/oposiciones.js?v=20260702b"></script>
-  <script src="js/modules/agenda.js?v=20260701a"></script>
+  <script src="js/modules/agenda.js?v=20260702a"></script>
   <script src="js/modules/it-txartelas.js?v=20260701a"></script>
-  <script src="js/modules/tareas.js?v=20260701a"></script>
+  <script src="js/modules/tareas.js?v=20260702a"></script>
   <script src="js/modules/excel.js?v=20260701a"></script>
   <script src="js/dashboard.js?v=20260702c"></script>
   <script src="js/backup.js?v=20260702a"></script>
