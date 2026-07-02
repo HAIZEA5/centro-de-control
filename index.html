@@ -587,11 +587,8 @@
   <script src="js/app.js?v=20260702a"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(r => r.unregister());
-      });
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW:', err));
       });
     }
   </script>
