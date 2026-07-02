@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 34;
+const OPOS_SEED_VERSION = 35;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -406,6 +406,35 @@ const OPOS_SEED = [
     url_extra1:'https://www.bibliopos.es/6-plazas-de-administrativo-a-de-biblioteca-ayuntamiento-de-getxo-bizkaia-2026-2/',
     url_extra2:'https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-11105',
     // C1 concurso-oposición: experiencia admin local puntúa + B2=PL2 requerido y puntúa
+    meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
+      cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
+  },
+
+  {
+    convocatoria:    'Ayto. Barakaldo — Administrativo (20 plazas)',
+    organismo: 'Ayto. Barakaldo', puesto: 'Administrativo',
+    tipo_proceso: 'concurso-oposicion', req_euskera: true, nivel_euskera: 'PL2', req_titulacion: true,
+    perfil:          'YO',
+    grupo:           'OPE 23-24-26 · C1',
+    estado:          'EN PROCESO',
+    fase:            'Pendiente resultados',
+    fecha_apertura:   '2025-07-04',
+    fecha_fin_inscr:  '2025-08-06',
+    fecha_examen:    '2026-03-28',
+    hora_examen:     '09:00',
+    tasa_pagada:     'SI',
+    doc_solicitud:   'Listo',
+    doc_dni:         'Al ser seleccionado',
+    doc_titulacion:  'Al ser seleccionado',
+    doc_euskera:     'Al ser seleccionado',
+    doc_cv:          'No aplica',
+    doc_meritos:     'Tras oposición',
+    doc_discap:      'No aplica',
+    doc_extra1_nombre: 'Justificante inscripción',
+    doc_extra1:      'Listo',
+    notas: '20 plazas de Administrativo C1 (16 libre + 4 discapacidad). OPE 2023-2024-2026 · genera bolsa de empleo. Concurso-oposición. BOB nº 119 de 24/06/2025. BOE 04/07/2025. Plazo inscripción: 04/07–06/08/2025 (cerrado). Examen 1ª y 2ª fase: 28/03/2026 09:00h en BEC Barakaldo. ⚠️ Confirmar nivel euskera exacto (preceptivo/voluntario) en bases BOB.',
+    url_boe:   'https://www.barakaldo.eus/OficinaVirtualBarakaldo/procesosSelectivos.do',
+    url_bases: 'https://www.buscaoposiciones.com/ultimas_oposiciones_administracion_local_ayuntamiento_de_barakaldo-2ala7469ap1.htm',
     meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
       cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
   },
