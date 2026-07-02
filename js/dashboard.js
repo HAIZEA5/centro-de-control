@@ -316,18 +316,15 @@ function _dashOposiciones() {
     const prox = proximas[0];
     const diff = Math.round((new Date(prox.fecha_examen) - hoy) / 86400000);
     const diasColor = diff <= 2 ? 'var(--red)' : diff <= 6 ? 'var(--orange)' : 'var(--yellow)';
-    const diasLabel = diff === 0 ? '¡HOY!' : diff === 1 ? 'mañana' : `${diff}d`;
+    const diasLabel = diff === 0 ? '¡HOY!' : diff === 1 ? 'mañana' : `en ${diff}d`;
+    const fechaStr = new Date(prox.fecha_examen + 'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+    const { org: proxOrg, pto: proxPto } = typeof _oposOrgPuesto === 'function' ? _oposOrgPuesto(prox) : { org: prox.convocatoria || '', pto: '' };
     proximaHTML = `
-      <div class="dash-row" style="margin-bottom:4px">
-        <span class="dash-row-label" style="font-weight:700">Próximo examen</span>
-        <span style="font-weight:700;color:var(--yellow);font-size:.88rem">${prox.convocatoria}</span>
-      </div>
-      <div class="dash-row" style="margin-bottom:10px">
-        <span class="dash-row-label">Fecha</span>
-        <span class="dash-row-val" style="color:${diasColor};font-weight:700">
-          ${new Date(prox.fecha_examen + 'T12:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'})}
-          <span style="margin-left:4px;background:${diasColor}22;padding:1px 7px;border-radius:99px;font-size:.75rem">${diasLabel}</span>
-        </span>
+      <div style="padding:8px 10px;border-radius:8px;background:var(--yellow)10;border:1px solid var(--yellow)33;margin-bottom:10px">
+        <div style="font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--yellow);margin-bottom:5px">📅 Próximo examen</div>
+        <div style="font-size:.84rem;font-weight:700;color:var(--text)">${proxOrg || prox.convocatoria || '—'}</div>
+        ${proxPto ? `<div style="font-size:.75rem;color:var(--text3);margin-top:1px">${proxPto}</div>` : ''}
+        <div style="font-size:.8rem;font-weight:700;color:${diasColor};margin-top:5px">${fechaStr} · <span>${diasLabel}</span></div>
       </div>`;
   }
 
@@ -354,10 +351,11 @@ function _dashOposiciones() {
         const diasLabel = dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : `en ${dias}d`;
         const fechaStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'short'});
         const { org, pto } = typeof _oposOrgPuesto === 'function' ? _oposOrgPuesto(r) : { org: r.organismo || '', pto: r.puesto || '' };
-        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
-          <div style="min-width:0">
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+          <div style="min-width:0;flex:1;overflow:hidden">
             <div style="font-size:.79rem;color:var(--text1);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${org}</div>
-            <div style="font-size:.72rem;color:var(--text3)">📝 Fin inscripción · ${fechaStr}</div>
+            ${pto ? `<div style="font-size:.72rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pto}</div>` : ''}
+            <div style="font-size:.7rem;color:var(--text3)">📝 Fin instancias · ${fechaStr}</div>
           </div>
           <span style="color:${color};font-weight:700;font-size:.8rem;white-space:nowrap;margin-left:8px">${listo ? '✅' : diasLabel}</span>
         </div>`;
