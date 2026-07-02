@@ -52,12 +52,24 @@
 
       <!-- DASHBOARD -->
       <section id="dashboard" class="section active">
+        <!-- Banner de backup pendiente -->
+        <div id="cdc-backup-banner" style="display:none;background:var(--orange)18;border:1px solid var(--orange)55;border-radius:10px;padding:10px 16px;margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <span style="font-size:.82rem;color:var(--orange)">⚠️ <strong>Hace más de 30 días sin backup.</strong> Exporta tus datos para no perderlos.</span>
+          <div style="display:flex;gap:8px">
+            <button onclick="cdc_exportBackup()" style="padding:5px 14px;border-radius:8px;border:1px solid var(--orange);background:var(--orange)22;color:var(--orange);cursor:pointer;font-size:.8rem;font-weight:700">⬇️ Exportar ahora</button>
+            <button onclick="document.getElementById('cdc-backup-banner').style.display='none'" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text3);cursor:pointer;font-size:.8rem">Recordar luego</button>
+          </div>
+        </div>
+
         <div class="dash-header">
           <div>
             <h2 class="section-title" id="dash-saludo" style="margin-bottom:4px">Hola 👋</h2>
             <p id="dashQuote" style="font-size:.82rem;color:var(--text3);font-style:italic;margin:0"></p>
           </div>
-          <div class="dash-fecha" id="dash-fecha-hoy"></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button onclick="cdc_exportBackup()" title="Exportar backup JSON" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;font-size:.75rem">⬇️ Backup</button>
+            <div class="dash-fecha" id="dash-fecha-hoy"></div>
+          </div>
         </div>
 
         <!-- Cards de sección -->
@@ -161,6 +173,29 @@
           </div>
           <canvas id="fin-patrimonio-chart" style="height:120px;width:100%"></canvas>
           <p id="fin-patr-empty" style="font-size:.78rem;color:var(--text3);text-align:center;padding:20px 0;display:none">Guarda saldos varias veces para ver la evolución.</p>
+        </div>
+
+        <!-- Actualizar saldos (colapsable) -->
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="fin_toggleSaldosForm()">
+            <h3 style="margin:0;font-size:.9rem">💾 Actualizar saldos</h3>
+            <span id="fin-act-toggle" style="color:var(--text3);font-size:.85rem">▸ Abrir</span>
+          </div>
+          <div id="fin-act-form" style="display:none;margin-top:14px">
+            <div class="fin-act-grid">
+              <div class="fin-act-row"><label class="fin-act-label">Kutxabank personal</label><input type="number" id="fin-act-ktx" class="upd-input fin-act-input" step="0.01" placeholder="Saldo (€)" /><span class="fin-act-actual" id="fin-act-ktx-ac"></span></div>
+              <div class="fin-act-row"><label class="fin-act-label">Revolut personal</label><input type="number" id="fin-act-rvp" class="upd-input fin-act-input" step="0.01" placeholder="Saldo (€)" /><span class="fin-act-actual" id="fin-act-rvp-ac"></span></div>
+              <div class="fin-act-row"><label class="fin-act-label">Revolut conjunta</label><input type="number" id="fin-act-rvc" class="upd-input fin-act-input" step="0.01" placeholder="Saldo (€)" /><span class="fin-act-actual" id="fin-act-rvc-ac"></span></div>
+              <div class="fin-act-row"><label class="fin-act-label">CTV Vivienda</label><input type="number" id="fin-act-ctv" class="upd-input fin-act-input" step="0.01" placeholder="Saldo (€)" /><span class="fin-act-actual" id="fin-act-ctv-ac"></span></div>
+              <div class="fin-act-row"><label class="fin-act-label">Baskepensiones</label><input type="number" id="fin-act-bp" class="upd-input fin-act-input" step="0.01" placeholder="Saldo (€)" /><span class="fin-act-actual" id="fin-act-bp-ac"></span></div>
+              <div class="fin-act-row"><label class="fin-act-label">FM Revolut</label><input type="number" id="fin-act-fm" class="upd-input fin-act-input" step="0.01" placeholder="Saldo (€)" /><span class="fin-act-actual" id="fin-act-fm-ac"></span></div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap">
+              <button onclick="guardarSaldos()" class="btn-primary">Guardar saldos</button>
+              <button onclick="resetSaldos()" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text3);cursor:pointer;font-size:.82rem">Restaurar valores del JS</button>
+              <span id="fin-act-ok" class="update-success" style="font-size:.8rem">✓ Saldos guardados</span>
+            </div>
+          </div>
         </div>
 
         <!-- Tabs -->
@@ -279,15 +314,62 @@
         <h2 class="section-title">Carnet de conducir</h2>
 
         <!-- Stats -->
-        <div class="cards-row">
-          <div class="card"><h3>Examen teórico</h3><div class="big-number" id="car-teorico-estado">—</div></div>
-          <div class="card"><h3>Examen práctico</h3><div class="big-number" id="car-proxima" style="font-size:1rem">—</div></div>
-        </div>
+        <div id="car-stats-row"></div>
 
         <!-- Prácticas -->
         <div class="card mt">
           <h3>🚘 Clases prácticas</h3>
           <div id="car-practicas-lista"><p style="color:var(--text3);font-size:.87rem">Sin clases registradas.</p></div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════
+             AHORRO PARA EL COCHE
+        ════════════════════════════════════════════════════ -->
+        <div class="card mt" id="coche-ahorro-card">
+          <h3>🚗 Ahorro para el coche</h3>
+
+          <!-- Barra de progreso -->
+          <div style="margin-bottom:20px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+              <span id="coche-total-label" style="font-size:1.5rem;font-weight:800;color:var(--accent2)">0,00 €</span>
+              <span style="font-size:.82rem;color:var(--text3)">Meta: <strong style="color:var(--text2)">3.000 €</strong></span>
+            </div>
+            <div class="progress-bar" style="height:12px;border-radius:6px">
+              <div id="coche-barra" class="progress-fill" style="width:0%;border-radius:6px;transition:width .4s ease"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:.78rem;color:var(--text3)">
+              <span id="coche-pct-label">0%</span>
+              <span id="coche-falta-label">Faltan 3.000,00 €</span>
+            </div>
+          </div>
+
+          <!-- Formulario nueva aportación -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+            <div class="form-group" style="margin:0">
+              <label style="font-size:.72rem">Fecha</label>
+              <input type="date" id="coche-fecha"
+                style="background:var(--bg4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:8px 10px;font-family:inherit;font-size:.84rem;width:100%;outline:none" />
+            </div>
+            <div class="form-group" style="margin:0">
+              <label style="font-size:.72rem">Importe (€)</label>
+              <input type="number" id="coche-importe" min="0" step="0.01" placeholder="0,00"
+                style="background:var(--bg4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:8px 10px;font-family:inherit;font-size:.84rem;width:100%;outline:none" />
+            </div>
+            <div class="form-group" style="margin:0;grid-column:span 2">
+              <label style="font-size:.72rem">Nota (opcional)</label>
+              <input type="text" id="coche-nota" placeholder="Ej: nómina extra agosto…"
+                style="background:var(--bg4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:8px 10px;font-family:inherit;font-size:.84rem;width:100%;outline:none" />
+            </div>
+          </div>
+          <button onclick="coche_addAportacion()"
+            style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 22px;cursor:pointer;font-weight:600;font-size:.85rem;font-family:inherit;margin-bottom:20px">
+            💾 Guardar aportación
+          </button>
+
+          <!-- Histórico -->
+          <div id="coche-historial">
+            <p style="color:var(--text3);font-size:.87rem">Sin aportaciones registradas.</p>
+          </div>
         </div>
       </section>
 
@@ -341,34 +423,6 @@
                 <tr><td colspan="9" class="empty-row">Cargando…</td></tr>
               </tbody>
             </table>
-          </div>
-        </div>
-
-        <!-- REVISIONES DE ESTADO — oculto: usa la pestaña Historial de cada convocatoria -->
-        <div class="card mt" style="display:none">
-          <h3>Revisiones de estado</h3>
-          <div class="revision-form">
-            <select id="rev-opos-sel"><option value="">— Oposición —</option></select>
-            <select id="rev-estado-sel">
-              <option value="">— Estado encontrado —</option>
-              <option value="Sin novedades">Sin novedades</option>
-              <option value="En seguimiento">En seguimiento</option>
-              <option value="Prevista">Prevista</option>
-              <option value="Abierta">Abierta — convocatoria publicada</option>
-              <option value="Plazo abierto">Plazo de inscripción abierto</option>
-              <option value="Plazo cerrado">Plazo de inscripción cerrado</option>
-              <option value="Lista provisional">Lista provisional publicada</option>
-              <option value="Alegaciones">Período de alegaciones</option>
-              <option value="Lista definitiva">Lista definitiva publicada</option>
-              <option value="Fecha examen">Fecha de examen publicada</option>
-              <option value="En proceso">En proceso</option>
-              <option value="Cerrada">Cerrada</option>
-            </select>
-            <input id="rev-nota" type="text" placeholder="Nota (opcional) — ej: sigue sin fecha, plazo hasta el 30…" />
-            <button class="btn-primary" id="rev-guardar">Registrar</button>
-          </div>
-          <div class="revision-log" id="rev-log">
-            <p style="color:var(--text3);font-size:.87rem">Sin revisiones registradas aún.</p>
           </div>
         </div>
 
@@ -542,24 +596,22 @@
   <script src="js/finanzas_data.js?v=20260701a"></script>
   <script src="js/auth.js?v=20260701a"></script>
   <script src="js/sheets.js?v=20260701a"></script>
-  <script src="js/modules/finanzas.js?v=20260701a"></script>
+  <script src="js/modules/finanzas.js?v=20260702a"></script>
   <script src="js/modules/piso.js?v=20260701a"></script>
-  <script src="js/modules/carnet.js?v=20260701a"></script>
+  <script src="js/modules/carnet.js?v=20260702a"></script>
   <script src="js/data/oposiciones-seed.js?v=20260701b"></script>
   <script src="js/modules/oposiciones.js?v=20260701c"></script>
   <script src="js/modules/agenda.js?v=20260701a"></script>
   <script src="js/modules/it-txartelas.js?v=20260701a"></script>
   <script src="js/modules/tareas.js?v=20260701a"></script>
   <script src="js/modules/excel.js?v=20260701a"></script>
-  <script src="js/dashboard.js?v=20260701a"></script>
-  <script src="js/app.js?v=20260701a"></script>
+  <script src="js/dashboard.js?v=20260702a"></script>
+  <script src="js/backup.js?v=20260702a"></script>
+  <script src="js/app.js?v=20260702a"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(r => r.unregister());
-      });
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW:', err));
       });
     }
   </script>
