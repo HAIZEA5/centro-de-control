@@ -1295,6 +1295,13 @@ function guardarSaldos() {
   data._ts = Date.now();
   data._manual = true;
   Store.set('fin_saldos', data);
+
+  // Historial de cambios de saldo (últimos 60 guardados)
+  const saldoLog = Store.get('fin_saldo_log', []);
+  saldoLog.unshift({ ts: data._ts, ktx: data.ktx, rvp: data.rvp, rvc: data.rvc, ctv: data.ctv, bp: data.bp, fm: data.fm });
+  if (saldoLog.length > 60) saldoLog.length = 60;
+  Store.set('fin_saldo_log', saldoLog);
+
   // Auto-snapshot para gráfica de evolución
   fin_patrGuardarSnapshot(data);
   renderFinStats();

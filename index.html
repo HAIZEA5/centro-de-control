@@ -52,12 +52,24 @@
 
       <!-- DASHBOARD -->
       <section id="dashboard" class="section active">
+        <!-- Banner de backup pendiente -->
+        <div id="cdc-backup-banner" style="display:none;background:var(--orange)18;border:1px solid var(--orange)55;border-radius:10px;padding:10px 16px;margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <span style="font-size:.82rem;color:var(--orange)">⚠️ <strong>Hace más de 30 días sin backup.</strong> Exporta tus datos para no perderlos.</span>
+          <div style="display:flex;gap:8px">
+            <button onclick="cdc_exportBackup()" style="padding:5px 14px;border-radius:8px;border:1px solid var(--orange);background:var(--orange)22;color:var(--orange);cursor:pointer;font-size:.8rem;font-weight:700">⬇️ Exportar ahora</button>
+            <button onclick="document.getElementById('cdc-backup-banner').style.display='none'" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--text3);cursor:pointer;font-size:.8rem">Recordar luego</button>
+          </div>
+        </div>
+
         <div class="dash-header">
           <div>
             <h2 class="section-title" id="dash-saludo" style="margin-bottom:4px">Hola 👋</h2>
             <p id="dashQuote" style="font-size:.82rem;color:var(--text3);font-style:italic;margin:0"></p>
           </div>
-          <div class="dash-fecha" id="dash-fecha-hoy"></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button onclick="cdc_exportBackup()" title="Exportar backup JSON" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;font-size:.75rem">⬇️ Backup</button>
+            <div class="dash-fecha" id="dash-fecha-hoy"></div>
+          </div>
         </div>
 
         <!-- Cards de sección -->
@@ -571,7 +583,8 @@
   <script src="js/modules/tareas.js?v=20260701a"></script>
   <script src="js/modules/excel.js?v=20260701a"></script>
   <script src="js/dashboard.js?v=20260702a"></script>
-  <script src="js/app.js?v=20260701a"></script>
+  <script src="js/backup.js?v=20260702a"></script>
+  <script src="js/app.js?v=20260702a"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(regs => {
