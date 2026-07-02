@@ -1101,7 +1101,7 @@ function radarConvertir(i) {
   const existe = lista.some(o => (o.convocatoria || '').toLowerCase().includes((r.organismo || '').toLowerCase()));
   if (existe) { alert('Ya hay una convocatoria de este organismo.'); return; }
   lista.push({ convocatoria: r.organismo, estado: 'pendiente', perfil: 'Yo', _id: Date.now(), historial: [{ fecha: new Date().toLocaleDateString('es-ES'), texto: 'Añadida desde radar' }] });
-  Store.set('local_oposiciones', lista);
-  renderOposiciones();
+  Store.set('opos_convocatorias', lista);
+  loadOposiciones();
   alert(`Añadida: ${r.organismo}`);
 }

@@ -130,11 +130,6 @@ function renderCarStats(practicas, cfg = {}) {
   row.innerHTML = teoricoHTML + `<div class="cards-row">${proxCard}</div>`;
 }
 
-function car_mostrarFormClase() {
-  const f = document.getElementById('car-clase-form');
-  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
-}
-
 function car_addClase() {
   const fecha  = document.getElementById('car-nueva-fecha')?.value;
   const minVal = document.getElementById('car-nueva-min')?.value;
@@ -148,11 +143,6 @@ function car_addClase() {
   document.getElementById('car-nueva-min').value = '';
   document.getElementById('car-nueva-nota').value = '';
   loadCarnet();
-}
-
-function car_mostrarFormPractico() {
-  const f = document.getElementById('car-practico-form');
-  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
 }
 
 function car_guardarPractico() {
@@ -171,6 +161,7 @@ function renderCarPracticas(practicas) {
   if (!el) return;
   if (!practicas.length) {
     el.innerHTML = `<p style="color:var(--text3);font-size:.87rem;margin-bottom:12px">🚘 Sin clases registradas aún.</p>`;
+    return;
   }
   const totalMin = practicas.reduce((s,p) => s+(p.min||0), 0);
   const horas = Math.floor(totalMin/60), mins = totalMin%60;

@@ -1,5 +1,7 @@
 // ─── MÓDULO AGENDA ───
 
+const _age_esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
 // ── Seed de guardias ──
 (function age_seedGuardias() {
   const KEY  = 'age_guardias_seed_v';
@@ -295,10 +297,10 @@ function renderAgendaDia(dateStr, evs) {
       return `<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
         <span style="font-size:1rem;flex-shrink:0">${e.icono}</span>
         <div style="flex:1">
-          <div style="font-size:.85rem;color:var(--text1);font-weight:600">${fullEv ? fullEv.nombre : e.texto}</div>
-          ${fullEv?.hora ? `<div style="font-size:.75rem;color:var(--text2)">🕐 ${fullEv.hora}</div>` : ''}
-          ${fullEv?.ubicacion ? `<div style="font-size:.75rem;color:var(--text2)">📍 ${fullEv.ubicacion}</div>` : ''}
-          ${fullEv?.notas ? `<div style="font-size:.75rem;color:var(--text3);margin-top:2px">📝 ${fullEv.notas}</div>` : ''}
+          <div style="font-size:.85rem;color:var(--text1);font-weight:600">${fullEv ? _age_esc(fullEv.nombre) : _age_esc(e.texto)}</div>
+          ${fullEv?.hora ? `<div style="font-size:.75rem;color:var(--text2)">🕐 ${_age_esc(fullEv.hora)}</div>` : ''}
+          ${fullEv?.ubicacion ? `<div style="font-size:.75rem;color:var(--text2)">📍 ${_age_esc(fullEv.ubicacion)}</div>` : ''}
+          ${fullEv?.notas ? `<div style="font-size:.75rem;color:var(--text3);margin-top:2px">📝 ${_age_esc(fullEv.notas)}</div>` : ''}
           <div style="font-size:.72rem;color:${e.color};font-weight:600;text-transform:uppercase;margin-top:2px">${age_tipoLabel(e.tipo)}</div>
         </div>
       </div>`;

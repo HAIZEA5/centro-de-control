@@ -1,5 +1,7 @@
 // ─── MÓDULO TAREAS ───
 
+const _esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
 function tareas_getNotas()  { return Store.get('notas_rapidas', ''); }
 function tareas_getCorto()  { return Store.get('tareas_corto', []); }
 function tareas_getLargo()  { return Store.get('tareas_largo', []); }
@@ -39,7 +41,7 @@ function _renderBandeja() {
   }
   el.innerHTML = lista.slice().reverse().map(t => `
     <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
-      <span style="flex:1;font-size:.85rem;color:var(--text)">${t.texto}</span>
+      <span style="flex:1;font-size:.85rem;color:var(--text)">${_esc(t.texto)}</span>
       <button onclick="tar_delBandeja(${t.id})"
         style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:2px 6px;flex-shrink:0">✕</button>
     </div>`).join('');
@@ -120,7 +122,7 @@ function _renderTarCorto() {
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;min-width:0">
         <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="${opts.onCheck || ''}"
           style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0" />
-        <span style="${t.completada ? 'text-decoration:line-through;color:var(--text3)' : 'color:var(--text)'}">${t.texto}</span>
+        <span style="${t.completada ? 'text-decoration:line-through;color:var(--text3)' : 'color:var(--text)'}">${_esc(t.texto)}</span>
       </label>
       <button onclick="${opts.onDelete || ''}"
         style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:2px 6px;flex-shrink:0">✕</button>
@@ -166,7 +168,7 @@ function _renderTarLargo() {
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;min-width:0">
         <input type="checkbox" ${t.completada ? 'checked' : ''} onchange="tareas_completarLargo(${t.id})"
           style="width:16px;height:16px;accent-color:var(--accent2);cursor:pointer;flex-shrink:0" />
-        <span style="${t.completada ? 'text-decoration:line-through;color:var(--text3)' : 'color:var(--text)'}">${t.texto}</span>
+        <span style="${t.completada ? 'text-decoration:line-through;color:var(--text3)' : 'color:var(--text)'}">${_esc(t.texto)}</span>
       </label>
       <button onclick="tareas_borrarLargo(${t.id})"
         style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:2px 6px;flex-shrink:0">✕</button>
