@@ -394,34 +394,6 @@
           </div>
         </div>
 
-        <!-- REVISIONES DE ESTADO — oculto: usa la pestaña Historial de cada convocatoria -->
-        <div class="card mt" style="display:none">
-          <h3>Revisiones de estado</h3>
-          <div class="revision-form">
-            <select id="rev-opos-sel"><option value="">— Oposición —</option></select>
-            <select id="rev-estado-sel">
-              <option value="">— Estado encontrado —</option>
-              <option value="Sin novedades">Sin novedades</option>
-              <option value="En seguimiento">En seguimiento</option>
-              <option value="Prevista">Prevista</option>
-              <option value="Abierta">Abierta — convocatoria publicada</option>
-              <option value="Plazo abierto">Plazo de inscripción abierto</option>
-              <option value="Plazo cerrado">Plazo de inscripción cerrado</option>
-              <option value="Lista provisional">Lista provisional publicada</option>
-              <option value="Alegaciones">Período de alegaciones</option>
-              <option value="Lista definitiva">Lista definitiva publicada</option>
-              <option value="Fecha examen">Fecha de examen publicada</option>
-              <option value="En proceso">En proceso</option>
-              <option value="Cerrada">Cerrada</option>
-            </select>
-            <input id="rev-nota" type="text" placeholder="Nota (opcional) — ej: sigue sin fecha, plazo hasta el 30…" />
-            <button class="btn-primary" id="rev-guardar">Registrar</button>
-          </div>
-          <div class="revision-log" id="rev-log">
-            <p style="color:var(--text3);font-size:.87rem">Sin revisiones registradas aún.</p>
-          </div>
-        </div>
-
         <div class="card mt">
           <h3>Progreso de temas</h3>
           <div class="opos-temas-grid" id="opos-temas"></div>
@@ -601,7 +573,7 @@
   <script src="js/modules/it-txartelas.js?v=20260701a"></script>
   <script src="js/modules/tareas.js?v=20260701a"></script>
   <script src="js/modules/excel.js?v=20260701a"></script>
-  <script src="js/dashboard.js?v=20260701a"></script>
+  <script src="js/dashboard.js?v=20260702a"></script>
   <script src="js/app.js?v=20260701a"></script>
   <script>
     if ('serviceWorker' in navigator) {

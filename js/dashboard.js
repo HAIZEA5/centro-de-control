@@ -129,6 +129,15 @@ function _dashCarnet() {
     ? `${practicas.length} sesiones · ${horas}h${mins > 0 ? ` ${mins}min` : ''}`
     : 'Sin sesiones aún';
 
+  // Ahorro coche
+  const cocheAports = typeof Store !== 'undefined' ? Store.get('cdc_ahorro_coche', []) : [];
+  const cocheTotal  = cocheAports.reduce((s, a) => s + (parseFloat(a.importe) || 0), 0);
+  const cocheMeta   = 3000;
+  const cochePct    = Math.min(100, (cocheTotal / cocheMeta) * 100);
+  const cocheFalta  = Math.max(0, cocheMeta - cocheTotal);
+  const cocheColor  = cochePct >= 100 ? 'var(--green)' : cochePct >= 60 ? 'var(--accent2)' : 'var(--accent)';
+  const cocheEur    = n => n.toLocaleString('es-ES', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' €';
+
   el.innerHTML = `
     <div class="dash-row">
       <span class="dash-row-label">Examen teórico</span>
@@ -141,6 +150,16 @@ function _dashCarnet() {
     <div class="dash-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
       <span class="dash-row-label" style="font-weight:600">Próximo examen práctico</span>
       <span class="dash-row-val" style="color:${diasColor};font-weight:700">${proximaStr}</span>
+    </div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+      <div class="dash-row" style="margin-bottom:6px">
+        <span class="dash-row-label">🚗 Ahorro coche</span>
+        <span class="dash-row-val" style="color:${cocheColor};font-weight:700">${cocheEur(cocheTotal)} <span style="color:var(--text3);font-weight:400;font-size:.75rem">/ ${cocheEur(cocheMeta)}</span></span>
+      </div>
+      <div style="background:var(--bg3);border-radius:99px;height:5px;overflow:hidden">
+        <div style="width:${cochePct.toFixed(1)}%;height:100%;background:${cocheColor};border-radius:99px;transition:width .3s"></div>
+      </div>
+      <div style="font-size:.72rem;color:var(--text3);margin-top:4px">${cochePct >= 100 ? '¡Meta alcanzada! 🎉' : `Faltan ${cocheEur(cocheFalta)} · ${cochePct.toFixed(0)}%`}</div>
     </div>`;
 }
 
@@ -190,10 +209,12 @@ function _dashOposiciones() {
       </div>`;
   }
 
-  // Inscripciones con plazo abierto (todas, pendientes y ya hechas)
+  // Inscripciones con plazo abierto (excluye ya marcadas como inscrita=si)
   const inscAbiertas = lista.filter(r => {
     if (!r.fecha_fin_inscr) return false;
     if ((r.estado || '').toUpperCase() === 'EN SEGUIMIENTO') return false;
+    const iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g, '_');
+    if (localStorage.getItem(iKey) === 'si') return false;
     const fin = new Date(r.fecha_fin_inscr + 'T23:59:59');
     return fin >= hoy;
   }).sort((a,b) => new Date(a.fecha_fin_inscr) - new Date(b.fecha_fin_inscr));
