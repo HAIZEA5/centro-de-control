@@ -5,6 +5,7 @@ function loadDashboard() {
   _dashFecha();
   _dashQuote();
   _dashFinanzas();
+  _dashPiso();
   _dashCarnet();
   _dashOposiciones();
   _dashAgenda();
@@ -157,6 +158,61 @@ function _dashPatrSparkline() {
         <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3.5" fill="${color}"/>
       </svg>
     </div>`;
+}
+
+/* ── Futuro Piso ── */
+function _dashPiso() {
+  const el = document.getElementById('dash-piso-content');
+  if (!el || typeof getSaldosActuales !== 'function') return;
+
+  const s    = getSaldosActuales();
+  const ctv  = s.ctv || 0;
+  const cfg  = Store.get('piso_config', {});
+  const meta = parseFloat(cfg.meta) || 20000;
+  const pct  = Math.min(100, (ctv / meta) * 100);
+  const falta = Math.max(0, meta - ctv);
+
+  let anioEst = null;
+  if (typeof ctv_simularCrecimiento === 'function' && falta > 0) {
+    try {
+      const sims = ctv_simularCrecimiento(ctv, meta);
+      if (sims.length) {
+        const row = sims[0].rows.find(r => r.alcanzado);
+        if (row) anioEst = new Date().getFullYear() + row.anio;
+      }
+    } catch(e) {}
+  }
+
+  const color = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--accent2)' : 'var(--accent)';
+
+  // Últimas aportaciones al CTV (transacciones marcadas como CTV/vivienda)
+  const txns = [...(FIN_DATA?.transacciones || []), ...Store.get('fin_txns', [])]
+    .filter(t => t.c === 'interna' && t.i > 0 && (t.d || '').toLowerCase().includes('ctv'))
+    .sort((a,b) => (b.f || '').localeCompare(a.f || ''))
+    .slice(0, 2);
+
+  el.innerHTML = `
+    <div class="dash-row" style="margin-bottom:4px">
+      <span class="dash-row-label" style="font-weight:700">CTV Vivienda</span>
+      <span style="font-weight:800;color:${color};font-size:1.05rem">${Fmt.eur2(ctv)}</span>
+    </div>
+    <div class="dash-row" style="margin-bottom:8px">
+      <span class="dash-row-label" style="color:var(--text3);font-size:.78rem">Meta: ${Fmt.eur2(meta)}${anioEst ? ` · ~${anioEst}` : ''}</span>
+      <span style="color:var(--text3);font-size:.78rem">${pct.toFixed(1)}%</span>
+    </div>
+    <div style="background:var(--bg3);border-radius:99px;height:6px;overflow:hidden;margin-bottom:6px">
+      <div style="width:${pct.toFixed(1)}%;height:100%;background:${color};border-radius:99px;transition:width .3s"></div>
+    </div>
+    <div style="font-size:.72rem;color:var(--text3);margin-bottom:${txns.length ? '10px' : '0'}">${pct >= 100 ? '¡Meta alcanzada! 🎉' : `Faltan ${Fmt.eur2(falta)}`}</div>
+    ${txns.length ? `
+    <div style="padding-top:8px;border-top:1px solid var(--border)">
+      <div style="font-size:.68rem;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Últimas aportaciones</div>
+      ${txns.map(t => `
+      <div class="dash-row">
+        <span class="dash-row-label" style="font-size:.75rem">${t.d || 'Aportación'}</span>
+        <span style="color:var(--green);font-size:.78rem;font-weight:700">+${Fmt.eur2(t.i)}</span>
+      </div>`).join('')}
+    </div>` : ''}`;
 }
 
 /* ── Carnet ── */
@@ -347,7 +403,22 @@ function _dashAgenda() {
     return { icono:'🎂', texto: nombre, fecha, dias };
   }).filter(Boolean).sort((a,b) => a.dias - b.dias);
 
-  // Próximos eventos y vencimientos
+  // Eventos estructurados (age_eventos_struct)
+  const AGE_ICON = {
+    personal:'💙', oposiciones:'📚', finanzas:'💚', carnet:'🚗',
+    medico:'💊', familia:'👨‍👩‍👧', ocio:'🎭', otro:'📌',
+  };
+  const structEvs = Store.get('age_eventos_struct', []).map(ev => {
+    if (!ev.fecha) return null;
+    const fecha = new Date(ev.fecha + 'T00:00:00');
+    fecha.setHours(0,0,0,0);
+    if (fecha < hoy) return null;
+    const dias = Math.round((fecha - hoy) / 86400000);
+    const icono = AGE_ICON[ev.cat] || '📌';
+    return { icono, texto: ev.nombre, fecha, dias };
+  }).filter(Boolean);
+
+  // Vencimientos (texto libre legacy)
   const parseLineas = (str, icono) => (str || '').split('\n').filter(l => l.trim()).map(l => {
     const m = l.match(/^(.+?)\s*[—\-]\s*(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (!m) return null;
@@ -358,26 +429,9 @@ function _dashAgenda() {
     return { icono, texto: m[1].trim(), fecha, dias };
   }).filter(Boolean);
 
-  // Vencimientos de inscripciones de oposiciones
-  const oposLista = Store.get('opos_convocatorias', []);
-  const oposVenc = oposLista.filter(r => {
-    if (!r.fecha_fin_inscr) return false;
-    const iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g, '_');
-    if (localStorage.getItem(iKey) === 'si') return false;
-    const fin = new Date(r.fecha_fin_inscr + 'T23:59:59');
-    return fin >= hoy;
-  }).map(r => {
-    const fin = new Date(r.fecha_fin_inscr + 'T00:00:00');
-    fin.setHours(0,0,0,0);
-    const dias = Math.round((fin - hoy) / 86400000);
-    const { org } = typeof _oposOrgPuesto === 'function' ? _oposOrgPuesto(r) : { org: r.organismo || r.convocatoria || '' };
-    return { icono:'📝', texto: `${org} — Fin inscripción`, fecha: fin, dias };
-  });
-
   const items = [
-    ...oposVenc,
     ...cumples.slice(0, 2),
-    ...parseLineas(age.eventos,      '📆'),
+    ...structEvs,
     ...parseLineas(age.vencimientos, '⚠️'),
   ].sort((a,b) => a.dias - b.dias).slice(0, 6);
 
