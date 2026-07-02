@@ -54,45 +54,58 @@ function loadCarnet() {
 
 // ── Stats ──
 function renderCarStats(practicas, cfg = {}) {
-  const estadoEl = document.getElementById('car-teorico-estado');
-  if (estadoEl) {
-    const ts = cfg.teorico_estado;
-    if (ts === 'aprobado') {
-      const fechaStr = cfg.teorico_fecha
-        ? ' · ' + new Date(cfg.teorico_fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' })
-        : '';
-      estadoEl.innerHTML = `✅ Aprobado<div style="font-size:.7rem;color:var(--text3);font-weight:400;margin-top:3px">${fechaStr}</div>`;
-      estadoEl.style.color = 'var(--green)';
-      estadoEl.style.fontSize = '1rem';
-    } else if (ts === 'suspendido') {
-      estadoEl.textContent = '❌ Suspendido';
-      estadoEl.style.color = 'var(--red)';
-      estadoEl.style.fontSize = '1rem';
+  const row = document.getElementById('car-stats-row');
+  if (!row) return;
+
+  const ts       = cfg.teorico_estado;
+  const aprobado = ts === 'aprobado';
+
+  // Bloque teórico: badge compacto si aprobado, card completa si no
+  let teoricoHTML = '';
+  if (aprobado) {
+    const fechaStr = cfg.teorico_fecha
+      ? new Date(cfg.teorico_fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' })
+      : '';
+    teoricoHTML = `<div style="display:inline-flex;align-items:center;gap:8px;background:var(--green)18;border:1px solid var(--green)44;border-radius:99px;padding:5px 14px;margin-bottom:12px">
+      <span style="color:var(--green);font-weight:700;font-size:.88rem">✅ Teórico aprobado</span>
+      ${fechaStr ? `<span style="color:var(--text3);font-size:.75rem">${fechaStr}</span>` : ''}
+    </div>`;
+  } else {
+    const estadoStr = ts === 'suspendido'
+      ? '<span style="color:var(--red);font-weight:700;font-size:1.1rem">❌ Suspendido</span>'
+      : '<span style="color:var(--text3)">Pendiente</span>';
+    teoricoHTML = `<div class="cards-row" style="margin-bottom:12px">
+      <div class="card"><h3>Examen teórico</h3><div class="big-number">${estadoStr}</div></div>
+    </div>`;
+  }
+
+  // Bloque práctico
+  const estadoLabel = { pendiente:'⏳ Pendiente', en_proceso:'🔄 En proceso', convocado:'📅 Convocado' };
+  let proxHTML  = '—';
+  let diasColor = 'var(--text2)';
+  if (cfg.prox_estado || cfg.prox_fecha) {
+    const label = estadoLabel[cfg.prox_estado] || '';
+    const fecha = cfg.prox_fecha
+      ? new Date(cfg.prox_fecha + 'T12:00:00').toLocaleDateString('es-ES', {day:'2-digit',month:'short',year:'numeric'})
+      : '';
+    if (cfg.prox_fecha) {
+      const d = new Date(cfg.prox_fecha); d.setHours(0,0,0,0);
+      const h = new Date(); h.setHours(0,0,0,0);
+      const diff = Math.round((d - h) / 86400000);
+      diasColor = diff >= 0 && diff <= 2 ? 'var(--red)' : diff >= 0 && diff <= 6 ? 'var(--orange)' : 'var(--accent2)';
+      const diffLabel = diff > 0 ? ` · en ${diff}d` : diff === 0 ? ' · ¡HOY!' : '';
+      proxHTML = `${label ? label + '<br>' : ''}<span style="font-size:.9rem">${fecha}${diffLabel}</span>`;
     } else {
-      estadoEl.textContent = '—';
-      estadoEl.style.color = '';
-      estadoEl.style.fontSize = '';
+      proxHTML = label;
     }
   }
 
-  const proxEl = document.getElementById('car-proxima');
-  if (proxEl) {
-    const estadoLabel = { pendiente:'⏳ Pendiente', en_proceso:'🔄 En proceso', convocado:'📅 Convocado' };
-    if (cfg.prox_estado || cfg.prox_fecha) {
-      const label = estadoLabel[cfg.prox_estado] || '';
-      const fecha = cfg.prox_fecha ? new Date(cfg.prox_fecha + 'T12:00:00').toLocaleDateString('es-ES', {day:'2-digit',month:'short',year:'numeric'}) : '';
-      const dias = cfg.prox_fecha ? (() => {
-        const d = new Date(cfg.prox_fecha); d.setHours(0,0,0,0);
-        const h = new Date(); h.setHours(0,0,0,0);
-        const diff = Math.round((d-h)/86400000);
-        return diff > 0 ? ` (en ${diff}d)` : diff === 0 ? ' (¡HOY!)' : '';
-      })() : '';
-      proxEl.innerHTML = `${label}${label && fecha ? '<br>' : ''}<span style="font-size:.85rem">${fecha}${dias}</span>`;
-      proxEl.style.lineHeight = '1.4';
-    } else {
-      proxEl.textContent = '—';
-    }
-  }
+  row.innerHTML = teoricoHTML + `<div class="cards-row">
+    <div class="card">
+      <h3>Examen práctico</h3>
+      <div id="car-proxima" style="font-size:1rem;line-height:1.5;color:${diasColor}">${proxHTML}</div>
+    </div>
+  </div>`;
 }
 
 // ── Panel Prácticas ──
