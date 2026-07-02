@@ -66,7 +66,31 @@ function _dashFinanzas() {
     { label:'FM Revolut',       val: s.fm,  color:'var(--red)' },
   ];
 
-  el.innerHTML = `
+  // Alertas de categorías con límite superado/cerca
+  const limites = typeof Store !== 'undefined' ? Store.get('fin_cat_limites', {}) : {};
+  const hoy2    = new Date();
+  const mesStr2 = `${hoy2.getFullYear()}-${String(hoy2.getMonth()+1).padStart(2,'0')}`;
+  const alertasCat = Object.entries(limites).map(([cat, lim]) => {
+    const gastado = [...(FIN_DATA?.transacciones || []), ...(typeof Store !== 'undefined' ? Store.get('fin_txns', []) : [])]
+      .filter(t => t.f?.startsWith(mesStr2) && t.i < 0 && t.c === cat)
+      .reduce((acc, t) => acc + Math.abs(t.i), 0);
+    const pct = Math.min(100, gastado / lim * 100);
+    return { cat, gastado, lim, pct };
+  }).filter(a => a.pct >= 80).sort((a,b) => b.pct - a.pct);
+
+  const alertasHTML = alertasCat.length ? `
+    <div style="margin-bottom:10px;padding:8px 10px;border-radius:8px;background:var(--red)15;border:1px solid var(--red)44">
+      <div style="font-size:.7rem;font-weight:700;color:var(--red);margin-bottom:5px">⚠️ LÍMITES DE GASTO</div>
+      ${alertasCat.map(a => {
+        const col = a.pct >= 100 ? 'var(--red)' : 'var(--orange)';
+        return `<div class="dash-row" style="margin-bottom:2px">
+          <span style="font-size:.75rem">${a.cat}</span>
+          <span style="font-size:.75rem;font-weight:700;color:${col}">${Fmt.eur2(a.gastado)} / ${Fmt.eur2(a.lim)}</span>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  el.innerHTML = alertasHTML + `
     <div class="dash-row" style="margin-bottom:4px">
       <span class="dash-row-label" style="font-weight:700">Patrimonio total</span>
       <span style="font-weight:800;color:var(--accent2);font-size:1.05rem">${Fmt.eur2(patrimonio)}</span>

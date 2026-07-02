@@ -1200,7 +1200,86 @@ function renderFinPresupuestoYGastos() {
         ${pausados.length ? `
           <div style="font-size:.7rem;color:var(--text3);margin-top:12px;font-style:italic">⏸ ${pausados.length} gasto${pausados.length!==1?'s':''} pausado${pausados.length!==1?'s':''}</div>` : ''}
       </div>
+    </div>
+
+    <!-- Gasto variable del mes actual -->
+    <div class="card mt">
+      <h3 style="margin-bottom:14px">📊 Gasto variable — ${new Date().toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</h3>
+      ${_finGastoVariableMes()}
     </div>`;
+}
+
+/* ── Gasto variable por categoría con límites opcionales ── */
+function _finGastoVariableMes() {
+  const hoy = new Date();
+  const mesStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+
+  const txns = [...FIN_DATA.transacciones, ...Store.get('fin_txns', [])]
+    .filter(t => t.f?.startsWith(mesStr) && (t.i < 0) && t.c !== 'interna' && t.c !== 'nomina' && t.c !== 'ahorro' && t.c !== 'deuda');
+
+  if (!txns.length) return '<p style="color:var(--text3);font-size:.85rem">Sin gastos variables registrados este mes.</p>';
+
+  const byCat = {};
+  txns.forEach(t => { const c = t.c || 'otros'; byCat[c] = (byCat[c] || 0) + Math.abs(t.i); });
+
+  const catLabels = {
+    alimentacion:'🛒 Alimentación', hosteleria:'☕ Hostelería', ropa:'👗 Ropa',
+    suscripciones:'📱 Suscripciones', ocio:'🎭 Ocio', transporte:'🚆 Transporte',
+    oposiciones:'📚 Oposiciones', belleza:'💄 Belleza', salud:'💊 Salud',
+    hogar:'🏠 Hogar', regalo:'🎁 Regalos', formacion:'🎓 Formación',
+    compras:'🛍️ Compras', otros:'• Otros'
+  };
+
+  const limites = Store.get('fin_cat_limites', {});
+  const sorted  = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
+  const total   = sorted.reduce((s,[,v]) => s+v, 0);
+
+  const hayAlerta = sorted.some(([cat, spent]) => {
+    const lim = parseFloat(limites[cat] || 0);
+    return lim > 0 && spent / lim >= 0.8;
+  });
+
+  return sorted.map(([cat, spent]) => {
+    const label = catLabels[cat] || cat;
+    const lim   = parseFloat(limites[cat] || 0);
+    const pct   = lim > 0 ? Math.min(100, spent / lim * 100) : 0;
+    const col   = pct >= 100 ? 'var(--red)' : pct >= 80 ? 'var(--orange)' : 'var(--green)';
+    const icono = pct >= 100 ? '⚠️ ' : pct >= 80 ? '⚡ ' : '';
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-size:.82rem">${icono}${label}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:.82rem;font-weight:700;color:${lim > 0 && pct >= 100 ? 'var(--red)' : 'var(--text1)'}">${fmt(spent)}</span>
+          ${lim > 0 ? `<span style="font-size:.7rem;color:var(--text3)">/ ${fmt(lim)}</span>` : ''}
+          <button onclick="fin_editarLimite('${cat}')"
+            style="font-size:.65rem;color:var(--text3);background:none;border:1px solid var(--border);border-radius:5px;padding:1px 5px;cursor:pointer">${lim > 0 ? '✏️' : '+ límite'}</button>
+        </div>
+      </div>
+      ${lim > 0 ? `<div style="background:var(--bg3);border-radius:99px;height:4px;overflow:hidden">
+        <div style="width:${pct.toFixed(1)}%;height:100%;background:${col};border-radius:99px"></div>
+      </div>` : ''}
+    </div>`;
+  }).join('') + `
+  <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:6px;display:flex;justify-content:space-between;font-weight:700;font-size:.85rem">
+    <span>Total variable</span>
+    <span style="color:var(--red)">${fmt(total)}</span>
+  </div>`;
+}
+
+function fin_editarLimite(cat) {
+  const limites = Store.get('fin_cat_limites', {});
+  const actual  = limites[cat] ? String(limites[cat]) : '';
+  const resp    = prompt(`Límite mensual para «${cat}» en €.\nDeja vacío para quitarlo:`, actual);
+  if (resp === null) return;
+  if (resp.trim() === '') {
+    delete limites[cat];
+  } else {
+    const v = parseFloat(resp.replace(',', '.'));
+    if (isNaN(v) || v <= 0) { alert('Valor inválido'); return; }
+    limites[cat] = v;
+  }
+  Store.set('fin_cat_limites', limites);
+  renderFinPresupuestoYGastos();
 }
 
 function guardarSaldos() {
