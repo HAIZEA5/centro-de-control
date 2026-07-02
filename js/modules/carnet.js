@@ -49,6 +49,7 @@ function loadCarnet() {
 
   renderCarStats(practicas, cfg);
   renderCarPracticas(practicas);
+  coche_renderAhorro();
 }
 
 // ── Stats ──
@@ -119,5 +120,104 @@ function renderCarPracticas(practicas) {
         <button onclick="car_borrarPractica(${realIdx})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:2px 6px">✕</button>
       </div>`;
     }).join('')}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AHORRO PARA EL COCHE
+// ═══════════════════════════════════════════════════════════
+
+const COCHE_META = 3000;
+
+// ── Storage ──
+function coche_getAportaciones() { return Store.get('cdc_ahorro_coche', []); }
+function coche_saveAportaciones(data) { Store.set('cdc_ahorro_coche', data); }
+
+// ── Render progreso e histórico ──
+function coche_renderAhorro() {
+  const aportaciones = coche_getAportaciones()
+    .slice()
+    .sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  const total = aportaciones.reduce((s, a) => s + (parseFloat(a.importe) || 0), 0);
+  const pct   = Math.min(100, (total / COCHE_META) * 100);
+  const falta = Math.max(0, COCHE_META - total);
+
+  // Barra y etiquetas
+  const barraEl  = document.getElementById('coche-barra');
+  const totalEl  = document.getElementById('coche-total-label');
+  const pctEl    = document.getElementById('coche-pct-label');
+  const faltaEl  = document.getElementById('coche-falta-label');
+
+  if (barraEl)  barraEl.style.width  = pct.toFixed(1) + '%';
+  if (barraEl)  barraEl.style.background = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--accent2)' : 'var(--accent)';
+  if (totalEl)  totalEl.textContent  = _cocheEur(total);
+  if (pctEl)    pctEl.textContent    = pct.toFixed(1) + '%';
+  if (faltaEl)  faltaEl.textContent  = pct >= 100 ? '¡Meta alcanzada! 🎉' : `Faltan ${_cocheEur(falta)}`;
+
+  // Histórico
+  const histEl = document.getElementById('coche-historial');
+  if (!histEl) return;
+
+  if (!aportaciones.length) {
+    histEl.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin aportaciones registradas.</p>';
+    return;
+  }
+
+  const allSorted = coche_getAportaciones().slice().sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  histEl.innerHTML = `
+    <div style="font-size:.78rem;color:var(--text3);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">
+      ${aportaciones.length} aportación${aportaciones.length !== 1 ? 'es' : ''} · Total: ${_cocheEur(total)}
+    </div>
+    ${aportaciones.map((a, i) => {
+      const realIdx = allSorted.length - 1 - i;
+      return `
+      <div style="display:grid;grid-template-columns:100px 80px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:.8rem;color:var(--text3)">${_fmtFecha(a.fecha)}</span>
+        <span style="font-size:.88rem;font-weight:700;color:var(--green)">+${_cocheEur(parseFloat(a.importe)||0)}</span>
+        <span style="font-size:.82rem;color:var(--text2)">${a.nota || '—'}</span>
+        <button onclick="coche_borrarAportacion(${realIdx})"
+          style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:2px 6px">✕</button>
+      </div>`;
+    }).join('')}`;
+}
+
+// ── Añadir aportación ──
+function coche_addAportacion() {
+  const fecha   = document.getElementById('coche-fecha')?.value;
+  const importe = parseFloat(document.getElementById('coche-importe')?.value);
+  const nota    = document.getElementById('coche-nota')?.value.trim() || '';
+
+  if (!fecha || isNaN(importe) || importe <= 0) {
+    alert('Indica fecha e importe válidos.');
+    return;
+  }
+
+  const data = coche_getAportaciones();
+  data.push({ fecha, importe: importe.toFixed(2), nota });
+  coche_saveAportaciones(data);
+
+  // Limpiar formulario
+  const fechaEl = document.getElementById('coche-fecha');
+  if (fechaEl) fechaEl.value = '';
+  const importeEl = document.getElementById('coche-importe');
+  if (importeEl) importeEl.value = '';
+  const notaEl = document.getElementById('coche-nota');
+  if (notaEl) notaEl.value = '';
+
+  coche_renderAhorro();
+}
+
+// ── Borrar aportación ──
+function coche_borrarAportacion(i) {
+  const data = coche_getAportaciones().slice().sort((a, b) => a.fecha.localeCompare(b.fecha));
+  data.splice(i, 1);
+  coche_saveAportaciones(data);
+  coche_renderAhorro();
+}
+
+// ── Helper formato € ──
+function _cocheEur(n) {
+  return n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 }
 
