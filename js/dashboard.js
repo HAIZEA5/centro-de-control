@@ -24,7 +24,11 @@ function _dashSaludo() {
 function _dashFecha() {
   const el = document.getElementById('dash-fecha-hoy');
   if (!el) return;
-  el.textContent = new Date().toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const d = new Date();
+  const dias   = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const meses  = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const txt = `${dias[d.getDay()]}, ${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+  el.textContent = txt.charAt(0).toUpperCase() + txt.slice(1);
 }
 
 function _dashQuote() {
@@ -104,10 +108,11 @@ function _dashFinanzas() {
       <span class="dash-row-label"><span style="color:${c.color}">●</span> ${c.label}</span>
       <span class="dash-row-val">${Fmt.eur2(c.val)}</span>
     </div>`).join('')}
+    ${gastoMes > 0 ? `
     <div class="dash-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
       <span class="dash-row-label">Gasto ${new Date().toLocaleDateString('es-ES',{month:'long'})}</span>
-      <span class="dash-row-val red">${gastoMes > 0 ? '-' + Fmt.eur2(gastoMes) : 'Sin datos aún'}</span>
-    </div>
+      <span class="dash-row-val red">-${Fmt.eur2(gastoMes)}</span>
+    </div>` : ''}
     ${deudaRest > 0 ? `
     <div class="dash-row">
       <span class="dash-row-label">Deuda iPhone (${cuotasRest} cuotas)</span>
@@ -116,7 +121,42 @@ function _dashFinanzas() {
     <div class="dash-row">
       <span class="dash-row-label">Deuda iPhone</span>
       <span class="dash-row-val green">✅ Liquidada</span>
-    </div>`}`;
+    </div>`}
+    ${_dashPatrSparkline()}`;
+}
+
+function _dashPatrSparkline() {
+  if (typeof fin_patrGetHist !== 'function') return '';
+  const hist = fin_patrGetHist().slice(-8);
+  if (hist.length < 2) return '';
+  const vals = hist.map(h => h.total);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = max - min || 1;
+  const W = 200, H = 40;
+  const pts = vals.map((v, i) => {
+    const x = (i / (vals.length - 1)) * W;
+    const y = H - 4 - ((v - min) / range) * (H - 8);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const last = vals[vals.length - 1];
+  const prev = vals[vals.length - 2];
+  const diff = last - prev;
+  const color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+  const lastX = W;
+  const lastY = H - 4 - ((last - min) / range) * (H - 8);
+  return `
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:.7rem;color:var(--text3)">Evolución patrimonio</span>
+        <span style="font-size:.72rem;font-weight:700;color:${color}">${diff >= 0 ? '↑' : '↓'} ${Fmt.eur2(Math.abs(diff))}</span>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:36px;display:block;overflow:visible">
+        <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+        <circle cx="${lastX.toFixed(1)}" cy="${lastY.toFixed(1)}" r="3.5" fill="${color}"/>
+      </svg>
+    </div>`;
 }
 
 /* ── Carnet ── */
@@ -151,7 +191,7 @@ function _dashCarnet() {
   const horas = Math.floor(totalMin / 60), mins = totalMin % 60;
   const pracStr = practicas.length
     ? `${practicas.length} sesiones · ${horas}h${mins > 0 ? ` ${mins}min` : ''}`
-    : 'Sin sesiones aún';
+    : '0 clases · 0 min';
 
   // Ahorro coche
   const cocheAports = typeof Store !== 'undefined' ? Store.get('cdc_ahorro_coche', []) : [];
@@ -160,7 +200,9 @@ function _dashCarnet() {
   const cochePct    = Math.min(100, (cocheTotal / cocheMeta) * 100);
   const cocheFalta  = Math.max(0, cocheMeta - cocheTotal);
   const cocheColor  = cochePct >= 100 ? 'var(--green)' : cochePct >= 60 ? 'var(--accent2)' : 'var(--accent)';
-  const cocheEur    = n => n.toLocaleString('es-ES', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' €';
+  const cocheEur    = n => Number.isInteger(n) || n % 1 === 0
+    ? n.toLocaleString('es-ES', { minimumFractionDigits:0, maximumFractionDigits:0 }) + ' €'
+    : n.toLocaleString('es-ES', { minimumFractionDigits:2, maximumFractionDigits:2 }) + ' €';
 
   el.innerHTML = `
     <div class="dash-row">
@@ -253,15 +295,15 @@ function _dashOposiciones() {
         const dias = Math.round((fin - hoy) / 86400000);
         const listo = r.doc_solicitud === 'Listo';
         const color = listo ? 'var(--green)' : dias <= 3 ? 'var(--red)' : dias <= 7 ? 'var(--orange)' : 'var(--yellow)';
-        const diasLabel = dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : `${dias}d`;
+        const diasLabel = dias === 0 ? '¡HOY!' : dias === 1 ? 'mañana' : `en ${dias}d`;
         const fechaStr = fin.toLocaleDateString('es-ES', {day:'2-digit', month:'short'});
         const { org, pto } = typeof _oposOrgPuesto === 'function' ? _oposOrgPuesto(r) : { org: r.organismo || '', pto: r.puesto || '' };
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)">
-          <div>
-            <div style="font-size:.79rem;color:var(--text1);font-weight:600">${org} <span style="color:var(--text3);font-weight:400">· ${pto}</span></div>
-            <div style="font-size:.72rem;color:var(--text3)">hasta ${fechaStr}</div>
+          <div style="min-width:0">
+            <div style="font-size:.79rem;color:var(--text1);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${org}</div>
+            <div style="font-size:.72rem;color:var(--text3)">📝 Fin inscripción · ${fechaStr}</div>
           </div>
-          <span style="color:${color};font-weight:700;font-size:.8rem;white-space:nowrap;margin-left:8px">${listo ? '✅' : `⏳ ${diasLabel}`}</span>
+          <span style="color:${color};font-weight:700;font-size:.8rem;white-space:nowrap;margin-left:8px">${listo ? '✅' : diasLabel}</span>
         </div>`;
       }).join('')}
     </div>` : '';
@@ -316,8 +358,25 @@ function _dashAgenda() {
     return { icono, texto: m[1].trim(), fecha, dias };
   }).filter(Boolean);
 
+  // Vencimientos de inscripciones de oposiciones
+  const oposLista = Store.get('opos_convocatorias', []);
+  const oposVenc = oposLista.filter(r => {
+    if (!r.fecha_fin_inscr) return false;
+    const iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g, '_');
+    if (localStorage.getItem(iKey) === 'si') return false;
+    const fin = new Date(r.fecha_fin_inscr + 'T23:59:59');
+    return fin >= hoy;
+  }).map(r => {
+    const fin = new Date(r.fecha_fin_inscr + 'T00:00:00');
+    fin.setHours(0,0,0,0);
+    const dias = Math.round((fin - hoy) / 86400000);
+    const { org } = typeof _oposOrgPuesto === 'function' ? _oposOrgPuesto(r) : { org: r.organismo || r.convocatoria || '' };
+    return { icono:'📝', texto: `${org} — Fin inscripción`, fecha: fin, dias };
+  });
+
   const items = [
-    ...cumples.slice(0, 3),
+    ...oposVenc,
+    ...cumples.slice(0, 2),
     ...parseLineas(age.eventos,      '📆'),
     ...parseLineas(age.vencimientos, '⚠️'),
   ].sort((a,b) => a.dias - b.dias).slice(0, 6);

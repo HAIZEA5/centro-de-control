@@ -1,7 +1,7 @@
 // ─── SERVICE WORKER ──────────────────────────────────────────────────────────
 // Estrategia: cache-first para assets estáticos, network-first para HTML.
 // Incrementar CACHE_VERSION cuando se actualicen los assets.
-const CACHE_VERSION = 'cdc-v3';
+const CACHE_VERSION = 'cdc-v4';
 
 const STATIC_ASSETS = [
   '/',

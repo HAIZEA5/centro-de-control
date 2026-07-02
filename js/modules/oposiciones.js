@@ -17,7 +17,6 @@ async function loadOposiciones() {
   renderOposStats(data);
   renderOposCountdown(data);
   renderOposTable(data);
-  setupRevisiones(data);
   renderOposTemas();
   renderOposSesiones();
   setupOposTemas();
@@ -762,63 +761,6 @@ function addHistorial(i) {
       <div class="hist-texto">${h.texto}</div>
     </div>`).join('');
   // Auto-añade al historial: "Historial actualizado"
-}
-
-/* ── Revisiones de estado ── */
-function getRevisiones() { return Store.get('opos_revisiones', []); }
-function saveRevisiones(r) { Store.set('opos_revisiones', r); }
-
-function setupRevisiones(data) {
-  // Rellena el select de oposiciones
-  const sel = document.getElementById('rev-opos-sel');
-  sel.innerHTML = '<option value="">— Oposición —</option>' +
-    data.map(r => `<option value="${r.convocatoria}">${r.convocatoria}</option>`).join('');
-
-  document.getElementById('rev-guardar').addEventListener('click', () => {
-    const opos   = document.getElementById('rev-opos-sel').value;
-    const estado = document.getElementById('rev-estado-sel').value;
-    const nota   = document.getElementById('rev-nota').value.trim();
-    if (!opos || !estado) return;
-
-    const hoy = new Date();
-    const fecha = hoy.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
-
-    const revs = getRevisiones();
-    revs.unshift({ opos, estado, nota, fecha, ts: hoy.getTime() });
-    saveRevisiones(revs);
-
-    document.getElementById('rev-opos-sel').value   = '';
-    document.getElementById('rev-estado-sel').value = '';
-    document.getElementById('rev-nota').value        = '';
-    renderRevisiones();
-  });
-
-  renderRevisiones();
-}
-
-function renderRevisiones() {
-  const revs = getRevisiones();
-  const el   = document.getElementById('rev-log');
-  if (!revs.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin revisiones registradas aún.</p>';
-    return;
-  }
-  el.innerHTML = revs.map((r, i) => `
-    <div class="rev-item">
-      <span class="rev-fecha">${r.fecha}</span>
-      <div class="rev-body">
-        <div class="rev-opos">${r.opos} &nbsp; ${badgeEstado(r.estado)}</div>
-        ${r.nota ? `<div class="rev-nota">${r.nota}</div>` : ''}
-      </div>
-      <button class="rev-del" onclick="borrarRevision(${i})" title="Eliminar">✕</button>
-    </div>`).join('');
-}
-
-function borrarRevision(i) {
-  const revs = getRevisiones();
-  revs.splice(i, 1);
-  saveRevisiones(revs);
-  renderRevisiones();
 }
 
 /* ── Temas ── */
