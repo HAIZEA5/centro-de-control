@@ -237,10 +237,18 @@ function renderAgendaCalendario() {
 
     const tooltipData = evs.map(e => `${e.icono} ${e.texto}`).join('\n');
 
+    // Build colored dots for mobile (one per event type)
+    const dotMap = new Map();
+    evs.forEach(e => { if (!dotMap.has(e.tipo)) dotMap.set(e.tipo, e.color); });
+    const dotsHTML = dotMap.size
+      ? `<div class="cal-dots">${[...dotMap.values()].map(c => `<span class="cal-dot" style="background:${c}"></span>`).join('')}</div>`
+      : '';
+
     cells += `<div class="cal-cell${esHoy ? ' cal-today' : ''}${evs.length ? ' cal-has-events cal-cell--click' : ''}"
       title="${tooltipData.replace(/"/g,'&quot;')}"
       onclick="age_seleccionarDia('${dateStr}', this)">
       <span class="cal-day-num">${d}</span>
+      ${dotsHTML}
       <div class="cal-evs">
         ${visible.map(e => `<div class="cal-ev" style="background:${e.color}20;border-left:2px solid ${e.color};color:${e.color}">${e.icono} <span>${e.texto}</span></div>`).join('')}
         ${resto > 0 ? `<div class="cal-ev-more">+${resto} más</div>` : ''}
@@ -353,17 +361,19 @@ async function loadAgenda() {
   const cumples    = rowsToObjects(cumpleRows);
   const ul1 = document.getElementById('age-cumples');
 
-  const CUMPLE_VENTANA = 60; // días hacia adelante que se muestran
+  const CUMPLE_VENTANA = 60; // días preferidos; si no hay en ese rango, se muestra el más próximo
+  const _cumpleLi = (c, dimmed) => {
+    const dias = daysUntil(c.fecha);
+    const tag  = dias === 0 ? '🎂 HOY' : dias === 1 ? 'mañana' : dias <= 7 ? `en ${dias}d` : c.fecha;
+    const col  = dimmed ? 'var(--text3)' : (dias === 0 ? 'var(--green)' : dias <= 7 ? 'var(--yellow)' : 'var(--accent2)');
+    return `<li${dimmed ? ' style="opacity:.7"' : ''}>${c.nombre} <span style="color:${col};margin-left:auto">${tag}</span></li>`;
+  };
   if (cumples.length) {
     const ordenados = sortByProximity(cumples, 'fecha');
-    const proximos = ordenados.filter(c => daysUntil(c.fecha) <= CUMPLE_VENTANA);
-    ul1.innerHTML = proximos.length
-      ? proximos.map(c => {
-          const dias = daysUntil(c.fecha);
-          const tag  = dias === 0 ? '🎂 HOY' : dias === 1 ? 'mañana' : dias <= 7 ? `en ${dias}d` : c.fecha;
-          return `<li>${c.nombre} <span style="color:var(--accent2);margin-left:auto">${tag}</span></li>`;
-        }).join('')
-      : `<li style="color:var(--text2)">Ninguno en los próximos ${CUMPLE_VENTANA} días</li>`;
+    const proximos  = ordenados.filter(c => daysUntil(c.fecha) <= CUMPLE_VENTANA);
+    const toShow    = proximos.length ? proximos : ordenados.slice(0, 4);
+    ul1.innerHTML   = toShow.map(c => _cumpleLi(c, !proximos.length)).join('')
+                      || '<li style="color:var(--text2)">Sin cumpleaños</li>';
     const prox = ordenados[0];
     const dias = daysUntil(prox.fecha);
     const dashCumple = document.getElementById('dash-cumple');
@@ -381,14 +391,10 @@ async function loadAgenda() {
 
     if (parsed.length) {
       const ordenados = sortByProximity(parsed, 'fecha');
-      const proximos = ordenados.filter(c => daysUntil(c.fecha) <= CUMPLE_VENTANA);
-      ul1.innerHTML = proximos.length
-        ? proximos.map(c => {
-            const dias = daysUntil(c.fecha);
-            const tag  = dias === 0 ? '🎂 HOY' : dias === 1 ? 'mañana' : dias <= 7 ? `en ${dias}d` : c.fecha;
-            return `<li>${c.nombre} <span style="color:var(--accent2);margin-left:auto">${tag}</span></li>`;
-          }).join('')
-        : `<li style="color:var(--text2)">Ninguno en los próximos ${CUMPLE_VENTANA} días</li>`;
+      const proximos  = ordenados.filter(c => daysUntil(c.fecha) <= CUMPLE_VENTANA);
+      const toShow    = proximos.length ? proximos : ordenados.slice(0, 4);
+      ul1.innerHTML   = toShow.map(c => _cumpleLi(c, !proximos.length)).join('')
+                        || '<li style="color:var(--text2)">Sin cumpleaños</li>';
       const dashCumple = document.getElementById('dash-cumple');
       if (dashCumple) {
         const prox = ordenados[0];
@@ -437,9 +443,11 @@ async function loadAgenda() {
     .filter(e => e.cat !== 'personal' || !e.notas?.includes('Guardia'))
     .sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
 
+  let _hasFutureEvents = false;
   if (struct.length) {
     const proximos = struct.filter(e => daysUntilDate(e.fecha) >= 0);
-    const pasados  = struct.filter(e => daysUntilDate(e.fecha) < 0).reverse(); // más recientes primero
+    const pasados  = struct.filter(e => daysUntilDate(e.fecha) < 0).reverse();
+    _hasFutureEvents = proximos.length > 0;
     const liProximos = proximos.map(e =>
       liItem(`${e.nombre}${e.hora ? ' · '+e.hora : ''}`, e.fecha)
     ).join('') || '<li style="color:var(--text2)">Sin eventos próximos</li>';
@@ -450,6 +458,7 @@ async function loadAgenda() {
       : '';
     ul2.innerHTML = liProximos + liPasados;
   } else if (eventos.length) {
+    _hasFutureEvents = true;
     ul2.innerHTML = eventos.map(e => liItem(e.nombre, e.fecha)).join('');
   } else if (local.eventos) {
     const lineas = local.eventos.split('\n').filter(l => l.trim());
@@ -462,12 +471,16 @@ async function loadAgenda() {
       return { texto, fecha };
     });
     const futuros = parsedEvs.filter(e => !e.fecha || daysUntilDate(e.fecha) >= 0);
+    _hasFutureEvents = futuros.length > 0;
     ul2.innerHTML = futuros.length
       ? futuros.map(e => e.fecha ? liItem(e.texto, e.fecha) : `<li>${e.texto}</li>`).join('')
       : '<li style="color:var(--text2)">Sin eventos próximos</li>';
   } else {
     ul2.innerHTML = '<li style="color:var(--text2)">Sin eventos</li>';
   }
+  // Ocultar tarjeta de eventos cuando está vacía para no desequilibrar el layout
+  const eventosCard = document.getElementById('age-eventos-card');
+  if (eventosCard) eventosCard.style.display = _hasFutureEvents ? '' : 'none';
 
   // ── Vencimientos ──
   const vencRows = await fetchSheet(CONFIG.SHEETS.AGENDA, 'Vencimientos!A:C');
@@ -480,7 +493,10 @@ async function loadAgenda() {
       return Store.get('opos_convocatorias', [])
         .filter(o => o.fecha_fin_inscr && daysUntilDate(o.fecha_fin_inscr) >= 0)
         .sort((a, b) => a.fecha_fin_inscr.localeCompare(b.fecha_fin_inscr))
-        .map(o => ({ item: `📚 Fin inscr. ${o.convocatoria}`, fecha: o.fecha_fin_inscr }));
+        .map(o => {
+          const org = (o.convocatoria || '').split(/\s*—\s*/)[0].trim();
+          return { item: `📚 ${org}`, fecha: o.fecha_fin_inscr };
+        });
     } catch { return []; }
   })();
 

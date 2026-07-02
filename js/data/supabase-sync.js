@@ -67,7 +67,16 @@ async function supaInit() {
       return;
     }
     const rows = await res.json();
-    rows.forEach(({ key, value }) => _origSetItem(key, value));
+    rows.forEach(({ key, value }) => {
+      // fin_saldos sin _manual es dato antiguo (Supabase heredado) — JS tiene prioridad
+      if (key === 'fin_saldos') {
+        try {
+          const obj = JSON.parse(value);
+          if (!obj._manual) return; // ignorar: los saldos del JS son más recientes
+        } catch (e) { return; }
+      }
+      _origSetItem(key, value);
+    });
     console.info(`[Supabase] Sync OK — ${rows.length} clave(s) cargadas`);
   } catch (e) {
     console.warn('[Supabase] Sin conexión, usando datos locales', e);

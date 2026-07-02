@@ -3,11 +3,46 @@
 function tareas_getNotas()  { return Store.get('notas_rapidas', ''); }
 function tareas_getCorto()  { return Store.get('tareas_corto', []); }
 function tareas_getLargo()  { return Store.get('tareas_largo', []); }
+function tar_getBandeja()   { return Store.get('tar_bandeja', []); }
 
 function tareas_guardarNotas() {
   const txt = document.getElementById('tar-notas-txt')?.value || '';
   Store.set('notas_rapidas', txt);
   mostrarOk('tar-notas-ok');
+}
+
+// ── Bandeja de entrada (lista rápida) ──
+function tar_addBandeja(e) {
+  if (e && e.key && e.key !== 'Enter') return;
+  const inp = document.getElementById('tar-bandeja-input');
+  const texto = inp?.value?.trim();
+  if (!texto) return;
+  const lista = tar_getBandeja();
+  lista.push({ id: Date.now(), texto, creada: new Date().toISOString() });
+  Store.set('tar_bandeja', lista);
+  if (inp) inp.value = '';
+  _renderBandeja();
+}
+
+function tar_delBandeja(id) {
+  Store.set('tar_bandeja', tar_getBandeja().filter(t => t.id !== id));
+  _renderBandeja();
+}
+
+function _renderBandeja() {
+  const el = document.getElementById('tar-bandeja-lista');
+  if (!el) return;
+  const lista = tar_getBandeja();
+  if (!lista.length) {
+    el.innerHTML = '<p style="color:var(--text3);font-size:.82rem;padding:6px 0">Sin notas. Escribe algo arriba.</p>';
+    return;
+  }
+  el.innerHTML = lista.slice().reverse().map(t => `
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <span style="flex:1;font-size:.85rem;color:var(--text)">${t.texto}</span>
+      <button onclick="tar_delBandeja(${t.id})"
+        style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:2px 6px;flex-shrink:0">✕</button>
+    </div>`).join('');
 }
 
 function tareas_addCorto(e) {
@@ -76,7 +111,7 @@ function _renderTarCorto() {
   const completadas = lista.filter(t => t.completada);
 
   if (!lista.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:.85rem;padding:8px 0">Sin tareas. Añade una arriba.</p>';
+    el.innerHTML = '<p style="color:var(--text3);font-size:.85rem;padding:8px 0">✨ Todo al día</p>';
     return;
   }
 
@@ -143,4 +178,5 @@ function loadTareas() {
   if (notasEl) notasEl.value = tareas_getNotas();
   _renderTarCorto();
   _renderTarLargo();
+  _renderBandeja();
 }

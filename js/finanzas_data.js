@@ -11,7 +11,7 @@
 
 const FIN_DATA = {
 
-  data_version: '2026-07-01',
+  data_version: '2026-07-02',
 
   cuentas: {
     kutxabank_personal:  { id:'KTX', nombre:'Kutxabank Personal',   saldo: 1293.28, iban_last4:'7421', color:'#60a5fa' },
@@ -221,6 +221,7 @@ const FIN_DATA = {
     { f:'2026-06-18', i: -5.00, d:'Renfe Cercanías',               c:'transporte',    ct:'KTX' },
     { f:'2026-06-19', i:-249.07,d:'Forum Sport Megapark',          c:'ropa',          ct:'KTX' },
     { f:'2026-06-24', i:-12.90, d:'Bar Aragón',                    c:'hosteleria',    ct:'KTX' },
+    { f:'2026-06-30', i:1549.17,d:'Nómina – Global Datamediatech', c:'nomina',        ct:'KTX' },
 
     // ═══ REVOLUT PERSONAL (RVP) Ene–Jun 2026 ═══
     { f:'2026-01-01', i: -0.10, d:'Revolut – Compra BTC',          c:'ahorro',        ct:'RVP' },
@@ -608,7 +609,7 @@ const FIN_DATA = {
     MARCH:     { nomina: 1079.55, gastos_ktx: 177.70,  gastos_rvp: 631.92, gastos_rvc: 313.41 },
     APRIL:     { nomina: 2715.65, gastos_ktx:  118.51, gastos_rvp: 621.55, gastos_rvc: 429.75 },
     MAY:       { nomina: 1549.17, gastos_ktx:  468.52, gastos_rvp: 695.23, gastos_rvc: 392.55 },
-    JUNE:      { nomina: 0,       gastos_ktx:  266.37, gastos_rvp: 394.64, gastos_rvc: 129.04 },
+    JUNE:      { nomina: 1549.17, gastos_ktx:  266.37, gastos_rvp: 394.64, gastos_rvc: 129.04 },
   },
 
   meses_es: ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],

@@ -49,49 +49,118 @@ function loadCarnet() {
 
   renderCarStats(practicas, cfg);
   renderCarPracticas(practicas);
+  coche_renderAhorro();
 }
 
 // ── Stats ──
 function renderCarStats(practicas, cfg = {}) {
-  const estadoEl = document.getElementById('car-teorico-estado');
-  if (estadoEl) {
-    const ts = cfg.teorico_estado;
-    if (ts === 'aprobado') {
-      const fechaStr = cfg.teorico_fecha
-        ? ' · ' + new Date(cfg.teorico_fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' })
-        : '';
-      estadoEl.innerHTML = `✅ Aprobado<div style="font-size:.7rem;color:var(--text3);font-weight:400;margin-top:3px">${fechaStr}</div>`;
-      estadoEl.style.color = 'var(--green)';
-      estadoEl.style.fontSize = '1rem';
-    } else if (ts === 'suspendido') {
-      estadoEl.textContent = '❌ Suspendido';
-      estadoEl.style.color = 'var(--red)';
-      estadoEl.style.fontSize = '1rem';
+  const row = document.getElementById('car-stats-row');
+  if (!row) return;
+
+  const ts       = cfg.teorico_estado;
+  const aprobado = ts === 'aprobado';
+
+  // Bloque teórico: badge compacto si aprobado, card completa si no
+  let teoricoHTML = '';
+  if (aprobado) {
+    const fechaStr = cfg.teorico_fecha
+      ? new Date(cfg.teorico_fecha + 'T12:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' })
+      : '';
+    teoricoHTML = `<div style="display:inline-flex;align-items:center;gap:8px;background:var(--green)18;border:1px solid var(--green)44;border-radius:99px;padding:5px 14px;margin-bottom:12px">
+      <span style="color:var(--green);font-weight:700;font-size:.88rem">✅ Teórico aprobado</span>
+      ${fechaStr ? `<span style="color:var(--text3);font-size:.75rem">${fechaStr}</span>` : ''}
+    </div>`;
+  } else {
+    const estadoStr = ts === 'suspendido'
+      ? '<span style="color:var(--red);font-weight:700;font-size:1.1rem">❌ Suspendido</span>'
+      : '<span style="color:var(--text3)">Pendiente</span>';
+    teoricoHTML = `<div class="cards-row" style="margin-bottom:12px">
+      <div class="card"><h3>Examen teórico</h3><div class="big-number">${estadoStr}</div></div>
+    </div>`;
+  }
+
+  // Bloque práctico
+  const estadoLabel = { pendiente:'⏳ Pendiente', en_proceso:'🔄 En proceso', convocado:'📅 Convocado' };
+  let proxHTML  = '—';
+  let diasColor = 'var(--text2)';
+  if (cfg.prox_estado || cfg.prox_fecha) {
+    const label = estadoLabel[cfg.prox_estado] || '';
+    const fecha = cfg.prox_fecha
+      ? new Date(cfg.prox_fecha + 'T12:00:00').toLocaleDateString('es-ES', {day:'2-digit',month:'short',year:'numeric'})
+      : '';
+    if (cfg.prox_fecha) {
+      const d = new Date(cfg.prox_fecha); d.setHours(0,0,0,0);
+      const h = new Date(); h.setHours(0,0,0,0);
+      const diff = Math.round((d - h) / 86400000);
+      diasColor = diff >= 0 && diff <= 2 ? 'var(--red)' : diff >= 0 && diff <= 6 ? 'var(--orange)' : 'var(--accent2)';
+      const diffLabel = diff > 0 ? ` · en ${diff}d` : diff === 0 ? ' · ¡HOY!' : '';
+      proxHTML = `${label ? label + '<br>' : ''}<span style="font-size:.9rem">${fecha}${diffLabel}</span>`;
     } else {
-      estadoEl.textContent = '—';
-      estadoEl.style.color = '';
-      estadoEl.style.fontSize = '';
+      proxHTML = label;
     }
   }
 
-  const proxEl = document.getElementById('car-proxima');
-  if (proxEl) {
-    const estadoLabel = { pendiente:'⏳ Pendiente', en_proceso:'🔄 En proceso', convocado:'📅 Convocado' };
-    if (cfg.prox_estado || cfg.prox_fecha) {
-      const label = estadoLabel[cfg.prox_estado] || '';
-      const fecha = cfg.prox_fecha ? new Date(cfg.prox_fecha + 'T12:00:00').toLocaleDateString('es-ES', {day:'2-digit',month:'short',year:'numeric'}) : '';
-      const dias = cfg.prox_fecha ? (() => {
-        const d = new Date(cfg.prox_fecha); d.setHours(0,0,0,0);
-        const h = new Date(); h.setHours(0,0,0,0);
-        const diff = Math.round((d-h)/86400000);
-        return diff > 0 ? ` (en ${diff}d)` : diff === 0 ? ' (¡HOY!)' : '';
-      })() : '';
-      proxEl.innerHTML = `${label}${label && fecha ? '<br>' : ''}<span style="font-size:.85rem">${fecha}${dias}</span>`;
-      proxEl.style.lineHeight = '1.4';
-    } else {
-      proxEl.textContent = '—';
-    }
-  }
+  const sinDatos = !cfg.prox_estado && !cfg.prox_fecha;
+  const proxCard = sinDatos
+    ? `<div class="card">
+        <h3>Examen práctico</h3>
+        <div style="font-size:.85rem;color:var(--text3);margin-top:4px">Sin fecha asignada</div>
+        <button onclick="car_mostrarFormPractico()" style="margin-top:10px;background:var(--accent)15;border:1.5px dashed var(--accent);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.8rem;color:var(--accent);font-weight:600">📅 Añadir fecha objetivo</button>
+        <div id="car-practico-form" style="display:none;margin-top:12px">
+          <div style="display:flex;flex-direction:column;gap:8px;max-width:280px">
+            <select id="car-practico-estado" class="upd-input" style="font-size:.82rem">
+              <option value="pendiente">⏳ Pendiente</option>
+              <option value="en_proceso">🔄 En proceso</option>
+              <option value="convocado">📅 Convocado</option>
+            </select>
+            <input type="date" id="car-practico-fecha" class="upd-input" style="font-size:.82rem" />
+            <button onclick="car_guardarPractico()" class="btn-primary" style="padding:7px 14px;font-size:.82rem">Guardar</button>
+          </div>
+        </div>
+      </div>`
+    : `<div class="card">
+        <h3>Examen práctico</h3>
+        <div id="car-proxima" style="font-size:1rem;line-height:1.5;color:${diasColor}">${proxHTML}</div>
+      </div>`;
+
+  row.innerHTML = teoricoHTML + `<div class="cards-row">${proxCard}</div>`;
+}
+
+function car_mostrarFormClase() {
+  const f = document.getElementById('car-clase-form');
+  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function car_addClase() {
+  const fecha  = document.getElementById('car-nueva-fecha')?.value;
+  const minVal = document.getElementById('car-nueva-min')?.value;
+  const nota   = document.getElementById('car-nueva-nota')?.value.trim() || '';
+  if (!fecha) { alert('Indica la fecha de la clase.'); return; }
+  const min = parseInt(minVal) || 0;
+  const data = car_getPracticas();
+  data.push({ fecha, min, nota });
+  car_savePracticas(data);
+  document.getElementById('car-nueva-fecha').value = '';
+  document.getElementById('car-nueva-min').value = '';
+  document.getElementById('car-nueva-nota').value = '';
+  const f = document.getElementById('car-clase-form');
+  if (f) f.style.display = 'none';
+  loadCarnet();
+}
+
+function car_mostrarFormPractico() {
+  const f = document.getElementById('car-practico-form');
+  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function car_guardarPractico() {
+  const estado = document.getElementById('car-practico-estado')?.value;
+  const fecha  = document.getElementById('car-practico-fecha')?.value;
+  const cfg = car_getConfig();
+  if (estado) cfg.prox_estado = estado;
+  if (fecha)  cfg.prox_fecha  = fecha;
+  Store.set('car_config', cfg);
+  loadCarnet();
 }
 
 // ── Panel Prácticas ──
@@ -99,7 +168,10 @@ function renderCarPracticas(practicas) {
   const el = document.getElementById('car-practicas-lista');
   if (!el) return;
   if (!practicas.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin clases registradas.</p>';
+    el.innerHTML = `<div style="padding:8px 0">
+      <p style="color:var(--text3);font-size:.87rem;margin-bottom:12px">🚘 Aún no has empezado prácticas</p>
+      <button onclick="car_mostrarFormClase()" style="background:var(--accent)15;border:1.5px dashed var(--accent);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.8rem;color:var(--accent);font-weight:600">➕ Registrar primera clase</button>
+    </div>`;
     return;
   }
   const totalMin = practicas.reduce((s,p) => s+(p.min||0), 0);
@@ -119,5 +191,105 @@ function renderCarPracticas(practicas) {
         <button onclick="car_borrarPractica(${realIdx})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:2px 6px">✕</button>
       </div>`;
     }).join('')}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AHORRO PARA EL COCHE
+// ═══════════════════════════════════════════════════════════
+
+const COCHE_META = 3000;
+
+// ── Storage ──
+function coche_getAportaciones() { return Store.get('cdc_ahorro_coche', []); }
+function coche_saveAportaciones(data) { Store.set('cdc_ahorro_coche', data); }
+
+// ── Render progreso e histórico ──
+function coche_renderAhorro() {
+  const aportaciones = coche_getAportaciones()
+    .slice()
+    .sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  const total = aportaciones.reduce((s, a) => s + (parseFloat(a.importe) || 0), 0);
+  const pct   = Math.min(100, (total / COCHE_META) * 100);
+  const falta = Math.max(0, COCHE_META - total);
+
+  // Barra y etiquetas
+  const barraEl  = document.getElementById('coche-barra');
+  const totalEl  = document.getElementById('coche-total-label');
+  const pctEl    = document.getElementById('coche-pct-label');
+  const faltaEl  = document.getElementById('coche-falta-label');
+
+  if (barraEl)  barraEl.style.width  = pct.toFixed(1) + '%';
+  if (barraEl)  barraEl.style.background = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--accent2)' : 'var(--accent)';
+  if (totalEl)  totalEl.textContent  = _cocheEur(total);
+  if (pctEl)    pctEl.textContent    = pct.toFixed(1) + '%';
+  if (faltaEl)  faltaEl.textContent  = pct >= 100 ? '¡Meta alcanzada! 🎉' : `Faltan ${_cocheEur(falta)}`;
+
+  // Histórico
+  const histEl = document.getElementById('coche-historial');
+  if (!histEl) return;
+
+  if (!aportaciones.length) {
+    histEl.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin aportaciones registradas.</p>';
+    return;
+  }
+
+  const allSorted = coche_getAportaciones().slice().sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  histEl.innerHTML = `
+    <div style="font-size:.78rem;color:var(--text3);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">
+      ${aportaciones.length} aportación${aportaciones.length !== 1 ? 'es' : ''} · Total: ${_cocheEur(total)}
+    </div>
+    ${aportaciones.map((a, i) => {
+      const realIdx = allSorted.length - 1 - i;
+      return `
+      <div style="display:grid;grid-template-columns:100px 80px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:.8rem;color:var(--text3)">${_fmtFecha(a.fecha)}</span>
+        <span style="font-size:.88rem;font-weight:700;color:var(--green)">+${_cocheEur(parseFloat(a.importe)||0)}</span>
+        <span style="font-size:.82rem;color:var(--text2)">${a.nota || '—'}</span>
+        <button onclick="coche_borrarAportacion(${realIdx})"
+          style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:2px 6px">✕</button>
+      </div>`;
+    }).join('')}`;
+}
+
+// ── Añadir aportación ──
+function coche_addAportacion() {
+  const fecha   = document.getElementById('coche-fecha')?.value;
+  const importe = parseFloat(document.getElementById('coche-importe')?.value);
+  const nota    = document.getElementById('coche-nota')?.value.trim() || '';
+
+  if (!fecha || isNaN(importe) || importe <= 0) {
+    alert('Indica fecha e importe válidos.');
+    return;
+  }
+
+  const data = coche_getAportaciones();
+  data.push({ fecha, importe: importe.toFixed(2), nota });
+  coche_saveAportaciones(data);
+
+  // Limpiar formulario
+  const fechaEl = document.getElementById('coche-fecha');
+  if (fechaEl) fechaEl.value = '';
+  const importeEl = document.getElementById('coche-importe');
+  if (importeEl) importeEl.value = '';
+  const notaEl = document.getElementById('coche-nota');
+  if (notaEl) notaEl.value = '';
+
+  coche_renderAhorro();
+}
+
+// ── Borrar aportación ──
+function coche_borrarAportacion(i) {
+  const data = coche_getAportaciones().slice().sort((a, b) => a.fecha.localeCompare(b.fecha));
+  data.splice(i, 1);
+  coche_saveAportaciones(data);
+  coche_renderAhorro();
+}
+
+// ── Helper formato € ──
+function _cocheEur(n) {
+  const dec = Number.isInteger(n) || n % 1 === 0 ? 0 : 2;
+  return n.toLocaleString('es-ES', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + ' €';
 }
 

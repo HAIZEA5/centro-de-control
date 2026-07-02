@@ -49,12 +49,33 @@ function loadFinanzas() {
 function getSaldosActuales() {
   const saved = Store.get('fin_saldos');
   const c = FIN_DATA.cuentas;
-  // Si fin_saldos es anterior a la versión del JS, los datos del JS tienen prioridad
-  const savedDate = saved._ts ? new Date(saved._ts).toISOString().split('T')[0] : '2000-01-01';
-  const useJS = (FIN_DATA.data_version || '2000-01-01') > savedDate;
-  const fmBase = saved.fm ?? (FIN_DATA.revolut_fondo_monetario.historial[FIN_DATA.revolut_fondo_monetario.historial.length-1]?.saldo_final ?? 291.28);
+  // JS tiene prioridad a menos que el usuario haya guardado saldos manualmente (_manual:true)
+  // Los datos de Supabase sin _manual son antiguos y nunca deben sobreescribir el JS
+  const isManual = !!saved._manual;
+  const savedDate = isManual && saved._ts ? new Date(saved._ts).toISOString().split('T')[0] : '2000-01-01';
+  const useJS = !isManual || (FIN_DATA.data_version || '2000-01-01') > savedDate;
+  const lastHist = FIN_DATA.revolut_fondo_monetario.historial.at(-1);
+  const fmBaseJS = lastHist?.saldo_final ?? 291.28;
+  // En modo JS, corte al fin del mes del último historial para no doblar intereses ya incluidos
+  const fmTsJS = (() => {
+    if (!lastHist) return 0;
+    const [mon, yr] = lastHist.mes.split(' ');
+    const m = { ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11 }[mon.toLowerCase().replace('.','')];
+    return m !== undefined ? new Date(parseInt(yr), m + 1, 0, 23, 59, 59).getTime() : 0;
+  })();
+  // cdc del propio mes del último historial: registrados después de que se fijó el JS data
+  const _lhMonStart = (() => {
+    if (!lastHist) return 0;
+    const [mon, yr] = lastHist.mes.split(' ');
+    const m = { ene:0,feb:1,mar:2,abr:3,may:4,jun:5,jul:6,ago:7,sep:8,oct:9,nov:10,dic:11 }[mon.toLowerCase().replace('.','')];
+    return m !== undefined ? new Date(parseInt(yr), m, 1).getTime() : 0;
+  })();
+  const cdcEnUltimoMes = useJS ? Store.get('cdc_intereses_fm', [])
+    .filter(e => { const t = new Date(e.fecha + 'T23:59:59').getTime(); return t >= _lhMonStart && t <= fmTsJS; })
+    .reduce((acc, e) => acc + (parseFloat(e.importe) || 0), 0) : 0;
+  const fmBase = useJS ? (fmBaseJS + cdcEnUltimoMes) : (saved.fm ?? fmBaseJS);
+  const fmTs = useJS ? fmTsJS : (saved.fm_ts || saved._ts || 0);
   const interesesDiarios = (Store.get('fin_revolut_intereses', [])).reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
-  const fmTs = saved.fm_ts || saved._ts || 0;
   const interesesRegistrados = Store.get('cdc_intereses_fm', [])
     .filter(e => new Date(e.fecha + 'T23:59:59').getTime() > fmTs)
     .reduce((s, e) => s + (parseFloat(e.importe) || 0), 0);
@@ -99,6 +120,15 @@ function renderFinStats() {
     const edad = _fmtEdad(sal[id+'_ts']);
     el.textContent = edad ? edad.txt : '';
     el.style.color = edad ? edad.color : '';
+  });
+
+  // Pre-rellenar el formulario de actualizar saldos con los valores actuales
+  const cuentasActuales = { ktx: s.ktx, rvp: s.rvp, rvc: s.rvc, ctv: s.ctv, bp: s.bp, fm: s.fm };
+  Object.entries(cuentasActuales).forEach(([id, val]) => {
+    const inp = document.getElementById('fin-act-'+id);
+    if (inp && !inp._dirty) inp.value = val.toFixed(2);
+    const ac = document.getElementById('fin-act-'+id+'-ac');
+    if (ac) ac.textContent = 'Actual: ' + fmt(val);
   });
 
   // Deuda restante iPhone — calculada desde transacciones reales
@@ -244,11 +274,8 @@ function renderFinResumen() {
   el.innerHTML = `
     <div class="fin-year-stats">
       <div class="fin-year-card"><div class="fin-year-label">Nómina total 2026</div><div class="fin-year-val green">${fmt(totalNomina)}</div></div>
-      <div class="fin-year-card">
-        <div class="fin-year-label">Gastos reales 2026</div>
-        <div class="fin-year-val red">${fmt(totalGastos)}</div>
-        <div style="font-size:.62rem;color:var(--text3)">Ahorro/inversión: ${fmt(totalAhorro)} aparte</div>
-      </div>
+      <div class="fin-year-card"><div class="fin-year-label">Gastos reales 2026</div><div class="fin-year-val red">${fmt(totalGastos)}</div></div>
+      ${totalAhorro > 0 ? `<div class="fin-year-card"><div class="fin-year-label">Ahorro/inversión 2026</div><div class="fin-year-val" style="color:var(--accent2)">${fmt(totalAhorro)}</div></div>` : ''}
       <div class="fin-year-card"><div class="fin-year-label">Ahorro neto 2026</div><div class="fin-year-val ${(totalNomina-totalGastos)>=0?'green':'red'}">${fmt(totalNomina-totalGastos)}</div></div>
     </div>
 
@@ -664,13 +691,34 @@ function renderFinSinking() {
         saldo_final: prev.saldo_final !== null && prev.saldo_final !== undefined ? prev.saldo_final + totalInt : prev.saldo_final
       };
     } else {
-      filasSueltas.push({ mes: mesLabel, aportacion: 0, interes: totalInt, saldo_final: null, nota: 'registrado' });
+      filasSueltas.push({ mes: mesLabel, aportacion: 0, interes: totalInt, saldo_final: null, nota: 'registrado', _clave: clave });
     }
   });
 
-  const fmHistorial = [...histConIntereses, ...filasSueltas];
+  // Calcular saldo_final acumulado para filas sueltas (meses sin historial base)
+  const _lastSaldo = histConIntereses.slice().reverse().find(h => h.saldo_final != null)?.saldo_final ?? null;
+  filasSueltas.sort((a, b) => (a._clave || '').localeCompare(b._clave || ''));
+  let _runSaldo = _lastSaldo;
+  filasSueltas.forEach(f => {
+    if (_runSaldo !== null) { f.saldo_final = parseFloat((_runSaldo + f.interes).toFixed(2)); _runSaldo = f.saldo_final; }
+    delete f._clave;
+  });
+
   const s = getSaldosActuales();
-  const totalIntereses = fmHistorial.reduce((a,h) => a + (h.interes || 0), 0) + s.interesesDiarios;
+  // Añadir interesesDiarios al último mes visible del historial
+  if (s.interesesDiarios > 0) {
+    if (filasSueltas.length > 0) {
+      const lastF = filasSueltas[filasSueltas.length - 1];
+      lastF.interes    = parseFloat(((lastF.interes || 0) + s.interesesDiarios).toFixed(2));
+      if (lastF.saldo_final !== null) lastF.saldo_final = parseFloat((lastF.saldo_final + s.interesesDiarios).toFixed(2));
+    } else if (histConIntereses.length > 0) {
+      const lastH = histConIntereses[histConIntereses.length - 1];
+      lastH.interes = parseFloat(((lastH.interes || 0) + s.interesesDiarios).toFixed(2));
+      if (lastH.saldo_final != null) lastH.saldo_final = parseFloat((lastH.saldo_final + s.interesesDiarios).toFixed(2));
+    }
+  }
+  const fmHistorial = [...histConIntereses, ...filasSueltas];
+  const totalIntereses = fmHistorial.reduce((a,h) => a + (h.interes || 0), 0);
 
   // Compras futuras planeadas
   const compras = Store.get('local_finanzas').compras || '';
@@ -993,22 +1041,23 @@ function renderFinDeudas() {
           <div style="flex:1">
             <div class="fin-sf-nombre">${d.nombre}</div>
             <div class="fin-sf-meta">
-              ${fmt(cuota)}/mes · ${d.cuotas_total} cuotas
-              ${d.tae > 0 ? ` · TAE ${d.tae}%` : ' · Sin interés'}
-              ${d.cuenta ? ` · <span style="color:var(--accent2)">${d.cuenta}</span>` : ''}
+              ${d.cuotas_total === 1
+                ? (d.nota || 'Pago único')
+                : `${fmt(cuota)}/mes · ${d.cuotas_total} ${d.cuotas_total === 1 ? 'cuota' : 'cuotas'}${d.tae > 0 ? ` · TAE ${d.tae}%` : ' · Sin interés'}${d.cuenta ? ` · <span style="color:var(--accent2)">${d.cuenta}</span>` : ''}`}
             </div>
-            ${d.nota ? `<div style="font-size:.72rem;color:var(--text3);margin-top:3px">${d.nota}</div>` : ''}
+            ${d.cuotas_total > 1 && d.nota ? `<div style="font-size:.72rem;color:var(--text3);margin-top:3px">${d.nota}</div>` : ''}
           </div>
           <div style="text-align:right;flex-shrink:0">
             <div style="font-size:1.4rem;font-weight:800;color:var(--red)">${fmt(pendiente)}</div>
-            <div style="font-size:.73rem;color:var(--text3)">pendiente</div>
+            <div style="font-size:.73rem;color:var(--text3)">${d.cuotas_total === 1 ? (d.cuotas_pagadas ? '✅ Pagado' : 'pendiente') : 'pendiente'}</div>
           </div>
         </div>
+        ${d.cuotas_total > 1 ? `
         <div style="margin:12px 0">
           <div class="progress-bar"><div class="progress-fill" style="width:${pct.toFixed(1)}%;background:var(--green)"></div></div>
-        </div>
+        </div>` : ''}
         <div class="fin-sf-footer">
-          <span>Pagado: <strong>${fmt(pagado)}</strong> (${d.cuotas_pagadas}/${d.cuotas_total} cuotas)</span>
+          <span>${d.cuotas_total === 1 ? `<strong>${d.cuenta || ''}</strong>` : `Pagado: <strong>${fmt(pagado)}</strong> (${d.cuotas_pagadas}/${d.cuotas_total} cuotas)`}</span>
           <span style="display:flex;gap:6px;align-items:center">
             <button onclick="finDeudaMarcarCuota(${d.id}, -1)" title="Desmarcar cuota" style="background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:2px 7px;cursor:pointer;color:var(--text2);font-size:.85rem">−</button>
             <button onclick="finDeudaMarcarCuota(${d.id}, 1)" title="Marcar cuota pagada" style="background:var(--green);border:none;border-radius:5px;padding:2px 7px;cursor:pointer;color:#fff;font-size:.85rem">✓ cuota</button>
@@ -1022,7 +1071,11 @@ function renderFinDeudas() {
 
   <!-- Añadir nueva deuda -->
   <div class="card" style="border:1px dashed var(--border2)">
-    <h3 style="margin-bottom:12px">➕ Añadir deuda</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="document.getElementById('fin-deuda-form').style.display=document.getElementById('fin-deuda-form').style.display==='none'?'block':'none';this.querySelector('span').textContent=document.getElementById('fin-deuda-form').style.display==='none'?'▸ Abrir':'▾ Cerrar'">
+      <h3 style="margin:0">➕ Añadir deuda</h3>
+      <span style="color:var(--text3);font-size:.85rem">▸ Abrir</span>
+    </div>
+    <div id="fin-deuda-form" style="display:none;margin-top:12px">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:10px">
       <div class="form-group" style="margin:0"><label style="font-size:.73rem">Nombre</label><input id="fin-deuda-nombre" class="upd-input" placeholder="iPhone Cetelem…" /></div>
       <div class="form-group" style="margin:0"><label style="font-size:.73rem">Cantidad total (€)</label><input id="fin-deuda-cantidad" type="number" class="upd-input" step="0.01" placeholder="1200.00" /></div>
@@ -1037,6 +1090,7 @@ function renderFinDeudas() {
     </div>
     <button class="upd-btn" onclick="finDeudaAnadir()">💾 Guardar deuda</button>
     <div id="fin-deuda-cuota-preview" style="font-size:.78rem;color:var(--text3);margin-top:8px"></div>
+    </div>
   </div>`;
 
   // Live preview cuota al escribir
@@ -1158,7 +1212,89 @@ function renderFinPresupuestoYGastos() {
         ${pausados.length ? `
           <div style="font-size:.7rem;color:var(--text3);margin-top:12px;font-style:italic">⏸ ${pausados.length} gasto${pausados.length!==1?'s':''} pausado${pausados.length!==1?'s':''}</div>` : ''}
       </div>
+    </div>
+
+    <!-- Gasto variable del mes actual -->
+    <div class="card mt">
+      <h3 style="margin-bottom:14px">📊 Gasto variable — ${new Date().toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</h3>
+      ${_finGastoVariableMes()}
     </div>`;
+}
+
+/* ── Gasto variable por categoría con límites opcionales ── */
+function _finGastoVariableMes() {
+  const hoy = new Date();
+  const mesStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
+
+  const txns = [...FIN_DATA.transacciones, ...Store.get('fin_txns', [])]
+    .filter(t => t.f?.startsWith(mesStr) && (t.i < 0) && t.c !== 'interna' && t.c !== 'nomina' && t.c !== 'ahorro' && t.c !== 'deuda');
+
+  if (!txns.length) {
+    if (hoy.getDate() < 5) return '';
+    return '<p style="color:var(--text3);font-size:.85rem">Sin gastos variables registrados este mes.</p>';
+  }
+
+  const byCat = {};
+  txns.forEach(t => { const c = t.c || 'otros'; byCat[c] = (byCat[c] || 0) + Math.abs(t.i); });
+
+  const catLabels = {
+    alimentacion:'🛒 Alimentación', hosteleria:'☕ Hostelería', ropa:'👗 Ropa',
+    suscripciones:'📱 Suscripciones', ocio:'🎭 Ocio', transporte:'🚆 Transporte',
+    oposiciones:'📚 Oposiciones', belleza:'💄 Belleza', salud:'💊 Salud',
+    hogar:'🏠 Hogar', regalo:'🎁 Regalos', formacion:'🎓 Formación',
+    compras:'🛍️ Compras', otros:'• Otros'
+  };
+
+  const limites = Store.get('fin_cat_limites', {});
+  const sorted  = Object.entries(byCat).sort((a,b) => b[1]-a[1]);
+  const total   = sorted.reduce((s,[,v]) => s+v, 0);
+
+  const hayAlerta = sorted.some(([cat, spent]) => {
+    const lim = parseFloat(limites[cat] || 0);
+    return lim > 0 && spent / lim >= 0.8;
+  });
+
+  return sorted.map(([cat, spent]) => {
+    const label = catLabels[cat] || cat;
+    const lim   = parseFloat(limites[cat] || 0);
+    const pct   = lim > 0 ? Math.min(100, spent / lim * 100) : 0;
+    const col   = pct >= 100 ? 'var(--red)' : pct >= 80 ? 'var(--orange)' : 'var(--green)';
+    const icono = pct >= 100 ? '⚠️ ' : pct >= 80 ? '⚡ ' : '';
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-size:.82rem">${icono}${label}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:.82rem;font-weight:700;color:${lim > 0 && pct >= 100 ? 'var(--red)' : 'var(--text1)'}">${fmt(spent)}</span>
+          ${lim > 0 ? `<span style="font-size:.7rem;color:var(--text3)">/ ${fmt(lim)}</span>` : ''}
+          <button onclick="fin_editarLimite('${cat}')"
+            style="font-size:.65rem;color:var(--text3);background:none;border:1px solid var(--border);border-radius:5px;padding:1px 5px;cursor:pointer">${lim > 0 ? '✏️' : '+ límite'}</button>
+        </div>
+      </div>
+      ${lim > 0 ? `<div style="background:var(--bg3);border-radius:99px;height:4px;overflow:hidden">
+        <div style="width:${pct.toFixed(1)}%;height:100%;background:${col};border-radius:99px"></div>
+      </div>` : ''}
+    </div>`;
+  }).join('') + `
+  <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:6px;display:flex;justify-content:space-between;font-weight:700;font-size:.85rem">
+    <span>Total variable</span>
+    <span style="color:var(--red)">${fmt(total)}</span>
+  </div>`;
+}
+
+function fin_editarLimite(cat) {
+  const limites = Store.get('fin_cat_limites', {});
+  const actual  = limites[cat] ? String(limites[cat]) : '';
+  const resp    = prompt(`Límite mensual para «${cat}» en €.\nDeja vacío para quitarlo:`, actual);
+  if (resp === null) return;
+  if (resp.trim() === '') {
+    delete limites[cat];
+  } else {
+    const v = parseFloat(resp.replace(',', '.'));
+    if (isNaN(v) || v <= 0) { alert('Valor inválido'); return; }
+    limites[cat] = v;
+  }
+  Store.set('fin_cat_limites', limites);
+  renderFinPresupuestoYGastos();
 }
 
 function guardarSaldos() {
@@ -1170,14 +1306,47 @@ function guardarSaldos() {
     if (isNaN(v)) { ok = false; return; }
     data[id] = v;
   });
-  if (!ok) { alert('Revisa los valores — todos deben ser números.'); return; }
+  if (!ok) { alert('Revisa los valores — todos deben ser números válidos.'); return; }
   data._ts = Date.now();
+  data._manual = true;
   Store.set('fin_saldos', data);
+
+  // Historial de cambios de saldo (últimos 60 guardados)
+  const saldoLog = Store.get('fin_saldo_log', []);
+  saldoLog.unshift({ ts: data._ts, ktx: data.ktx, rvp: data.rvp, rvc: data.rvc, ctv: data.ctv, bp: data.bp, fm: data.fm });
+  if (saldoLog.length > 60) saldoLog.length = 60;
+  Store.set('fin_saldo_log', saldoLog);
+
+  // Marcar inputs como no sucios después de guardar
+  ['ktx','rvp','rvc','ctv','bp','fm'].forEach(id => {
+    const inp = document.getElementById('fin-act-'+id);
+    if (inp) inp._dirty = false;
+  });
+
+  mostrarOk('fin-act-ok');
+
   // Auto-snapshot para gráfica de evolución
   fin_patrGuardarSnapshot(data);
   renderFinStats();
   renderFinSinking();
   fin_patrRenderChart();
+}
+
+function fin_toggleSaldosForm() {
+  const form   = document.getElementById('fin-act-form');
+  const toggle = document.getElementById('fin-act-toggle');
+  if (!form) return;
+  const isOpen = form.style.display !== 'none';
+  form.style.display   = isOpen ? 'none' : 'block';
+  if (toggle) toggle.textContent = isOpen ? '▸ Abrir' : '▾ Cerrar';
+
+  // Marcar inputs como "dirty" cuando el usuario los toca para no sobreescribir mientras edita
+  if (!isOpen) {
+    ['ktx','rvp','rvc','ctv','bp','fm'].forEach(id => {
+      const inp = document.getElementById('fin-act-'+id);
+      if (inp) inp.addEventListener('input', () => { inp._dirty = true; }, { once: true });
+    });
+  }
 }
 
 function resetSaldos() {
@@ -1211,6 +1380,7 @@ function addFMDiario() {
   saldos.fm = saldo;
   saldos.fm_ts = Date.now();
   saldos._ts = Date.now();
+  saldos._manual = true;
   Store.set('fin_saldos', saldos);
   document.getElementById('fin-fmd-saldo').value = '';
   document.getElementById('fin-fmd-nota').value  = '';

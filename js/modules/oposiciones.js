@@ -17,7 +17,6 @@ async function loadOposiciones() {
   renderOposStats(data);
   renderOposCountdown(data);
   renderOposTable(data);
-  setupRevisiones(data);
   renderOposTemas();
   renderOposSesiones();
   setupOposTemas();
@@ -48,7 +47,8 @@ function renderOposStats(data) {
   data.forEach(r => {
     if (r.fecha_examen && oposLocalDate(r.fecha_examen) >= hoyStats)
       eventos.push({ fecha: r.fecha_examen, tipo: 'examen', conv: r.convocatoria });
-    if (r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoyStats)
+    const _iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+    if (r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoyStats && localStorage.getItem(_iKey) !== 'si')
       eventos.push({ fecha: r.fecha_fin_inscr, tipo: 'inscripcion', conv: r.convocatoria });
   });
   eventos.sort((a, b) => oposLocalDate(a.fecha) - oposLocalDate(b.fecha));
@@ -80,6 +80,8 @@ function renderOposStats(data) {
   }
 
   proxEl.innerHTML = html;
+  const labelEl2 = document.getElementById('opos-prox-label');
+  if (labelEl2) labelEl2.textContent = nextEventos[0].tipo === 'examen' ? 'Próximo examen' : 'Fin inscripción';
   const dashOposEl = document.getElementById('dash-opos') || document.getElementById('dash-opos-content');
   if (dashOposEl) dashOposEl.textContent = formatFecha(nextFecha);
 
@@ -117,7 +119,8 @@ function renderOposCountdown(data) {
   data.forEach(r => {
     if (r.fecha_examen && oposLocalDate(r.fecha_examen) >= hoy)
       eventos.push({ fecha: r.fecha_examen, tipo: 'examen', conv: r.convocatoria, hora: r.hora_examen, r });
-    if (r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoy)
+    const _iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+    if (r.fecha_fin_inscr && oposLocalDate(r.fecha_fin_inscr) >= hoy && localStorage.getItem(_iKey) !== 'si')
       eventos.push({ fecha: r.fecha_fin_inscr, tipo: 'inscripcion', conv: r.convocatoria, r });
   });
   eventos.sort((a, b) => oposLocalDate(a.fecha) - oposLocalDate(b.fecha));
@@ -224,6 +227,11 @@ function renderOposTable(data) {
         <option value="">Todos los perfiles</option>
         ${perfiles.map(p => `<option value="${p}" ${window._oposFiltros.perfil===p?'selected':''}>${p}</option>`).join('')}
       </select>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button onclick="opos_quickPerfil('YO')" style="padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:.75rem;font-family:inherit" title="Solo convocatorias para Yo">Yo</button>
+        <button onclick="opos_quickPerfil('KERMAN')" style="padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:.75rem;font-family:inherit" title="Solo convocatorias para Kerman">Kerman</button>
+        <button onclick="opos_quickPerfil('AMBOS')" style="padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:.75rem;font-family:inherit" title="Solo convocatorias para ambos">Ambos</button>
+      </div>
       <span id="opos-f-count" style="font-size:.78rem;color:var(--text3);white-space:nowrap"></span>
       <button onclick="opos_limpiarFiltros()"
         style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;font-size:.78rem;font-family:inherit">
@@ -249,6 +257,13 @@ function opos_limpiarFiltros() {
   const f = document.getElementById('opos-f-fase');      if (f) f.value = '';
   const p = document.getElementById('opos-f-perfil');    if (p) p.value = '';
   const o = document.getElementById('opos-f-organismo'); if (o) o.value = '';
+  opos_renderFiltered();
+}
+
+function opos_quickPerfil(perfil) {
+  window._oposFiltros.perfil = perfil;
+  const sel = document.getElementById('opos-f-perfil');
+  if (sel) sel.value = perfil;
   opos_renderFiltered();
 }
 
@@ -294,28 +309,34 @@ function opos_renderFiltered() {
       : (r.tipo_proceso === 'concurso' || r.tipo_proceso === 'concurso-oposicion')
         ? '<span class="badge badge--yellow" style="font-size:.7rem">C-O</span>'
         : '';
+    const _iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+    const _iVal = localStorage.getItem(_iKey) || '';
+    const inscrBadge = _iVal === 'si'        ? '<span title="Inscrita" style="color:var(--green);font-size:.78rem;margin-left:4px">✍️✅</span>'
+                     : _iVal === 'pendiente' ? '<span title="Inscripción pendiente" style="color:var(--yellow);font-size:.78rem;margin-left:4px">✍️⏳</span>'
+                     : '';
+    // Urgency: inscription deadline < 7 days and not yet inscribed
+    const hoyRow = new Date(); hoyRow.setHours(0,0,0,0);
+    const _iKeyRow = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+    const urgente = r.fecha_fin_inscr && localStorage.getItem(_iKeyRow) !== 'si' &&
+      (() => { const d = oposLocalDate(r.fecha_fin_inscr); return d >= hoyRow && Math.round((d - hoyRow)/86400000) <= 7; })();
+    const examenPasadoRow = r.fecha_examen && oposLocalDate(r.fecha_examen) < hoyRow;
+    const rowStyle = urgente
+      ? 'cursor:pointer;border-left:3px solid var(--accent2);background:var(--accent2)08'
+      : 'cursor:pointer';
     return `
-    <tr class="opos-row" onclick="toggleOposDetalle(${realIdx}, this)" data-idx="${realIdx}" style="cursor:pointer">
+    <tr class="opos-row" onclick="toggleOposDetalle(${realIdx}, this)" data-idx="${realIdx}" style="${rowStyle}">
       <td data-label="Perfil">${badgePerfil(r.perfil)}</td>
       <td data-label="Convocatoria">
-        <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'} ${itBadge}</div>
+        <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'} ${itBadge}${inscrBadge}</div>
         <div style="font-size:.74rem;color:var(--text3);margin-top:2px">${org || ''} ${tipoBadge}</div>
       </td>
       <td data-label="Grupo">${r.grupo || '—'}</td>
-      <td data-label="Estado">${badgeEstado(r.estado)}</td>
+      <td data-label="Estado">${examenPasadoRow ? '<span class="badge badge--yellow" title="Examen ya realizado">⚡ Pdte. notas</span>' : badgeEstado(r.estado)}</td>
       <td data-label="Examen">${r.fecha_examen ? formatFecha(r.fecha_examen) : '—'}</td>
       <td data-label="Tasa">${r.tasa_pagada === 'SI' ? '<span class="badge badge--green">✓ Pagada</span>' : r.tasa_pagada === 'NO' ? '<span class="badge badge--red">✗ No</span>' : '—'}</td>
       <td data-label="Bolsa">${r.bolsa_entrada === true || r.bolsa_entrada === 'true' ? `<span class="badge badge--green">Sí ${r.bolsa_posicion ? '#'+r.bolsa_posicion : ''}</span>` : '<span class="badge badge--yellow">—</span>'}</td>
       <td data-label="Méritos">${meritosTotal > 0 ? `<span style="color:var(--accent2);font-weight:700">${meritosTotal.toFixed(2)} pts</span>` : r.tipo_proceso === 'libre' ? '<span style="color:var(--text3);font-size:.75rem">Libre</span>' : '—'}</td>
-      <td data-label="Fase">${(() => {
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
-        const fasesActivas = ['Preparación','Inscripción abierta','Fase Oposición','Pendiente pago'];
-        const examenPasado = r.fecha_examen && oposLocalDate(r.fecha_examen) < hoy;
-        if (examenPasado && r.fase && fasesActivas.includes(r.fase)) {
-          return `<span class="chip" style="background:#f59e0b22;color:#f59e0b;border-color:#f59e0b55" title="Fase estimada">Pdte. de notas ⚡</span>`;
-        }
-        return r.fase ? `<span class="chip">${r.fase}</span>` : '—';
-      })()}</td>
+      <td data-label="Fase">${r.fase ? `<span class="chip">${r.fase}</span>` : '—'}</td>
     </tr>
     <tr class="opos-detalle-row hidden" id="opos-det-${realIdx}">
       <td colspan="9" style="padding:0">${renderDetalleHTML(r, realIdx)}</td>
@@ -396,6 +417,12 @@ function renderDetalleHTML(r, i) {
 
 /* ── Panel: Fechas ── */
 function renderFechasPanel(r) {
+  const inscrKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+  const inscrVal = localStorage.getItem(inscrKey) || '';
+  const _ib = (v, label, col, bg) => `<button data-inscr-key="${inscrKey}" data-inscr-val="${v}"
+    onclick="opos_setInscrita('${inscrKey}','${v}')"
+    style="padding:7px 16px;border-radius:8px;border:2px solid ${inscrVal===v?col:'var(--border)'};background:${inscrVal===v?bg:'var(--bg4)'};color:${inscrVal===v?col:'var(--text2)'};cursor:pointer;font-size:.85rem;font-weight:${inscrVal===v?'700':'400'};font-family:inherit">${label}</button>`;
+
   const fechas = [
     { label: 'Apertura inscripción',  val: r.fecha_apertura,    icon: '🟢' },
     { label: 'Fin inscripción',       val: r.fecha_fin_inscr,   icon: '🔴' },
@@ -417,6 +444,15 @@ function renderFechasPanel(r) {
   });
 
   return `
+  <div style="margin-bottom:14px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+    <div style="font-weight:700;font-size:.82rem;color:var(--accent2);margin-bottom:10px">✍️ ¿Te has inscrito?</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${_ib('si','✅ Sí','var(--green)','#00ff0022')}
+      ${_ib('no','❌ No','var(--red)','#ff000022')}
+      ${_ib('pendiente','⏳ Pendiente','var(--yellow)','#f59e0b22')}
+    </div>
+  </div>
+
   <div class="det-fechas-grid">
     ${fechas.map((f, fi) => {
       const d = f.val ? oposLocalDate(f.val) : null;
@@ -742,63 +778,6 @@ function addHistorial(i) {
   // Auto-añade al historial: "Historial actualizado"
 }
 
-/* ── Revisiones de estado ── */
-function getRevisiones() { return Store.get('opos_revisiones', []); }
-function saveRevisiones(r) { Store.set('opos_revisiones', r); }
-
-function setupRevisiones(data) {
-  // Rellena el select de oposiciones
-  const sel = document.getElementById('rev-opos-sel');
-  sel.innerHTML = '<option value="">— Oposición —</option>' +
-    data.map(r => `<option value="${r.convocatoria}">${r.convocatoria}</option>`).join('');
-
-  document.getElementById('rev-guardar').addEventListener('click', () => {
-    const opos   = document.getElementById('rev-opos-sel').value;
-    const estado = document.getElementById('rev-estado-sel').value;
-    const nota   = document.getElementById('rev-nota').value.trim();
-    if (!opos || !estado) return;
-
-    const hoy = new Date();
-    const fecha = hoy.toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
-
-    const revs = getRevisiones();
-    revs.unshift({ opos, estado, nota, fecha, ts: hoy.getTime() });
-    saveRevisiones(revs);
-
-    document.getElementById('rev-opos-sel').value   = '';
-    document.getElementById('rev-estado-sel').value = '';
-    document.getElementById('rev-nota').value        = '';
-    renderRevisiones();
-  });
-
-  renderRevisiones();
-}
-
-function renderRevisiones() {
-  const revs = getRevisiones();
-  const el   = document.getElementById('rev-log');
-  if (!revs.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin revisiones registradas aún.</p>';
-    return;
-  }
-  el.innerHTML = revs.map((r, i) => `
-    <div class="rev-item">
-      <span class="rev-fecha">${r.fecha}</span>
-      <div class="rev-body">
-        <div class="rev-opos">${r.opos} &nbsp; ${badgeEstado(r.estado)}</div>
-        ${r.nota ? `<div class="rev-nota">${r.nota}</div>` : ''}
-      </div>
-      <button class="rev-del" onclick="borrarRevision(${i})" title="Eliminar">✕</button>
-    </div>`).join('');
-}
-
-function borrarRevision(i) {
-  const revs = getRevisiones();
-  revs.splice(i, 1);
-  saveRevisiones(revs);
-  renderRevisiones();
-}
-
 /* ── Temas ── */
 function getOposTemas() { return Store.get('opos_temas', []); }
 function saveOposTemas(t) { Store.set('opos_temas', t); }
@@ -990,6 +969,20 @@ function guardarUbicacionExamen(conv, key) {
   }
 }
 
+function opos_setInscrita(key, val) {
+  localStorage.setItem(key, val);
+  const cols = { si: 'var(--green)', no: 'var(--red)', pendiente: 'var(--yellow)' };
+  const bgs  = { si: '#00ff0022',    no: '#ff000022',  pendiente: '#f59e0b22' };
+  document.querySelectorAll(`[data-inscr-key="${CSS.escape(key)}"]`).forEach(btn => {
+    const bv = btn.getAttribute('data-inscr-val');
+    const active = bv === val;
+    btn.style.border     = `2px solid ${active ? cols[bv] : 'var(--border)'}`;
+    btn.style.background = active ? bgs[bv]  : 'var(--bg4)';
+    btn.style.color      = active ? cols[bv] : 'var(--text2)';
+    btn.style.fontWeight = active ? '700' : '400';
+  });
+}
+
 function opos_toggleCheck(key, field, checked) {
   const ck = Store.get(key);
   ck[field] = checked;
@@ -1041,13 +1034,11 @@ const RADAR_INICIAL = [
 ];
 
 function radarInit() {
-  if (!Store.get(RADAR_KEY, null)) {
+  const stored = Store.get(RADAR_KEY, null);
+  if (!stored || (Array.isArray(stored) && stored.length === 0)) {
     Store.set(RADAR_KEY, RADAR_INICIAL.map((r, i) => ({ ...r, id: 'rad_' + i })));
   }
   radarRender();
-  const n = Store.get(RADAR_KEY, []).length;
-  const el = document.getElementById('opos-radar-count');
-  if (el) el.textContent = n;
 }
 
 function radarRender() {
