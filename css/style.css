@@ -1518,7 +1518,7 @@ body::before {
 
 @media (max-width: 480px) {
   .dash-cards-grid { grid-template-columns: 1fr; }
-  .cards-row { grid-template-columns: 1fr 1fr; }
+  .cards-row { grid-template-columns: 1fr; }
   .opos-stats-grid { grid-template-columns: 1fr 1fr; }
   .main-content { padding: 10px 8px; }
 

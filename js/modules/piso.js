@@ -127,8 +127,8 @@ function renderPisoAhorro() {
             <input id="piso-ctv-edit" type="number" value="${ctv}" step="100" style="width:100px;font-size:.8rem;padding:4px 8px">
             <button onclick="piso_setCTV()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.75rem;font-weight:600">OK</button>
           </div>
-          <div style="font-size:.63rem;color:var(--text3);margin-top:4px">Actualiza también en ✏️ Finanzas → Saldos</div>
-        ` : `<div style="font-size:.68rem;color:var(--text3);margin-top:4px">Actualiza en ✏️ Finanzas → Saldos</div>`}
+          <div style="font-size:.63rem;color:var(--text3);margin-top:4px">Este valor también se actualiza en Finanzas → Saldos</div>
+        ` : ''}
       </div>
 
       <div style="flex:2;min-width:200px;display:flex;flex-direction:column;justify-content:space-between">
@@ -151,7 +151,17 @@ function renderPisoAhorro() {
           <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text3)">
             <span>${Fmt.eur(ctv)} ahorrado</span>
             <span style="color:${falta>0?'var(--red)':'var(--green)'}">
-              ${falta > 0 ? `Faltan ${Fmt.eur(falta)}` : '🎉 ¡Meta alcanzada!'}
+              ${falta > 0 ? (() => {
+                let aniosEst = null;
+                if (typeof ctv_simularCrecimiento === 'function') {
+                  const sims = ctv_simularCrecimiento(ctv, meta);
+                  if (sims.length) {
+                    const row = sims[0].rows.find(r => r.alcanzado);
+                    if (row) aniosEst = new Date().getFullYear() + row.anio;
+                  }
+                }
+                return `Faltan ${Fmt.eur(falta)}${aniosEst ? ` · ~${aniosEst}` : ''}`;
+              })() : '🎉 ¡Meta alcanzada!'}
             </span>
           </div>
         </div>
@@ -269,7 +279,7 @@ function renderPisoCalc() {
             <input type="number" id="pcfg-notario" value="${cfg.notario}" step="100" style="width:100%" oninput="piso_liveCalc()">
           </div>
           <div class="form-group" style="grid-column:1/-1">
-            <label style="font-size:.75rem">Tasación + Registro (€) <span style="color:var(--text3);font-weight:400">— gastos hipoteca</span></label>
+            <label style="font-size:.75rem">Tasación + Registro (€)</label>
             <input type="number" id="pcfg-extras" value="${cfg.gastos_adicionales ?? 500}" step="100" style="width:100%" oninput="piso_liveCalc()">
           </div>
         </div>
@@ -732,12 +742,12 @@ function _bancoRow(b, i, hip) {
     </td>
     <td data-label="TAE (%)" style="padding:6px 6px;text-align:center">
       <input type="number" value="${b.tae}" step="0.05" min="0" max="15" placeholder="—"
-        style="width:60px;text-align:center"
+        style="width:60px;text-align:center;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:3px 5px;font-size:.8rem"
         onchange="piso_updateBanco(${i},'tae',this.value)">
     </td>
     <td data-label="Años" style="padding:6px 6px;text-align:center">
       <input type="number" value="${b.anios}" step="1" min="5" max="40" placeholder="—"
-        style="width:50px;text-align:center"
+        style="width:50px;text-align:center;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:3px 5px;font-size:.8rem"
         onchange="piso_updateBanco(${i},'anios',this.value)">
     </td>
     <td data-label="Cuota/mes" style="padding:6px 6px;text-align:right;font-weight:700;color:${cuotaColor}">${cuota}</td>
