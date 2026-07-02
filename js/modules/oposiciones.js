@@ -7,21 +7,29 @@ async function loadOposiciones() {
   if (typeof opos_applySeed === 'function') opos_applySeed();
   radarInit(); // render inmediato desde localStorage, sin esperar al fetch
 
-  let data = [];
-  const rows = await fetchSheet(CONFIG.SHEETS.OPOSICIONES, 'Oposiciones!A:I');
-  if (rows) data = rowsToObjects(rows);
-
+  // Render inmediato con datos locales para no quedarse en "Cargando..."
   const locales = getOposLocal();
-  if (!data.length && locales.length) data = locales;
-  else if (locales.length) data = [...data, ...locales];
-
-  renderOposStats(data);
-  renderOposCountdown(data);
-  renderOposTable(data);
+  if (locales.length) {
+    renderOposStats(locales);
+    renderOposCountdown(locales);
+    renderOposTable(locales);
+  }
   renderOposTemas();
   renderOposSesiones();
   setupOposTemas();
   setupOposSesiones();
+
+  // Actualizar con datos del Sheet si están disponibles
+  const rows = await fetchSheet(CONFIG.SHEETS.OPOSICIONES, 'Oposiciones!A:I');
+  if (rows) {
+    const sheetData = rowsToObjects(rows);
+    const data = sheetData.length
+      ? (locales.length ? [...sheetData, ...locales] : sheetData)
+      : locales;
+    renderOposStats(data);
+    renderOposCountdown(data);
+    renderOposTable(data);
+  }
 }
 
 /* ── Stats ── */
