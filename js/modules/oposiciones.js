@@ -80,6 +80,8 @@ function renderOposStats(data) {
   }
 
   proxEl.innerHTML = html;
+  const labelEl2 = document.getElementById('opos-prox-label');
+  if (labelEl2) labelEl2.textContent = nextEventos[0].tipo === 'examen' ? 'Próximo examen' : 'Fin inscripción';
   const dashOposEl = document.getElementById('dash-opos') || document.getElementById('dash-opos-content');
   if (dashOposEl) dashOposEl.textContent = formatFecha(nextFecha);
 
@@ -225,6 +227,11 @@ function renderOposTable(data) {
         <option value="">Todos los perfiles</option>
         ${perfiles.map(p => `<option value="${p}" ${window._oposFiltros.perfil===p?'selected':''}>${p}</option>`).join('')}
       </select>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button onclick="opos_quickPerfil('YO')" style="padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:.75rem;font-family:inherit" title="Solo convocatorias para Yo">Yo</button>
+        <button onclick="opos_quickPerfil('KERMAN')" style="padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:.75rem;font-family:inherit" title="Solo convocatorias para Kerman">Kerman</button>
+        <button onclick="opos_quickPerfil('AMBOS')" style="padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:.75rem;font-family:inherit" title="Solo convocatorias para ambos">Ambos</button>
+      </div>
       <span id="opos-f-count" style="font-size:.78rem;color:var(--text3);white-space:nowrap"></span>
       <button onclick="opos_limpiarFiltros()"
         style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;font-size:.78rem;font-family:inherit">
@@ -250,6 +257,13 @@ function opos_limpiarFiltros() {
   const f = document.getElementById('opos-f-fase');      if (f) f.value = '';
   const p = document.getElementById('opos-f-perfil');    if (p) p.value = '';
   const o = document.getElementById('opos-f-organismo'); if (o) o.value = '';
+  opos_renderFiltered();
+}
+
+function opos_quickPerfil(perfil) {
+  window._oposFiltros.perfil = perfil;
+  const sel = document.getElementById('opos-f-perfil');
+  if (sel) sel.value = perfil;
   opos_renderFiltered();
 }
 
@@ -300,28 +314,29 @@ function opos_renderFiltered() {
     const inscrBadge = _iVal === 'si'        ? '<span title="Inscrita" style="color:var(--green);font-size:.78rem;margin-left:4px">✍️✅</span>'
                      : _iVal === 'pendiente' ? '<span title="Inscripción pendiente" style="color:var(--yellow);font-size:.78rem;margin-left:4px">✍️⏳</span>'
                      : '';
+    // Urgency: inscription deadline < 7 days and not yet inscribed
+    const hoyRow = new Date(); hoyRow.setHours(0,0,0,0);
+    const _iKeyRow = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+    const urgente = r.fecha_fin_inscr && localStorage.getItem(_iKeyRow) !== 'si' &&
+      (() => { const d = oposLocalDate(r.fecha_fin_inscr); return d >= hoyRow && Math.round((d - hoyRow)/86400000) <= 7; })();
+    const examenPasadoRow = r.fecha_examen && oposLocalDate(r.fecha_examen) < hoyRow;
+    const rowStyle = urgente
+      ? 'cursor:pointer;border-left:3px solid var(--accent2);background:var(--accent2)08'
+      : 'cursor:pointer';
     return `
-    <tr class="opos-row" onclick="toggleOposDetalle(${realIdx}, this)" data-idx="${realIdx}" style="cursor:pointer">
+    <tr class="opos-row" onclick="toggleOposDetalle(${realIdx}, this)" data-idx="${realIdx}" style="${rowStyle}">
       <td data-label="Perfil">${badgePerfil(r.perfil)}</td>
       <td data-label="Convocatoria">
         <div style="font-weight:700;line-height:1.3">${pto || r.convocatoria || '—'} ${itBadge}${inscrBadge}</div>
         <div style="font-size:.74rem;color:var(--text3);margin-top:2px">${org || ''} ${tipoBadge}</div>
       </td>
       <td data-label="Grupo">${r.grupo || '—'}</td>
-      <td data-label="Estado">${badgeEstado(r.estado)}</td>
+      <td data-label="Estado">${examenPasadoRow ? '<span class="badge badge--yellow" title="Examen ya realizado">⚡ Pdte. notas</span>' : badgeEstado(r.estado)}</td>
       <td data-label="Examen">${r.fecha_examen ? formatFecha(r.fecha_examen) : '—'}</td>
       <td data-label="Tasa">${r.tasa_pagada === 'SI' ? '<span class="badge badge--green">✓ Pagada</span>' : r.tasa_pagada === 'NO' ? '<span class="badge badge--red">✗ No</span>' : '—'}</td>
       <td data-label="Bolsa">${r.bolsa_entrada === true || r.bolsa_entrada === 'true' ? `<span class="badge badge--green">Sí ${r.bolsa_posicion ? '#'+r.bolsa_posicion : ''}</span>` : '<span class="badge badge--yellow">—</span>'}</td>
       <td data-label="Méritos">${meritosTotal > 0 ? `<span style="color:var(--accent2);font-weight:700">${meritosTotal.toFixed(2)} pts</span>` : r.tipo_proceso === 'libre' ? '<span style="color:var(--text3);font-size:.75rem">Libre</span>' : '—'}</td>
-      <td data-label="Fase">${(() => {
-        const hoy = new Date(); hoy.setHours(0,0,0,0);
-        const fasesActivas = ['Preparación','Inscripción abierta','Fase Oposición','Pendiente pago'];
-        const examenPasado = r.fecha_examen && oposLocalDate(r.fecha_examen) < hoy;
-        if (examenPasado && r.fase && fasesActivas.includes(r.fase)) {
-          return `<span class="chip" style="background:#f59e0b22;color:#f59e0b;border-color:#f59e0b55" title="Fase estimada">Pdte. de notas ⚡</span>`;
-        }
-        return r.fase ? `<span class="chip">${r.fase}</span>` : '—';
-      })()}</td>
+      <td data-label="Fase">${r.fase ? `<span class="chip">${r.fase}</span>` : '—'}</td>
     </tr>
     <tr class="opos-detalle-row hidden" id="opos-det-${realIdx}">
       <td colspan="9" style="padding:0">${renderDetalleHTML(r, realIdx)}</td>
@@ -1019,13 +1034,11 @@ const RADAR_INICIAL = [
 ];
 
 function radarInit() {
-  if (!Store.get(RADAR_KEY, null)) {
+  const stored = Store.get(RADAR_KEY, null);
+  if (!stored || (Array.isArray(stored) && stored.length === 0)) {
     Store.set(RADAR_KEY, RADAR_INICIAL.map((r, i) => ({ ...r, id: 'rad_' + i })));
   }
   radarRender();
-  const n = Store.get(RADAR_KEY, []).length;
-  const el = document.getElementById('opos-radar-count');
-  if (el) el.textContent = n;
 }
 
 function radarRender() {

@@ -100,12 +100,67 @@ function renderCarStats(practicas, cfg = {}) {
     }
   }
 
-  row.innerHTML = teoricoHTML + `<div class="cards-row">
-    <div class="card">
-      <h3>Examen práctico</h3>
-      <div id="car-proxima" style="font-size:1rem;line-height:1.5;color:${diasColor}">${proxHTML}</div>
-    </div>
-  </div>`;
+  const sinDatos = !cfg.prox_estado && !cfg.prox_fecha;
+  const proxCard = sinDatos
+    ? `<div class="card">
+        <h3>Examen práctico</h3>
+        <div style="font-size:.85rem;color:var(--text3);margin-top:4px">Sin fecha asignada</div>
+        <button onclick="car_mostrarFormPractico()" style="margin-top:10px;background:var(--accent)15;border:1.5px dashed var(--accent);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.8rem;color:var(--accent);font-weight:600">📅 Añadir fecha objetivo</button>
+        <div id="car-practico-form" style="display:none;margin-top:12px">
+          <div style="display:flex;flex-direction:column;gap:8px;max-width:280px">
+            <select id="car-practico-estado" class="upd-input" style="font-size:.82rem">
+              <option value="pendiente">⏳ Pendiente</option>
+              <option value="en_proceso">🔄 En proceso</option>
+              <option value="convocado">📅 Convocado</option>
+            </select>
+            <input type="date" id="car-practico-fecha" class="upd-input" style="font-size:.82rem" />
+            <button onclick="car_guardarPractico()" class="btn-primary" style="padding:7px 14px;font-size:.82rem">Guardar</button>
+          </div>
+        </div>
+      </div>`
+    : `<div class="card">
+        <h3>Examen práctico</h3>
+        <div id="car-proxima" style="font-size:1rem;line-height:1.5;color:${diasColor}">${proxHTML}</div>
+      </div>`;
+
+  row.innerHTML = teoricoHTML + `<div class="cards-row">${proxCard}</div>`;
+}
+
+function car_mostrarFormClase() {
+  const f = document.getElementById('car-clase-form');
+  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function car_addClase() {
+  const fecha  = document.getElementById('car-nueva-fecha')?.value;
+  const minVal = document.getElementById('car-nueva-min')?.value;
+  const nota   = document.getElementById('car-nueva-nota')?.value.trim() || '';
+  if (!fecha) { alert('Indica la fecha de la clase.'); return; }
+  const min = parseInt(minVal) || 0;
+  const data = car_getPracticas();
+  data.push({ fecha, min, nota });
+  car_savePracticas(data);
+  document.getElementById('car-nueva-fecha').value = '';
+  document.getElementById('car-nueva-min').value = '';
+  document.getElementById('car-nueva-nota').value = '';
+  const f = document.getElementById('car-clase-form');
+  if (f) f.style.display = 'none';
+  loadCarnet();
+}
+
+function car_mostrarFormPractico() {
+  const f = document.getElementById('car-practico-form');
+  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function car_guardarPractico() {
+  const estado = document.getElementById('car-practico-estado')?.value;
+  const fecha  = document.getElementById('car-practico-fecha')?.value;
+  const cfg = car_getConfig();
+  if (estado) cfg.prox_estado = estado;
+  if (fecha)  cfg.prox_fecha  = fecha;
+  Store.set('car_config', cfg);
+  loadCarnet();
 }
 
 // ── Panel Prácticas ──
@@ -113,7 +168,10 @@ function renderCarPracticas(practicas) {
   const el = document.getElementById('car-practicas-lista');
   if (!el) return;
   if (!practicas.length) {
-    el.innerHTML = '<p style="color:var(--text3);font-size:.87rem">Sin clases registradas.</p>';
+    el.innerHTML = `<div style="padding:8px 0">
+      <p style="color:var(--text3);font-size:.87rem;margin-bottom:12px">🚘 Aún no has empezado prácticas</p>
+      <button onclick="car_mostrarFormClase()" style="background:var(--accent)15;border:1.5px dashed var(--accent);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:.8rem;color:var(--accent);font-weight:600">➕ Registrar primera clase</button>
+    </div>`;
     return;
   }
   const totalMin = practicas.reduce((s,p) => s+(p.min||0), 0);
@@ -231,6 +289,7 @@ function coche_borrarAportacion(i) {
 
 // ── Helper formato € ──
 function _cocheEur(n) {
-  return n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  const dec = Number.isInteger(n) || n % 1 === 0 ? 0 : 2;
+  return n.toLocaleString('es-ES', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + ' €';
 }
 
