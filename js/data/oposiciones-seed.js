@@ -863,7 +863,8 @@ const OPOS_SEED = [
 function opos_applySeed() {
   const vKey = 'opos_seed_v';
   const vActual = parseInt(localStorage.getItem(vKey) || '0');
-  if (vActual >= OPOS_SEED_VERSION) return;
+  const hayDatos = Store.get('opos_convocatorias', []).length > 0;
+  if (vActual >= OPOS_SEED_VERSION && hayDatos) return;
 
   const actuales = Store.get('opos_convocatorias', []);
   const norm = s => (s || '').toLowerCase().replace(/[^a-záéíóúüñ0-9]/g, '');

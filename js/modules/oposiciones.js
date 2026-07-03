@@ -9,11 +9,9 @@ async function loadOposiciones() {
 
   // Render inmediato con datos locales para no quedarse en "Cargando..."
   const locales = getOposLocal();
-  if (locales.length) {
-    renderOposStats(locales);
-    renderOposCountdown(locales);
-    renderOposTable(locales);
-  }
+  renderOposStats(locales);
+  renderOposCountdown(locales);
+  renderOposTable(locales);
   renderOposTemas();
   renderOposSesiones();
   setupOposTemas();
@@ -295,7 +293,8 @@ function opos_renderFiltered() {
   if (!tbody) return;
 
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Sin resultados para ese filtro.</td></tr>';
+    const hayFiltros = texto || fase || perfil || organismo;
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-row">${hayFiltros ? 'Sin resultados para ese filtro.' : 'Sin convocatorias registradas.'}</td></tr>`;
     return;
   }
 
