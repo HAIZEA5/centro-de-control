@@ -176,7 +176,7 @@ async function excel_exportar() {
         puesto:          o.puesto    || _oposOrgPuesto(o).pto || '',
         perfil:          o.perfil || '',
         grupo:           o.grupo || '',
-        estado:          o.estado || '',
+        estado:          (typeof opos_getEstado === 'function' ? opos_getEstado(o) : o.estado) || '',
         fase:            o.fase || '',
         tipo_proceso:    o.tipo_proceso || '',
         tope_meritos:    o.tope_meritos ?? '',
@@ -464,6 +464,26 @@ function excel_importar(file) {
         }
 
         // ── Oposiciones ──
+        const _ESTADO_NORM = {
+          'en seguimiento':'PREVISTA','seguimiento':'PREVISTA','pendiente':'PREVISTA','sin iniciar':'PREVISTA',
+          'abierta':'ABIERTA','en proceso':'ABIERTA','proceso':'ABIERTA','en tramite':'ABIERTA',
+          'inscrita':'INSCRITA','apuntada':'INSCRITA',
+          'lista provisional':'LISTA_PROV','lista prov':'LISTA_PROV','lista_prov':'LISTA_PROV',
+          'alegaciones':'ALEGACIONES',
+          'lista definitiva':'LISTA_DEF','lista def':'LISTA_DEF','lista_def':'LISTA_DEF',
+          'examen pendiente':'EXAMEN_PENDIENTE','pendiente examen':'EXAMEN_PENDIENTE',
+          'examen realizado':'EXAMEN_REALIZADO','examen hecho':'EXAMEN_REALIZADO',
+          'pendiente de notas':'NOTAS_PROV','notas provisionales':'NOTAS_PROV','notas prov':'NOTAS_PROV',
+          'fase meritos':'FASE_MERITOS','meritos':'FASE_MERITOS','fase méritos':'FASE_MERITOS',
+          'notas definitivas':'NOTAS_DEF','notas def':'NOTAS_DEF',
+          'en bolsa':'EN_BOLSA','bolsa':'EN_BOLSA',
+          'aprobada':'APROBADA','plaza':'APROBADA',
+          'descartada':'DESCARTADA','descartado':'DESCARTADA','retirada':'DESCARTADA',
+        };
+        const _normEstado = v => {
+          const key = String(v||'').toLowerCase().trim();
+          return _ESTADO_NORM[key] || String(v||'PREVISTA');
+        };
         const opos = sheet('Oposiciones');
         if (opos?.length && opos[0]['Convocatoria']) {
           totalFilas += opos.length;
@@ -472,7 +492,7 @@ function excel_importar(file) {
             _id: Date.now()+idx,
             convocatoria: String(r['Convocatoria']||''), perfil: String(r['Perfil']||'Yo'),
             organismo: String(r['Organismo']||''), puesto: String(r['Puesto']||''),
-            grupo: String(r['Grupo']||''), estado: String(r['Estado']||'En seguimiento'),
+            grupo: String(r['Grupo']||''), estado: _normEstado(r['Estado']),
             fase: String(r['Fase']||''),
             tipo_proceso: String(r['Tipo Proceso']||''),
             tope_meritos: r['Tope Meritos'] != null && r['Tope Meritos'] !== '' ? parseFloat(r['Tope Meritos']) : null,

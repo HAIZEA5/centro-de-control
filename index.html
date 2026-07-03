@@ -389,7 +389,18 @@
 
       <!-- OPOSICIONES -->
       <section id="oposiciones" class="section">
-        <h2 class="section-title">Oposiciones</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <h2 class="section-title" style="margin:0">Oposiciones</h2>
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            <input type="file" id="opos-excel-input" accept=".xlsx" style="display:none"
+              onchange="if(this.files[0]){excel_importar(this.files[0]);this.value=''}" />
+            <button onclick="document.getElementById('opos-excel-input').click()"
+              style="padding:6px 12px;border-radius:8px;border:1px solid var(--green);background:var(--green)18;color:var(--green);cursor:pointer;font-size:.8rem;font-weight:700;font-family:inherit">📥 Importar Excel</button>
+            <button id="excel-export-btn" onclick="excel_exportar()"
+              style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:.8rem;font-weight:600;font-family:inherit">📤 Exportar</button>
+          </div>
+        </div>
+        <div id="excel-import-progress" style="display:none;font-size:.8rem;padding:7px 12px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);margin-bottom:10px;color:var(--text2)"></div>
 
         <div class="opos-stats-grid" id="opos-stats">
           <div class="opos-stat opos-stat--total"><div class="opos-stat-value" id="opos-n-total">—</div><div class="opos-stat-label">Total</div></div>
@@ -620,7 +631,7 @@
   <script src="js/modules/agenda.js?v=20260702b"></script>
   <script src="js/modules/it-txartelas.js?v=20260701a"></script>
   <script src="js/modules/tareas.js?v=20260702b"></script>
-  <script src="js/modules/excel.js?v=20260701a"></script>
+  <script src="js/modules/excel.js?v=20260703f"></script>
   <script src="js/dashboard.js?v=20260703b"></script>
   <script src="js/backup.js?v=20260702b"></script>
   <script src="js/app.js?v=20260702a"></script>
