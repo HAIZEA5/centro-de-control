@@ -2,7 +2,7 @@
 // Se auto-importa al cargar la app. Versiona con OPOS_SEED_VERSION.
 // Para forzar re-importación: borrar 'opos_seed_v' de localStorage.
 
-const OPOS_SEED_VERSION = 37;
+const OPOS_SEED_VERSION = 38;
 
 const OPOS_SEED = [
   // ══════════════════════════════════════════════════════
@@ -772,6 +772,33 @@ const OPOS_SEED = [
     doc_meritos:     'Tras oposición',
     doc_discap:      'No aplica',
     notas: 'Convocatoria pendiente de publicación en BOE. Revisar BOB (Boletín Oficial de Bizkaia) para bases y fechas.',
+    meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
+      cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
+  },
+  {
+    convocatoria:    'DFB — Auxiliar de Biblioteca',
+    organismo: 'DFB / Diputación Foral de Bizkaia', puesto: 'Auxiliar de Biblioteca',
+    tipo_proceso: 'concurso-oposicion', req_euskera: false, nivel_euskera: 'B2B2', req_titulacion: true,
+    perfil:          'YO',
+    grupo:           'C2',
+    estado:          'EN PROCESO',
+    fase:            'Inscripción abierta',
+    fecha_apertura:   '2026-06-22',
+    fecha_fin_inscr:  '2026-07-17',
+    fecha_lista_prov: null,
+    fecha_alegaciones:null,
+    fecha_lista_def:  null,
+    tasa_pagada:     'NO',
+    doc_solicitud:   'Pendiente',
+    doc_dni:         'Al ser seleccionado',
+    doc_titulacion:  'Al ser seleccionado',
+    doc_euskera:     'Al ser seleccionado',
+    doc_cv:          'No aplica',
+    doc_meritos:     'Tras oposición',
+    doc_discap:      'No aplica',
+    notas: '5 plazas de Auxiliar de Biblioteca (Grupo C, subgrupo C-2). Turno libre: 3 plazas (1 con PL B2B2 preceptivo + 2 no preceptivo) + 2 plazas promoción interna. Escala Administración Especial, Subescala Servicios Especiales. Concurso-oposición. Titulación: ESO/Graduado Escolar/FP1 o equivalente. OPE Administración General de Euskadi 2026. BOB nº 110 de 12/06/2026. Inscripción: 22/06 – 17/07/2026 (en euskadi.eus). Oposición: 2 ejercicios — 1º test teórico 40+5 preg (eliminatorio, penalización 0,33); 2º ejercicio euskera (eliminatorio solo para plazas preceptivo). 📋 Inscripción online en euskadi.eus OPE. Méritos: acreditar tras superar oposición.',
+    url_bases: 'https://www.bizkaia.eus/lehendakaritza/Bao_bob/2026/06/BOB-2026a110.pdf',
+    url_extra1: 'https://www.euskadi.eus/empleo-publico/',
     meritos_calc: { meses_misma:12, meses_otras:12, meses_priv:0, euskera:'B2',
       cursos:[{nombre:'IT Txartela (IVAP)',horas:80},{nombre:'Internet básico',horas:20},{nombre:'Word 2010 avanzado',horas:40},{nombre:'PowerPoint 2010',horas:20}] },
   },
