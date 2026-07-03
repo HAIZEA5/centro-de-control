@@ -574,173 +574,300 @@ function renderFechasPanel(r) {
 }
 
 /* ── Panel: Documentación ── */
+/* helpers docs extra */
+function _docsExtKey(r) { return 'opos_docs_ext_' + (r.convocatoria||'').replace(/\s+/g,'_'); }
+function _getDocsExt(r) { return Store.get(_docsExtKey(r), []); }
+
+function opos_docExtEstado(convKey, idx, val) {
+  const docs = Store.get('opos_docs_ext_' + convKey, []);
+  if (docs[idx]) { docs[idx].estado = val; Store.set('opos_docs_ext_' + convKey, docs); }
+  const badge = document.getElementById(`opos-dext-badge-${convKey}-${idx}`);
+  if (badge) { badge.textContent = val || '—'; badge.className = 'badge ' + (_docEstadoCls(val)); }
+}
+function opos_docExtRemove(convKey, idx) {
+  const docs = Store.get('opos_docs_ext_' + convKey, []);
+  docs.splice(idx, 1);
+  Store.set('opos_docs_ext_' + convKey, docs);
+  const row = document.getElementById(`opos-dext-row-${convKey}-${idx}`);
+  if (row) row.remove();
+}
+function opos_docExtAdd(convKey) {
+  const inp = document.getElementById('opos-dext-input-' + convKey);
+  const nombre = inp?.value.trim();
+  if (!nombre) return;
+  const docs = Store.get('opos_docs_ext_' + convKey, []);
+  docs.push({ nombre, estado: '' });
+  Store.set('opos_docs_ext_' + convKey, docs);
+  inp.value = '';
+  const list = document.getElementById('opos-dext-list-' + convKey);
+  if (list) {
+    const idx = docs.length - 1;
+    const div = document.createElement('div');
+    div.id = `opos-dext-row-${convKey}-${idx}`;
+    div.innerHTML = _docExtRowHTML(convKey, { nombre, estado: '' }, idx);
+    list.appendChild(div);
+  }
+}
+function _docEstadoCls(e) {
+  return e === 'Listo' ? 'badge--green' : e === 'Pendiente' ? 'badge--yellow' : e === 'No aplica' ? 'badge--red' : 'badge--blue';
+}
+function _docExtRowHTML(convKey, d, idx) {
+  return `<div class="det-doc-card" style="display:flex;align-items:center;gap:8px">
+    <span class="det-doc-label" style="flex:1">${d.nombre}</span>
+    <select onchange="opos_docExtEstado('${convKey}',${idx},this.value)"
+      style="font-size:.74rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:3px 6px;font-family:inherit">
+      ${['','Pendiente','Listo','No aplica'].map(o=>`<option value="${o}" ${d.estado===o?'selected':''}>${o||'—'}</option>`).join('')}
+    </select>
+    <button onclick="opos_docExtRemove('${convKey}',${idx})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.8rem;padding:2px 4px">✕</button>
+  </div>`;
+}
+
 function renderDocsPanel(r) {
-  const reqEusk = r.req_euskera !== false; // mostrar por defecto si no está definido
-  const reqTit  = r.req_titulacion !== false;
+  const reqEusk   = r.req_euskera !== false;
+  const reqTit    = r.req_titulacion !== false;
   const nivelEusk = r.nivel_euskera ? ` (${r.nivel_euskera})` : '';
+  const esCO      = r.tipo_proceso === 'concurso' || r.tipo_proceso === 'concurso-oposicion';
+  const colorEstado = { 'Listo':'badge--green','Pendiente':'badge--yellow','No aplica':'badge--red','':'badge--blue' };
   const docs = [
-    { key: 'doc_solicitud',  label: 'Solicitud / Instancia', show: true },
-    { key: 'doc_titulacion', label: 'Titulación requerida', show: reqTit },
-    { key: 'doc_euskera',    label: `Acreditación euskera${nivelEusk}`, show: reqEusk },
-    { key: 'doc_dni',        label: 'DNI / NIF', show: true },
-    { key: 'doc_cv',         label: 'Currículum vitae', show: true },
-    { key: 'doc_meritos',    label: 'Hoja de méritos / autobaremo', show: r.tipo_proceso === 'concurso' || r.tipo_proceso === 'concurso-oposicion' },
-    { key: 'doc_discap',     label: 'Certificado discapacidad', show: true },
-    { key: 'doc_extra1',     label: r.doc_extra1_nombre || 'Documento extra 1', show: !!r.doc_extra1 },
-    { key: 'doc_extra2',     label: r.doc_extra2_nombre || 'Documento extra 2', show: !!r.doc_extra2 },
-    { key: 'doc_extra3',     label: r.doc_extra3_nombre || 'Documento extra 3', show: !!r.doc_extra3 },
+    { key:'doc_solicitud',  label:'Solicitud / Instancia',              show:true },
+    { key:'doc_dni',        label:'DNI / NIF',                          show:true },
+    { key:'doc_titulacion', label:`Titulación requerida`,               show:reqTit },
+    { key:'doc_euskera',    label:`Acreditación euskera${nivelEusk}`,   show:reqEusk },
+    { key:'doc_cv',         label:'Currículum vitae',                   show:true },
+    { key:'doc_meritos',    label:'Hoja de méritos / autobaremo',       show:esCO },
+    { key:'doc_discap',     label:'Certificado discapacidad',           show:true },
+    { key:'doc_extra1',     label:r.doc_extra1_nombre||'Documento extra 1', show:!!r.doc_extra1 },
+    { key:'doc_extra2',     label:r.doc_extra2_nombre||'Documento extra 2', show:!!r.doc_extra2 },
+    { key:'doc_extra3',     label:r.doc_extra3_nombre||'Documento extra 3', show:!!r.doc_extra3 },
   ].filter(d => d.show);
-  const colorEstado = { 'Listo': 'badge--green', 'Pendiente': 'badge--yellow', 'No aplica': 'badge--red', '': 'badge--blue' };
-  const ckKey = 'opos_checklist_' + (r.convocatoria || '').replace(/\s+/g,'_');
-  const ck = Store.get(ckKey);
+
+  const ckKey    = 'opos_checklist_' + (r.convocatoria||'').replace(/\s+/g,'_');
+  const ck       = Store.get(ckKey);
+  const convKey  = (r.convocatoria||'').replace(/\s+/g,'_');
+  const docsExt  = _getDocsExt(r);
+
   const checkItems = [
     { id:'dni',    label:'DNI / Pasaporte en vigor' },
-    { id:'tasa',   label:'Justificante de tasa pagada / resguardo de inscripción' },
+    { id:'tasa',   label:'Justificante de tasa pagada' },
     { id:'boli',   label:'Bolígrafo azul o negro' },
     { id:'lista',  label:'Comprobante de lista definitiva de admitidos' },
   ];
 
+  const itBlock = (() => {
+    if (!r.req_it_txartelas?.length || typeof it_validarRequisitos !== 'function') return '';
+    const check    = it_validarRequisitos(r.req_it_txartelas);
+    const allNames = r.req_it_txartelas.map(id => typeof it_getNombreModulo === 'function' ? it_getNombreModulo(id) : id);
+    return check.ok
+      ? `<div style="margin-top:10px;padding:10px 14px;background:#00ff0010;border:1px solid var(--green);border-radius:8px;font-size:.82rem;color:var(--green)">🖥️ ✅ IT Txartela: requisitos cumplidos (${allNames.join(', ')})</div>`
+      : `<div style="margin-top:10px;padding:10px 14px;background:#ff000010;border:1px solid var(--red);border-radius:8px;font-size:.82rem">
+           <div style="color:var(--red);font-weight:600;margin-bottom:4px">🖥️ ⚠️ IT Txartela: faltan módulos</div>
+           ${check.nombres.map(n=>`<div style="color:var(--red)">▸ ${n}</div>`).join('')}
+         </div>`;
+  })();
+
   return `
-  <div style="margin-bottom:16px;padding:14px 16px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
-    <div style="font-weight:700;font-size:.82rem;color:var(--accent2);margin-bottom:10px">✅ Checklist día del examen</div>
+  <!-- Checklist día del examen -->
+  <div style="margin-bottom:14px;padding:12px 14px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+    <div style="font-weight:700;font-size:.78rem;color:var(--accent2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">✅ Día del examen</div>
     ${checkItems.map(item => `
-    <label style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border2);cursor:pointer;font-size:.85rem;color:var(--text)">
+    <label style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border2);cursor:pointer;font-size:.83rem;color:var(--text)">
       <input type="checkbox" ${ck[item.id]?'checked':''} onchange="opos_toggleCheck('${ckKey}','${item.id}',this.checked)"
         style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0" />
       <span style="${ck[item.id]?'text-decoration:line-through;color:var(--text3)':''}">${item.label}</span>
     </label>`).join('')}
   </div>
 
-  <div class="det-docs-grid">
+  <!-- Documentación para la inscripción -->
+  <div style="font-weight:700;font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">📁 Documentación para inscripción</div>
+  <div class="det-docs-grid" style="margin-bottom:10px">
     ${docs.map(d => {
       const est = r[d.key] || '';
-      const cls = colorEstado[est] || 'badge--blue';
-      return `
-      <div class="det-doc-card">
+      return `<div class="det-doc-card">
         <span class="det-doc-label">${d.label}</span>
-        <span class="badge ${cls}">${est || '—'}</span>
+        <span class="badge ${colorEstado[est]||'badge--blue'}">${est||'—'}</span>
       </div>`;
     }).join('')}
   </div>
-  ${(() => {
-    if (!r.req_it_txartelas?.length || typeof it_validarRequisitos !== 'function') return '';
-    const check = it_validarRequisitos(r.req_it_txartelas);
-    const allNames = r.req_it_txartelas.map(id => typeof it_getNombreModulo === 'function' ? it_getNombreModulo(id) : id);
-    if (check.ok) return `
-      <div style="margin-top:12px;padding:10px 14px;background:#00ff0010;border:1px solid var(--green);border-radius:8px;font-size:.82rem;color:var(--green)">
-        🖥️ ✅ IT Txartela: requisitos cumplidos (${allNames.join(', ')})
-      </div>`;
-    return `
-      <div style="margin-top:12px;padding:10px 14px;background:#ff000010;border:1px solid var(--red);border-radius:8px;font-size:.82rem">
-        <div style="color:var(--red);font-weight:600;margin-bottom:6px">🖥️ ⚠️ IT Txartela: faltan módulos</div>
-        ${check.nombres.map(n => `<div style="color:var(--red);margin-top:4px">▸ Pendiente: <strong>${n}</strong></div>`).join('')}
-        <div style="color:var(--text2);margin-top:4px;font-size:.75rem">Requeridos: ${allNames.join(', ')}</div>
-      </div>`;
-  })()}
-  `;
+
+  <!-- Documentos específicos de estas bases -->
+  <div style="font-weight:700;font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">📌 Específicos de estas bases</div>
+  <div id="opos-dext-list-${convKey}">
+    ${docsExt.length ? docsExt.map((d,i) => `<div id="opos-dext-row-${convKey}-${i}">${_docExtRowHTML(convKey,d,i)}</div>`).join('')
+      : '<p style="font-size:.78rem;color:var(--text3);margin-bottom:8px">Sin documentos añadidos. Añade los que pidan las bases específicas.</p>'}
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px">
+    <input id="opos-dext-input-${convKey}" type="text" placeholder="Ej: Certificado de empadronamiento…"
+      style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 10px;font-size:.78rem;font-family:inherit;outline:none"
+      onkeydown="if(event.key==='Enter')opos_docExtAdd('${convKey}')" />
+    <button onclick="opos_docExtAdd('${convKey}')"
+      style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:.78rem;cursor:pointer;font-weight:600;font-family:inherit;white-space:nowrap">+ Añadir</button>
+  </div>
+  ${itBlock}`;
 }
 
-/* ── Panel: Méritos ── */
-function renderMeritosPanel(r, i) {
-  const m = r.meritos_calc || {};
-  const mesesMisma  = parseFloat(m.meses_misma  || 0);
-  const mesesOtras  = parseFloat(m.meses_otras  || 0);
-  const mesesPriv   = parseFloat(m.meses_priv   || 0);
-  const euskeraNivel = m.euskera || '';
-  const titExtra    = m.tit_extra || '';
-  const cursos      = m.cursos || [];
+/* ── Baremo por convocatoria ── */
+const _BAREMO_DEF = {
+  misma_pts:0.10, misma_max:4.00,
+  otras_pts:0.05, otras_max:2.00,
+  priv_pts:0.02,  priv_max:0.50,
+  euskera_ega:2.00, euskera_b2:1.50, euskera_b1:1.00, euskera_a2:0.50,
+  tit_doc:2.00, tit_mas:1.00, tit_lic:1.50, tit_otro:0.50,
+  cursos_max:3.00,
+  tope:null,
+  configurado:false
+};
+function _baremoKey(r) { return 'opos_baremo_' + (r.convocatoria||'').replace(/\s+/g,'_'); }
+function _getBaremo(r) { return Object.assign({}, _BAREMO_DEF, Store.get(_baremoKey(r), {})); }
 
-  const ptsMisma  = Math.min(4.00, mesesMisma  * 0.10);
-  const ptsOtras  = Math.min(2.00, mesesOtras  * 0.05);
-  const ptsPriv   = Math.min(0.50, mesesPriv   * 0.02);
-  const ptsEusk   = { 'EGA/C1': 2.00, 'B2': 1.50, 'B1': 1.00, 'A2': 0.50, '': 0 }[euskeraNivel] || 0;
-  const ptsTit    = { 'Doctorado': 2.00, 'Máster': 1.00, 'Licenciatura/Grado': 1.50, 'Otro': 0.50, '': 0 }[titExtra] || 0;
-  const ptsCursos = Math.min(3.00, cursos.reduce((acc, c) => {
-    const h = parseInt(c.horas || 0);
-    let p = 0;
-    if (h >= 120) p = 0.80;
-    else if (h >= 80) p = 0.60;
-    else if (h >= 40) p = 0.40;
-    else if (h >= 20) p = 0.20;
-    else if (h >= 10) p = 0.10;
-    return acc + p;
+function opos_guardarBaremo(convKey) {
+  const b = Store.get('opos_baremo_' + convKey, {});
+  const fields = ['misma_pts','misma_max','otras_pts','otras_max','priv_pts','priv_max',
+    'euskera_ega','euskera_b2','euskera_b1','euskera_a2',
+    'tit_doc','tit_mas','tit_lic','tit_otro','cursos_max','tope'];
+  fields.forEach(f => {
+    const el = document.getElementById('opos-bar-' + f + '-' + convKey);
+    if (el) b[f] = el.value === '' ? null : parseFloat(el.value);
+  });
+  b.configurado = true;
+  Store.set('opos_baremo_' + convKey, b);
+  // Re-render result
+  const res = document.getElementById('opos-bar-result-' + convKey);
+  if (res) res.innerHTML = _calcMeritosHTML(Store.get('opos_bar_data_' + convKey, {}), b);
+  const badge = document.getElementById('opos-bar-badge-' + convKey);
+  if (badge) { badge.textContent = '✅ Guardado'; badge.style.color = 'var(--green)'; setTimeout(()=>{ if(badge) badge.textContent=''; }, 2000); }
+}
+
+function _calcMeritosFromBaremo(m, b) {
+  const mesesMisma = parseFloat(m.meses_misma||0);
+  const mesesOtras = parseFloat(m.meses_otras||0);
+  const mesesPriv  = parseFloat(m.meses_priv||0);
+  const ptsMisma   = Math.min(b.misma_max, mesesMisma * b.misma_pts);
+  const ptsOtras   = Math.min(b.otras_max, mesesOtras * b.otras_pts);
+  const ptsPriv    = Math.min(b.priv_max,  mesesPriv  * b.priv_pts);
+  const ptsEusk    = { 'EGA/C1':b.euskera_ega,'B2':b.euskera_b2,'B1':b.euskera_b1,'A2':b.euskera_a2,'':0 }[m.euskera||''] || 0;
+  const ptsTit     = { 'Doctorado':b.tit_doc,'Máster':b.tit_mas,'Licenciatura/Grado':b.tit_lic,'Otro':b.tit_otro,'':0 }[m.tit_extra||''] || 0;
+  const ptsCursos  = Math.min(b.cursos_max, (m.cursos||[]).reduce((acc,c) => {
+    const h = parseInt(c.horas||0);
+    return acc + (h>=120?.8:h>=80?.6:h>=40?.4:h>=20?.2:h>=10?.1:0);
   }, 0));
-  const rawTotal = ptsMisma + ptsOtras + ptsPriv + ptsEusk + ptsTit + ptsCursos;
-  const tope  = r.tope_meritos != null ? parseFloat(r.tope_meritos) : null;
-  const total = (r.tipo_proceso === 'libre') ? 0 : (tope != null ? Math.min(tope, rawTotal) : rawTotal);
-  const esLibre = r.tipo_proceso === 'libre';
+  const raw   = ptsMisma + ptsOtras + ptsPriv + ptsEusk + ptsTit + ptsCursos;
+  const total = b.tope != null ? Math.min(b.tope, raw) : raw;
+  return { ptsMisma, ptsOtras, ptsPriv, ptsEusk, ptsTit, ptsCursos, raw, total };
+}
 
-  if (esLibre) return `
-  <div style="padding:20px;text-align:center;color:var(--text3)">
-    <div style="font-size:2rem;margin-bottom:8px">📋</div>
-    <div style="font-size:.9rem;font-weight:600;color:var(--text2)">Proceso selectivo — Oposición libre</div>
-    <div style="font-size:.82rem;margin-top:6px">No hay fase de concurso de méritos. La puntuación final se obtiene únicamente del examen.</div>
-  </div>`;
-
+function _calcMeritosHTML(m, b) {
+  const { ptsMisma, ptsOtras, ptsPriv, ptsEusk, ptsTit, ptsCursos, raw, total } = _calcMeritosFromBaremo(m, b);
+  const cursos = m.cursos || [];
   return `
-  <div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap">
-    <span style="font-size:.78rem;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:4px 12px;color:var(--text2)">
-      🏛 <strong>Concurso-oposición</strong>
-    </span>
-    ${tope != null ? `<span style="font-size:.78rem;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:4px 12px;color:var(--yellow)">
-      🎯 Tope méritos: <strong>${tope} pts</strong>
-    </span>` : ''}
-    ${tope != null && rawTotal > tope ? `<span style="font-size:.78rem;background:#ff000015;border:1px solid var(--red);border-radius:8px;padding:4px 12px;color:var(--red)">
-      ⚠️ Tus ${rawTotal.toFixed(2)} pts se recortan al tope
-    </span>` : ''}
-  </div>
   <div class="meritos-layout">
     <div class="meritos-calc">
       <div class="meritos-bloque">
         <div class="meritos-bloque-title">💼 Servicios prestados</div>
-        <div class="meritos-row">
-          <span>Misma categoría (0,10 pts/mes, máx 4)</span>
-          <strong style="color:var(--green)">${ptsMisma.toFixed(2)}</strong>
-        </div>
-        <div class="meritos-row">
-          <span>Otras categorías admin. (0,05 pts/mes, máx 2)</span>
-          <strong style="color:var(--green)">${ptsOtras.toFixed(2)}</strong>
-        </div>
-        <div class="meritos-row">
-          <span>Empresa privada (0,02 pts/mes, máx 0,50)</span>
-          <strong style="color:var(--green)">${ptsPriv.toFixed(2)}</strong>
-        </div>
+        <div class="meritos-row"><span>Misma categoría (${b.misma_pts} pts/mes, máx ${b.misma_max})</span><strong style="color:var(--green)">${ptsMisma.toFixed(2)}</strong></div>
+        <div class="meritos-row"><span>Otras adm. públicas (${b.otras_pts} pts/mes, máx ${b.otras_max})</span><strong style="color:var(--green)">${ptsOtras.toFixed(2)}</strong></div>
+        <div class="meritos-row"><span>Empresa privada (${b.priv_pts} pts/mes, máx ${b.priv_max})</span><strong style="color:var(--green)">${ptsPriv.toFixed(2)}</strong></div>
       </div>
       <div class="meritos-bloque">
         <div class="meritos-bloque-title">🎓 Formación</div>
-        <div class="meritos-row">
-          <span>Euskera: ${euskeraNivel || '—'}</span>
-          <strong style="color:var(--blue)">${ptsEusk.toFixed(2)}</strong>
-        </div>
-        <div class="meritos-row">
-          <span>Titulación extra: ${titExtra || '—'}</span>
-          <strong style="color:var(--blue)">${ptsTit.toFixed(2)}</strong>
-        </div>
-        <div class="meritos-row">
-          <span>Cursos de formación (máx 3)</span>
-          <strong style="color:var(--blue)">${ptsCursos.toFixed(2)}</strong>
-        </div>
-        ${cursos.length ? `<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
-          ${cursos.map((c,ci) => `<div style="font-size:.78rem;color:var(--text2);padding:4px 8px;background:var(--bg4);border-radius:6px;display:flex;justify-content:space-between">
-            <span>${c.nombre || 'Curso '+(ci+1)}</span><span>${c.horas}h</span>
-          </div>`).join('')}
+        <div class="meritos-row"><span>Euskera: ${m.euskera||'—'}</span><strong style="color:var(--blue)">${ptsEusk.toFixed(2)}</strong></div>
+        <div class="meritos-row"><span>Titulación extra: ${m.tit_extra||'—'}</span><strong style="color:var(--blue)">${ptsTit.toFixed(2)}</strong></div>
+        <div class="meritos-row"><span>Cursos (máx ${b.cursos_max})</span><strong style="color:var(--blue)">${ptsCursos.toFixed(2)}</strong></div>
+        ${cursos.length ? `<div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">
+          ${cursos.map((c,ci) => `<div style="font-size:.75rem;color:var(--text2);padding:3px 8px;background:var(--bg4);border-radius:5px;display:flex;justify-content:space-between"><span>${c.nombre||'Curso '+(ci+1)}</span><span>${c.horas}h</span></div>`).join('')}
         </div>` : ''}
       </div>
     </div>
     <div class="meritos-total">
-      <div class="meritos-total-label">TOTAL MÉRITOS</div>
+      <div class="meritos-total-label">TOTAL</div>
       <div class="meritos-total-val">${total.toFixed(2)}</div>
       <div class="meritos-total-sub">puntos</div>
-      <div style="margin-top:16px;font-size:.75rem;color:var(--text3);text-align:center"></div>
+      ${b.tope!=null && raw>b.tope ? `<div style="margin-top:8px;font-size:.72rem;color:var(--orange)">Bruto: ${raw.toFixed(2)} · recortado al tope ${b.tope}</div>` : ''}
     </div>
-  </div>
-  ${r.notas ? `
-  <div style="margin-top:12px;padding:12px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);font-size:.78rem;color:var(--text2);line-height:1.55">
-    <strong style="color:var(--accent2);display:block;margin-bottom:5px">📋 Bases oficiales</strong>${r.notas}
-  </div>` : ''}
-  <div style="margin-top:10px;padding:10px 14px;background:var(--bg4);border-radius:8px;font-size:.76rem;color:var(--text3)">
-    ℹ️ Los puntos calculados arriba son estimaciones. Las bases oficiales prevalecen siempre.
   </div>`;
+}
+
+/* ── Panel: Méritos ── */
+function renderMeritosPanel(r, i) {
+  if (r.tipo_proceso === 'libre') return `
+  <div style="padding:20px;text-align:center;color:var(--text3)">
+    <div style="font-size:2rem;margin-bottom:8px">📋</div>
+    <div style="font-size:.9rem;font-weight:600;color:var(--text2)">Oposición libre</div>
+    <div style="font-size:.82rem;margin-top:6px">Sin fase de concurso de méritos.</div>
+  </div>`;
+
+  const convKey = (r.convocatoria||'').replace(/\s+/g,'_');
+  const b = _getBaremo(r);
+  const m = r.meritos_calc || {};
+  Store.set('opos_bar_data_' + convKey, m);
+
+  const inp = (field, label, val) => `
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <label style="font-size:.67rem;color:var(--text3)">${label}</label>
+    <input id="opos-bar-${field}-${convKey}" type="number" step="0.01" value="${val??''}"
+      style="width:70px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:4px 7px;font-size:.78rem;font-family:inherit;outline:none" />
+  </div>`;
+
+  return `
+  <!-- Baremo de estas bases -->
+  <details style="margin-bottom:14px" ${!b.configurado?'open':''}>
+    <summary style="cursor:pointer;font-weight:700;font-size:.78rem;color:${b.configurado?'var(--green)':'var(--orange)'};text-transform:uppercase;letter-spacing:.05em;padding:8px 0;list-style:none;display:flex;align-items:center;gap:8px">
+      ⚙️ Baremo de estas bases ${b.configurado?'<span style="color:var(--text3);font-weight:400;text-transform:none">(configurado)</span>':'<span style="color:var(--orange);font-weight:400;text-transform:none">— configura para calcular correctamente</span>'}
+    </summary>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:6px">
+      <div style="font-size:.75rem;color:var(--text3);margin-bottom:12px">Introduce los valores exactos de las bases oficiales de esta convocatoria.</div>
+
+      <div style="font-size:.76rem;font-weight:700;color:var(--text2);margin-bottom:8px">💼 Servicios prestados (admón. pública)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+        ${inp('misma_pts','Misma categoría (pts/mes)',b.misma_pts)}
+        ${inp('misma_max','Máximo (pts)',b.misma_max)}
+        ${inp('otras_pts','Otras categorías (pts/mes)',b.otras_pts)}
+        ${inp('otras_max','Máximo (pts)',b.otras_max)}
+        ${inp('priv_pts','Empresa privada (pts/mes)',b.priv_pts)}
+        ${inp('priv_max','Máximo (pts)',b.priv_max)}
+      </div>
+
+      <div style="font-size:.76rem;font-weight:700;color:var(--text2);margin-bottom:8px">🗣️ Euskera</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+        ${inp('euskera_ega','EGA / C1 (pts)',b.euskera_ega)}
+        ${inp('euskera_b2','B2 (pts)',b.euskera_b2)}
+        ${inp('euskera_b1','B1 (pts)',b.euskera_b1)}
+        ${inp('euskera_a2','A2 (pts)',b.euskera_a2)}
+      </div>
+
+      <div style="font-size:.76rem;font-weight:700;color:var(--text2);margin-bottom:8px">🎓 Formación</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+        ${inp('tit_doc','Doctorado (pts)',b.tit_doc)}
+        ${inp('tit_mas','Máster (pts)',b.tit_mas)}
+        ${inp('tit_lic','Licenciatura/Grado (pts)',b.tit_lic)}
+        ${inp('tit_otro','Otra titulación (pts)',b.tit_otro)}
+        ${inp('cursos_max','Cursos máx. total (pts)',b.cursos_max)}
+      </div>
+
+      <div style="font-size:.76rem;font-weight:700;color:var(--text2);margin-bottom:8px">🎯 Tope total</div>
+      <div style="display:flex;gap:12px;margin-bottom:14px">
+        ${inp('tope','Tope total méritos (vacío = sin tope)',b.tope)}
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px">
+        <button onclick="opos_guardarBaremo('${convKey}')"
+          style="background:var(--accent);color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit">
+          💾 Guardar baremo
+        </button>
+        <span id="opos-bar-badge-${convKey}" style="font-size:.78rem"></span>
+      </div>
+    </div>
+  </details>
+
+  <!-- Resultado del cálculo -->
+  ${!b.configurado ? `<div style="padding:12px 14px;background:var(--bg3);border:1px dashed var(--orange);border-radius:8px;font-size:.82rem;color:var(--orange)">
+    ⚠️ Configura el baremo de estas bases arriba para obtener un cálculo preciso. Los valores por defecto son aproximaciones genéricas.
+  </div>` : ''}
+  <div id="opos-bar-result-${convKey}" style="margin-top:12px">
+    ${_calcMeritosHTML(m, b)}
+  </div>
+  ${r.notas ? `<div style="margin-top:12px;padding:10px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);font-size:.78rem;color:var(--text2);line-height:1.55">
+    <strong style="color:var(--accent2);display:block;margin-bottom:4px">📋 Notas de las bases</strong>${r.notas}
+  </div>` : ''}`;
 }
 
 function calcMeritosTotal(r) {
