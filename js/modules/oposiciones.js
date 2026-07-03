@@ -3,6 +3,64 @@
 // Parsea YYYY-MM-DD como fecha local (evita desfase UTC en Spain UTC+2)
 const oposLocalDate = str => str ? new Date(str + 'T00:00:00') : null;
 
+/* ── 14 estados del ciclo completo ── */
+const OPOS_ESTADOS = [
+  { id:'PREVISTA',         label:'Prevista',         cls:'badge--gray',   icon:'🔭' },
+  { id:'ABIERTA',          label:'Abierta',          cls:'badge--green',  icon:'🟢' },
+  { id:'INSCRITA',         label:'Inscrita',         cls:'badge--blue',   icon:'✍️' },
+  { id:'LISTA_PROV',       label:'Lista prov.',      cls:'badge--yellow', icon:'📄' },
+  { id:'ALEGACIONES',      label:'Alegaciones',      cls:'badge--orange', icon:'✏️' },
+  { id:'LISTA_DEF',        label:'Lista def.',       cls:'badge--blue',   icon:'📋' },
+  { id:'EXAMEN_PENDIENTE', label:'Examen pendiente', cls:'badge--yellow', icon:'📝' },
+  { id:'EXAMEN_REALIZADO', label:'Examen realizado', cls:'badge--orange', icon:'⏳' },
+  { id:'NOTAS_PROV',       label:'Notas prov.',      cls:'badge--yellow', icon:'📊' },
+  { id:'FASE_MERITOS',     label:'Fase méritos',     cls:'badge--purple', icon:'⭐' },
+  { id:'NOTAS_DEF',        label:'Notas def.',       cls:'badge--blue',   icon:'🏆' },
+  { id:'EN_BOLSA',         label:'En bolsa',         cls:'badge--green',  icon:'📂' },
+  { id:'APROBADA',         label:'Aprobada',         cls:'badge--green',  icon:'🎉' },
+  { id:'DESCARTADA',       label:'Descartada',       cls:'badge--red',    icon:'❌' },
+];
+
+/* ── Estado local por convocatoria (localStorage first, seed fallback) ── */
+function opos_getEstado(r) {
+  const key = 'opos_estado_' + (r.convocatoria || '').replace(/\s+/g,'_');
+  return localStorage.getItem(key) || r.estado || 'PREVISTA';
+}
+
+function opos_cambiarEstado(convKey, nuevoEstado) {
+  localStorage.setItem('opos_estado_' + convKey, nuevoEstado);
+  opos_renderFiltered();
+}
+
+/* ── Vista activa: 'lista' | 'pipeline' ── */
+window._oposVista = window._oposVista || 'lista';
+
+function opos_setVista(vista) {
+  window._oposVista = vista;
+  const lv = document.getElementById('opos-lista-view');
+  const pv = document.getElementById('opos-pipeline-view');
+  if (lv) lv.style.display = vista === 'lista' ? '' : 'none';
+  if (pv) pv.style.display = vista === 'pipeline' ? '' : 'none';
+  _opos_syncVistaBtns(vista);
+  opos_renderFiltered();
+}
+
+function _opos_syncVistaBtns(vista) {
+  ['lista','pipeline'].forEach(v => {
+    const b = document.getElementById('opos-btn-' + v);
+    if (!b) return;
+    const active = v === vista;
+    b.style.background = active ? 'var(--accent)' : 'var(--bg3)';
+    b.style.color       = active ? '#fff' : 'var(--text2)';
+    b.style.border      = active ? '1px solid var(--accent)' : '1px solid var(--border)';
+    b.style.fontWeight  = active ? '700' : '400';
+  });
+  const hint = document.getElementById('opos-vista-hint');
+  if (hint) hint.textContent = vista === 'lista'
+    ? 'Haz clic en una fila para ver el detalle'
+    : 'Haz clic en una tarjeta para ver el detalle · cambia el estado con el selector';
+}
+
 async function loadOposiciones() {
   if (typeof opos_applySeed === 'function') opos_applySeed();
   radarInit(); // render inmediato desde localStorage, sin esperar al fetch
@@ -241,9 +299,20 @@ function renderOposTimeline(data) {
 function renderOposTable(data) {
   window._oposData = data;
 
-  // ── Barra de filtros (se inyecta una sola vez) ──
-  const wrap = document.getElementById('opos-table')?.closest('.card');
-  if (wrap && !document.getElementById('opos-filtros-bar')) {
+  // ── Toggle vista (una sola vez) ──
+  const toggleEl = document.getElementById('opos-vista-toggle');
+  if (toggleEl && !toggleEl._setup) {
+    toggleEl._setup = true;
+    toggleEl.innerHTML = `
+      <button id="opos-btn-lista" onclick="opos_setVista('lista')"
+        style="padding:5px 12px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-size:.78rem;font-family:inherit;font-weight:700">📋 Lista</button>
+      <button id="opos-btn-pipeline" onclick="opos_setVista('pipeline')"
+        style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-size:.78rem;font-family:inherit;font-weight:400">🗂️ Pipeline</button>`;
+  }
+
+  // ── Barra de filtros (se inyecta una sola vez, antes de opos-lista-view) ──
+  const anchor = document.getElementById('opos-filtros-anchor');
+  if (anchor && !document.getElementById('opos-filtros-bar')) {
     const fases     = [...new Set(data.map(r => r.fase).filter(Boolean))].sort();
     const perfiles  = [...new Set(data.map(r => r.perfil).filter(Boolean))].sort();
     const organismos = [...new Set(data.map(r => _oposOrgPuesto(r).org).filter(Boolean))].sort();
@@ -279,7 +348,7 @@ function renderOposTable(data) {
         style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;font-size:.78rem;font-family:inherit">
         ✕ Limpiar
       </button>`;
-    wrap.querySelector('h3').after(bar);
+    anchor.insertAdjacentElement('afterend', bar);
   }
 
   opos_renderFiltered();
@@ -317,7 +386,7 @@ function opos_renderFiltered() {
     if (texto  && !(r.convocatoria || '').toLowerCase().includes(texto) &&
                   !org.toLowerCase().includes(texto) && !pto.toLowerCase().includes(texto)) return false;
     if (fase      && r.fase   !== fase)     return false;
-    if (perfil    && r.perfil !== perfil)   return false;
+    if (perfil    && (r.perfil||'').toUpperCase() !== perfil.toUpperCase()) return false;
     if (organismo && org      !== organismo) return false;
     return true;
   });
@@ -327,8 +396,18 @@ function opos_renderFiltered() {
     ? `${filtered.length} de ${all.length}`
     : `${all.length} convocatorias`;
 
+  if (window._oposVista === 'pipeline') {
+    renderOposPipeline(filtered);
+    return;
+  }
+  _renderOposTabla(filtered);
+}
+
+function _renderOposTabla(filtered) {
+  const all   = window._oposData || [];
   const tbody = document.getElementById('opos-tbody');
   if (!tbody) return;
+  const { texto, fase, perfil, organismo } = window._oposFiltros;
 
   if (!filtered.length) {
     const hayFiltros = texto || fase || perfil || organismo;
@@ -336,7 +415,7 @@ function opos_renderFiltered() {
     return;
   }
 
-  tbody.innerHTML = filtered.map((r, i) => {
+  tbody.innerHTML = filtered.map((r) => {
     const realIdx = all.indexOf(r);
     const { org, pto } = _oposOrgPuesto(r);
     const meritosTotal = calcMeritosTotal(r);
@@ -357,12 +436,9 @@ function opos_renderFiltered() {
     const inscrBadge = _iVal === 'si'        ? '<span title="Inscrita" style="color:var(--green);font-size:.78rem;margin-left:4px">✍️✅</span>'
                      : _iVal === 'pendiente' ? '<span title="Inscripción pendiente" style="color:var(--yellow);font-size:.78rem;margin-left:4px">✍️⏳</span>'
                      : '';
-    // Urgency: inscription deadline < 7 days and not yet inscribed
     const hoyRow = new Date(); hoyRow.setHours(0,0,0,0);
-    const _iKeyRow = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
-    const urgente = r.fecha_fin_inscr && localStorage.getItem(_iKeyRow) !== 'si' &&
+    const urgente = r.fecha_fin_inscr && localStorage.getItem(_iKey) !== 'si' &&
       (() => { const d = oposLocalDate(r.fecha_fin_inscr); return d >= hoyRow && Math.round((d - hoyRow)/86400000) <= 7; })();
-    const examenPasadoRow = r.fecha_examen && oposLocalDate(r.fecha_examen) < hoyRow;
     const rowStyle = urgente
       ? 'cursor:pointer;border-left:3px solid var(--accent2);background:var(--accent2)08'
       : 'cursor:pointer';
@@ -374,7 +450,7 @@ function opos_renderFiltered() {
         <div style="font-size:.74rem;color:var(--text3);margin-top:2px">${org || ''} ${tipoBadge}</div>
       </td>
       <td data-label="Grupo">${r.grupo || '—'}</td>
-      <td data-label="Estado">${examenPasadoRow ? '<span class="badge badge--yellow" title="Examen ya realizado">⚡ Pdte. notas</span>' : badgeEstado(r.estado)}</td>
+      <td data-label="Estado">${badgeEstado(opos_getEstado(r))}</td>
       <td data-label="Examen">${r.fecha_examen ? formatFecha(r.fecha_examen) : '—'}</td>
       <td data-label="Tasa">${r.tasa_pagada === 'SI' ? '<span class="badge badge--green">✓ Pagada</span>' : r.tasa_pagada === 'NO' ? '<span class="badge badge--red">✗ No</span>' : '—'}</td>
       <td data-label="Bolsa">${r.bolsa_entrada === true || r.bolsa_entrada === 'true' ? `<span class="badge badge--green">Sí ${r.bolsa_posicion ? '#'+r.bolsa_posicion : ''}</span>` : '<span class="badge badge--yellow">—</span>'}</td>
@@ -385,6 +461,117 @@ function opos_renderFiltered() {
       <td colspan="9" style="padding:0">${renderDetalleHTML(r, realIdx)}</td>
     </tr>`;
   }).join('');
+}
+
+/* ── Vista Pipeline ── */
+function renderOposPipeline(filtered) {
+  const container = document.getElementById('opos-pipeline-container');
+  if (!container) return;
+  const all = window._oposData || [];
+  const { texto, fase, perfil, organismo } = window._oposFiltros;
+
+  if (!filtered.length) {
+    const hayFiltros = texto || fase || perfil || organismo;
+    container.innerHTML = `<p style="color:var(--text3);padding:20px 0;text-align:center">${hayFiltros ? 'Sin resultados para ese filtro.' : 'Sin convocatorias registradas.'}</p>`;
+    return;
+  }
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const orderMap = {};
+  OPOS_ESTADOS.forEach((e, i) => { orderMap[e.id] = i; });
+
+  // Agrupar por estado local
+  const groups = {};
+  filtered.forEach(r => {
+    const estado = opos_getEstado(r);
+    if (!groups[estado]) groups[estado] = [];
+    groups[estado].push(r);
+  });
+
+  const sortedKeys = Object.keys(groups).sort((a, b) => (orderMap[a] ?? 99) - (orderMap[b] ?? 99));
+  const estadoSelectHTML = OPOS_ESTADOS.map(e => `<option value="${e.id}">${e.icon} ${e.label}</option>`).join('');
+
+  container.innerHTML = sortedKeys.map(estadoId => {
+    const items = groups[estadoId];
+    const meta = OPOS_ESTADOS.find(e => e.id === estadoId) || { label: estadoId, icon: '•', cls: 'badge--gray' };
+
+    const cards = items.map(r => {
+      const { org, pto } = _oposOrgPuesto(r);
+      const convKey = (r.convocatoria || '').replace(/\s+/g,'_');
+      const realIdx = all.indexOf(r);
+
+      // Próxima fecha relevante futura
+      const candidatas = [
+        r.fecha_apertura    && { label:'🟢 Apertura', fecha: r.fecha_apertura },
+        r.fecha_fin_inscr   && { label:'🔴 Fin inscr.', fecha: r.fecha_fin_inscr },
+        r.fecha_lista_prov  && { label:'📄 Lista prov.', fecha: r.fecha_lista_prov },
+        r.fecha_alegaciones && { label:'✏️ Alegaciones', fecha: r.fecha_alegaciones },
+        r.fecha_lista_def   && { label:'📋 Lista def.', fecha: r.fecha_lista_def },
+        r.fecha_examen      && { label:'📝 Examen', fecha: r.fecha_examen },
+      ].filter(Boolean).filter(f => oposLocalDate(f.fecha) >= hoy);
+      const prox = candidatas[0];
+      const diasProx = prox ? Math.round((oposLocalDate(prox.fecha) - hoy) / 86400000) : null;
+      const urgente  = diasProx !== null && diasProx <= 7;
+
+      const proxHTML = prox
+        ? `<span style="color:${urgente?'var(--accent2)':'var(--text3)'};font-weight:${urgente?'700':'400'};font-size:.68rem">
+             ${prox.label} ${formatFecha(prox.fecha)} · ${diasProx===0?'¡HOY!':diasProx+'d'}
+           </span>`
+        : '';
+
+      const enlaceURL = r.url_boe || r.url_bases || '';
+      const enlaceBtn = enlaceURL
+        ? `<a href="${enlaceURL}" target="_blank" rel="noopener" onclick="event.stopPropagation()"
+            style="font-size:.72rem;color:var(--text3);text-decoration:none;padding:2px 4px;border-radius:4px;background:var(--bg4);border:1px solid var(--border);flex-shrink:0" title="Abrir enlace oficial">↗</a>`
+        : '';
+
+      return `
+      <div id="opos-pipe-card-${realIdx}" style="border-radius:8px;background:var(--bg3);border:1px solid ${urgente?'var(--accent2)':'var(--border)'};overflow:hidden">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer"
+          onclick="toggleOposPipelineDetalle(${realIdx})">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pto || r.convocatoria || '—'}</div>
+            <div style="font-size:.7rem;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              ${org ? `<span>${org}</span>` : ''}
+              ${badgePerfil(r.perfil)}
+              ${proxHTML}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+            ${enlaceBtn}
+            <select onclick="event.stopPropagation()" onchange="opos_cambiarEstado('${convKey}',this.value)"
+              style="font-size:.72rem;background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:3px 4px;font-family:inherit;cursor:pointer;max-width:130px">
+              ${OPOS_ESTADOS.map(e => `<option value="${e.id}" ${e.id===estadoId?'selected':''}>${e.icon} ${e.label}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div id="opos-pipe-det-${realIdx}" style="display:none;border-top:1px solid var(--border)">
+          ${renderDetalleHTML(r, realIdx)}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `
+    <div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:2px solid var(--border);margin-bottom:8px">
+        <span>${meta.icon}</span>
+        <span style="font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">${meta.label}</span>
+        <span class="badge ${meta.cls}" style="font-size:.7rem;padding:1px 8px;font-weight:700">${items.length}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleOposPipelineDetalle(realIdx) {
+  const det = document.getElementById('opos-pipe-det-' + realIdx);
+  if (!det) return;
+  const isOpen = det.style.display !== 'none';
+  document.querySelectorAll('[id^="opos-pipe-det-"]').forEach(d => d.style.display = 'none');
+  if (!isOpen) {
+    det.style.display = 'block';
+    requestAnimationFrame(() => det.scrollIntoView({ behavior:'smooth', block:'nearest' }));
+  }
 }
 
 /* ── Detalle expandible ── */
@@ -1126,15 +1313,13 @@ function badgePerfil(perfil) {
 }
 
 function badgeEstado(estado) {
-  const map = {
-    'ABIERTA':         'badge--green',
-    'PENDIENTE':       'badge--yellow',
-    'CERRADA':         'badge--red',
-    'EN PROCESO':      'badge--blue',
-    'EN SEGUIMIENTO':  'badge--gray',
-    'PREVISTA':        'badge--orange',
-  };
-  const cls = map[(estado||'').toUpperCase()] || 'badge--yellow';
+  const id = (estado||'').toUpperCase().replace(/[\s-]+/g,'_');
+  const meta = OPOS_ESTADOS.find(e => e.id === id)
+    || OPOS_ESTADOS.find(e => e.label.toUpperCase() === (estado||'').toUpperCase());
+  if (meta) return `<span class="badge ${meta.cls}">${meta.icon} ${meta.label}</span>`;
+  // Legacy valores del seed antiguo
+  const legacyMap = { 'EN PROCESO':'badge--blue','EN SEGUIMIENTO':'badge--gray','CERRADA':'badge--red','PENDIENTE':'badge--yellow' };
+  const cls = legacyMap[(estado||'').toUpperCase()] || 'badge--gray';
   return `<span class="badge ${cls}">${estado||'—'}</span>`;
 }
 
