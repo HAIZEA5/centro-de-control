@@ -396,6 +396,7 @@
           <div class="opos-stat opos-stat--activa"><div class="opos-stat-value" id="opos-n-activas">—</div><div class="opos-stat-label">Apuntada / activa</div></div>
           <div class="opos-stat opos-stat--seguimiento"><div class="opos-stat-value" id="opos-n-seguimiento">—</div><div class="opos-stat-label">En seguimiento</div></div>
           <div class="opos-stat opos-stat--bolsa"><div class="opos-stat-value" id="opos-n-bolsa">—</div><div class="opos-stat-label">En bolsa</div></div>
+          <div class="opos-stat" style="--stat-color:var(--accent)"><div class="opos-stat-value" id="opos-tasas-total" style="color:var(--accent);font-size:1.3rem">—</div><div class="opos-stat-label">Tasas pagadas</div></div>
           <div class="opos-stat opos-stat--prox" style="grid-column:span 2"><div class="opos-stat-value" id="opos-prox-fecha" style="font-size:1rem;line-height:1.3">—</div><div class="opos-stat-label" id="opos-prox-label">Próximo evento</div></div>
         </div>
 
@@ -423,6 +424,11 @@
           </div>
         </div>
 
+        <div class="card" style="margin-bottom:14px">
+          <h3>📅 Próximos plazos</h3>
+          <div id="opos-timeline" style="margin-top:10px"></div>
+        </div>
+
         <div class="card">
           <h3>Convocatorias <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:.78rem">— haz clic en una fila para ver el detalle</span></h3>
           <div class="opos-table-wrap">
@@ -434,30 +440,10 @@
                 </tr>
               </thead>
               <tbody id="opos-tbody">
-                <tr><td colspan="9" class="empty-row">Cargando…</td></tr>
+                <tr><td colspan="9" class="empty-row">Sin convocatorias registradas.</td></tr>
               </tbody>
             </table>
           </div>
-        </div>
-
-        <div class="card mt">
-          <h3>Progreso de temas</h3>
-          <div class="opos-temas-grid" id="opos-temas"></div>
-          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-            <input id="opos-tema-input" type="text" placeholder="Nombre del tema…" style="flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:9px 12px;font-family:inherit;outline:none;" />
-            <button class="btn-primary" id="opos-tema-add">+ Añadir tema</button>
-          </div>
-        </div>
-
-        <div class="card mt">
-          <h3>Registro de estudio</h3>
-          <div class="opos-notas-form">
-            <select id="opos-sesion-tema"><option value="">— Tema —</option></select>
-            <input id="opos-sesion-horas" type="number" min="0" max="24" step="0.5" placeholder="Horas" style="flex:0.5;min-width:80px;" />
-            <input id="opos-sesion-nota" type="text" placeholder="Nota breve (opcional)" />
-            <button class="btn-primary" id="opos-sesion-add">Registrar</button>
-          </div>
-          <ul class="list" id="opos-sesiones"></ul>
         </div>
 
       </section>
@@ -614,7 +600,7 @@
   <script src="js/modules/piso.js?v=20260702a"></script>
   <script src="js/modules/carnet.js?v=20260702d"></script>
   <script src="js/data/oposiciones-seed.js?v=20260703e"></script>
-  <script src="js/modules/oposiciones.js?v=20260703a"></script>
+  <script src="js/modules/oposiciones.js?v=20260703b"></script>
   <script src="js/modules/agenda.js?v=20260702b"></script>
   <script src="js/modules/it-txartelas.js?v=20260701a"></script>
   <script src="js/modules/tareas.js?v=20260702b"></script>

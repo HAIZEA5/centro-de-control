@@ -12,10 +12,7 @@ async function loadOposiciones() {
   renderOposStats(locales);
   renderOposCountdown(locales);
   renderOposTable(locales);
-  renderOposTemas();
-  renderOposSesiones();
-  setupOposTemas();
-  setupOposSesiones();
+  renderOposTimeline(locales);
 
   // Actualizar con datos del Sheet si están disponibles
   const rows = await fetchSheet(CONFIG.SHEETS.OPOSICIONES, 'Oposiciones!A:I');
@@ -27,6 +24,7 @@ async function loadOposiciones() {
     renderOposStats(data);
     renderOposCountdown(data);
     renderOposTable(data);
+    renderOposTimeline(data);
   }
 }
 
@@ -89,28 +87,12 @@ function renderOposStats(data) {
   const labelEl2 = document.getElementById('opos-prox-label');
   if (labelEl2) labelEl2.textContent = nextEventos[0].tipo === 'examen' ? 'Próximo examen' : 'Fin inscripción';
 
-  // Horas estudiadas: mes actual y semana actual
-  const _sesiones = Store.get('opos_sesiones', []);
-  const _hoy = new Date(); _hoy.setHours(0,0,0,0);
-  const _parseDate = str => {
-    const p = str?.split('/');
-    return p?.length >= 3 ? new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`) : null;
-  };
-  const _horasMes = _sesiones.filter(s => {
-    const d = _parseDate(s.fecha);
-    return d && d.getFullYear() === _hoy.getFullYear() && d.getMonth() === _hoy.getMonth();
-  }).reduce((a, s) => a + (parseFloat(s.horas) || 0), 0);
-  const _lunes = new Date(_hoy);
-  _lunes.setDate(_hoy.getDate() - ((_hoy.getDay() || 7) - 1));
-  const _horasSemana = _sesiones.filter(s => {
-    const d = _parseDate(s.fecha);
-    return d && d >= _lunes;
-  }).reduce((a, s) => a + (parseFloat(s.horas) || 0), 0);
-  const horasEl = document.getElementById('opos-horas-mes');
-  if (horasEl) {
-    const col = _horasMes >= 20 ? 'var(--green)' : _horasMes >= 10 ? 'var(--yellow)' : 'var(--text)';
-    horasEl.innerHTML = `<span style="color:${col}">${_horasMes}h</span><div style="font-size:.68rem;color:var(--text3);margin-top:3px;font-weight:400">${_horasSemana}h esta semana</div>`;
-  }
+  const tasasTotal = data.reduce((sum, r) => {
+    const val = parseFloat(r.tasa);
+    return sum + (r.tasa_pagada === 'SI' && !isNaN(val) ? val : 0);
+  }, 0);
+  const tasasEl = document.getElementById('opos-tasas-total');
+  if (tasasEl) tasasEl.textContent = tasasTotal > 0 ? `${tasasTotal.toFixed(2)} €` : '—';
 }
 
 /* ── Countdown ── */
@@ -198,6 +180,62 @@ function _oposOrgPuesto(r) {
   const org = r.organismo || (r.convocatoria || '').split(' — ')[0]?.trim() || '';
   const pto = r.puesto    || (r.convocatoria || '').split(' — ')[1]?.trim() || '';
   return { org, pto };
+}
+
+/* ── Timeline de plazos ── */
+function renderOposTimeline(data) {
+  const el = document.getElementById('opos-timeline');
+  if (!el) return;
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const eventos = [];
+
+  data.forEach(r => {
+    const { pto } = _oposOrgPuesto(r);
+    const nombre = pto || r.convocatoria || '—';
+    const _iKey = 'opos_inscrita_' + (r.convocatoria || '').replace(/\s+/g,'_');
+    const inscrita = localStorage.getItem(_iKey) === 'si';
+
+    const add = (fecha, tipo, label, icon) => {
+      if (!fecha) return;
+      const d = oposLocalDate(fecha);
+      if (d < hoy) return;
+      const dias = Math.round((d - hoy) / 86400000);
+      eventos.push({ fecha, d, tipo, label, icon, nombre, dias });
+    };
+
+    if (!inscrita) add(r.fecha_fin_inscr,   'inscr',     'Fin inscripción',  '🔴');
+    add(r.fecha_examen,      'examen',    'Examen',           '📝');
+    add(r.fecha_lista_prov,  'lista_prov','Lista provisional', '📋');
+    add(r.fecha_alegaciones, 'alegac',    'Alegaciones',       '✏️');
+    add(r.fecha_lista_def,   'lista_def', 'Lista definitiva',  '✅');
+  });
+
+  eventos.sort((a, b) => a.d - b.d);
+
+  if (!eventos.length) {
+    el.innerHTML = '<p style="color:var(--text3);font-size:.85rem;padding:2px 0">Sin plazos próximos.</p>';
+    return;
+  }
+
+  el.innerHTML = eventos.slice(0, 15).map(ev => {
+    const urgColor = ev.dias === 0 ? 'var(--red)'
+                   : ev.dias <= 3 ? 'var(--accent2)'
+                   : ev.dias <= 7 ? 'var(--orange)'
+                   : ev.dias <= 14 ? 'var(--yellow)'
+                   : 'var(--text3)';
+    const diasLabel = ev.dias === 0 ? '¡HOY!' : ev.dias === 1 ? 'mañana' : `${ev.dias}d`;
+    const borderLeft = ev.dias <= 7 ? `border-left:3px solid ${urgColor}` : 'border-left:3px solid var(--border2)';
+    return `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:var(--bg3);${borderLeft};margin-bottom:6px">
+      <div style="font-size:.88rem;flex-shrink:0">${ev.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.79rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ev.nombre}</div>
+        <div style="font-size:.7rem;color:var(--text3);margin-top:1px">${ev.label} · ${formatFecha(ev.fecha)}</div>
+      </div>
+      <div style="font-size:.82rem;font-weight:800;color:${urgColor};flex-shrink:0">${diasLabel}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderOposTable(data) {
