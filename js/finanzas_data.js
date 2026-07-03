@@ -78,7 +78,7 @@ const FIN_DATA = {
   },
 
   sinking_funds: [
-    { id:'ctv',   nombre:'CTV – Cuenta Vivienda', ahorrado: 5950,   objetivo: 8500,  mensual: 150, meses_restantes: 17, fecha_estimada: '2027-10', cuenta:'CTV', color:'#34d399' },
+    { id:'ctv',   nombre:'CTV – Cuenta Vivienda', ahorrado: 5950,   objetivo: 8500,  mensual: 150, meses_restantes: 17, fecha_estimada: '2027-10', cuenta:'CTV', color:'#34d399', meta_nota:'Antes de la Renta 2026 (Primavera 2027)' },
 
     { id:'bp',    nombre:'Baskepensiones',         ahorrado: 199.71, objetivo: null,  mensual: 100, meses_restantes: null,fecha_estimada: null,     cuenta:'BP',  color:'#fbbf24', nota:'Pensión privada, revalorización 3%/año' },
   ],

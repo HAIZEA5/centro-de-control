@@ -165,23 +165,13 @@ function _dashPiso() {
   const el = document.getElementById('dash-piso-content');
   if (!el || typeof getSaldosActuales !== 'function') return;
 
-  const s    = getSaldosActuales();
-  const ctv  = s.ctv || 0;
-  const cfg  = Store.get('piso_config', {});
-  const meta = parseFloat(cfg.meta) || 20000;
-  const pct  = Math.min(100, (ctv / meta) * 100);
-  const falta = Math.max(0, meta - ctv);
-
-  let anioEst = null;
-  if (typeof ctv_simularCrecimiento === 'function' && falta > 0) {
-    try {
-      const sims = ctv_simularCrecimiento(ctv, meta);
-      if (sims.length) {
-        const row = sims[0].rows.find(r => r.alcanzado);
-        if (row) anioEst = new Date().getFullYear() + row.anio;
-      }
-    } catch(e) {}
-  }
+  const s       = getSaldosActuales();
+  const ctv     = s.ctv || 0;
+  const ctvFund = FIN_DATA?.sinking_funds?.find(f => f.id === 'ctv');
+  const meta    = ctvFund?.objetivo || 8500;
+  const pct     = Math.min(100, (ctv / meta) * 100);
+  const falta   = Math.max(0, meta - ctv);
+  const metaNota = ctvFund?.meta_nota || '';
 
   const color = pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--accent2)' : 'var(--accent)';
 
@@ -197,7 +187,7 @@ function _dashPiso() {
       <span style="font-weight:800;color:${color};font-size:1.05rem">${Fmt.eur2(ctv)}</span>
     </div>
     <div class="dash-row" style="margin-bottom:8px">
-      <span class="dash-row-label" style="color:var(--text3);font-size:.78rem">Meta: ${Fmt.eur2(meta)}${anioEst ? ` · ~${anioEst}` : ''}</span>
+      <span class="dash-row-label" style="color:var(--text3);font-size:.78rem">Meta: ${Fmt.eur2(meta)}${metaNota ? ` · ${metaNota}` : ''}</span>
       <span style="color:var(--text3);font-size:.78rem">${pct.toFixed(1)}%</span>
     </div>
     <div style="background:var(--bg3);border-radius:99px;height:6px;overflow:hidden;margin-bottom:6px">
