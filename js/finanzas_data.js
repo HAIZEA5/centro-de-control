@@ -73,7 +73,8 @@ const FIN_DATA = {
       { mes:'Mar 2026', aportacion: -100.00, saldo_anterior: 5759.03, saldo_final: 5664.92, interes:  5.89 },
       { mes:'Abr 2026', aportacion:  130.00, saldo_anterior: 5664.92, saldo_final: 5800.74, interes:  5.82 },
       { mes:'May 2026', aportacion:-5797.91, saldo_anterior: 5800.74, saldo_final:    5.19, interes:  2.36, nota:'Retirada total para CTV – Cuenta Vivienda' },
-      { mes:'Jun 2026', aportacion:  305.80, saldo_anterior:    5.19, saldo_final:  311.32, interes:  0.33, nota:'285,80€ (hasta 26 jun) + 20€ (30 jun). Saldo al 3 jul 2026 per estado de cuenta.' },
+      { mes:'Jun 2026', aportacion:  285.80, saldo_anterior:    5.19, saldo_final:  291.28, interes:  0.29, nota:'200€ (3 jun) + 85,80€ (4 jun).' },
+      { mes:'Jul 2026', aportacion:   20.00, saldo_anterior:  291.28, saldo_final:  311.32, interes:  0.04, nota:'20€ el 1 jul (transferencia iniciada 30 jun). Cierre extracto 3 jul 2026.' },
     ],
   },
 
