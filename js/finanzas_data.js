@@ -11,7 +11,7 @@
 
 const FIN_DATA = {
 
-  data_version: '2026-07-02',
+  data_version: '2026-07-03',
 
   cuentas: {
     kutxabank_personal:  { id:'KTX', nombre:'Kutxabank Personal',   saldo: 1293.28, iban_last4:'7421', color:'#60a5fa' },
@@ -50,12 +50,12 @@ const FIN_DATA = {
   revolut_fondo_monetario: {
     objetivo: 20000,
     capital_aportado_2025: 5299.73,
-    capital_aportado_2026: -5057.11,
-    ahorros_acumulados: 242.62,
+    capital_aportado_2026: -5037.11,
+    ahorros_acumulados: 262.62,
     intereses_2025: 23.58,
-    intereses_2026: 24.89,
-    intereses_generados: 48.47,
-    total: 291.09,
+    intereses_2026: 25.12,
+    intereses_generados: 48.70,
+    total: 311.32,
     historial: [
       // ── 2025 ──
       { mes:'Abr 2025', aportacion: 1156.27, saldo_anterior:    0.00, saldo_final: 1157.15, interes:  0.89, nota:'Inicio del fondo' },
@@ -73,7 +73,7 @@ const FIN_DATA = {
       { mes:'Mar 2026', aportacion: -100.00, saldo_anterior: 5759.03, saldo_final: 5664.92, interes:  5.89 },
       { mes:'Abr 2026', aportacion:  130.00, saldo_anterior: 5664.92, saldo_final: 5800.74, interes:  5.82 },
       { mes:'May 2026', aportacion:-5797.91, saldo_anterior: 5800.74, saldo_final:    5.19, interes:  2.36, nota:'Retirada total para CTV – Cuenta Vivienda' },
-      { mes:'Jun 2026', aportacion:  305.80, saldo_anterior:    5.19, saldo_final:  311.28, interes:  0.49, nota:'285,80€ (hasta 26 jun) + 20€ (30 jun)' },
+      { mes:'Jun 2026', aportacion:  305.80, saldo_anterior:    5.19, saldo_final:  311.32, interes:  0.33, nota:'285,80€ (hasta 26 jun) + 20€ (30 jun). Saldo al 3 jul 2026 per estado de cuenta.' },
     ],
   },
 

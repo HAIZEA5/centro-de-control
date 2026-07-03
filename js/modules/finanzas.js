@@ -55,7 +55,7 @@ function getSaldosActuales() {
   const savedDate = isManual && saved._ts ? new Date(saved._ts).toISOString().split('T')[0] : '2000-01-01';
   const useJS = !isManual || (FIN_DATA.data_version || '2000-01-01') > savedDate;
   const lastHist = FIN_DATA.revolut_fondo_monetario.historial.at(-1);
-  const fmBaseJS = lastHist?.saldo_final ?? 291.28;
+  const fmBaseJS = lastHist?.saldo_final ?? 311.32;
   // En modo JS, corte al fin del mes del último historial para no doblar intereses ya incluidos
   const fmTsJS = (() => {
     if (!lastHist) return 0;
@@ -796,7 +796,7 @@ function renderFinSinking() {
         </div>
         <div class="fin-year-card"><div class="fin-year-label">Objetivo</div><div class="fin-year-val">${fmt(fm.objetivo)}</div></div>
         <div class="fin-year-card"><div class="fin-year-label">Intereses totales</div><div class="fin-year-val green">${fmt(totalIntereses)}</div></div>
-        <div class="fin-year-card"><div class="fin-year-label">Rentabilidad est.</div><div class="fin-year-val" style="color:var(--text2)">~1.38%</div></div>
+        <div class="fin-year-card"><div class="fin-year-label">Rentabilidad est.</div><div class="fin-year-val" style="color:var(--text2)">~1.44%</div></div>
       </div>
 
       <!-- Gráfica de crecimiento hacia objetivo -->
@@ -895,7 +895,7 @@ function _renderFMChart(fmHistorial, fmExtra, saldoActual, objetivo) {
 ══════════════════════════════════════════════════════ */
 function _renderFMProyeccion(saldoActual) {
   const aportacion = parseFloat(Store.get('fin_fm_aportacion', 50));
-  const APY = 0.0138;
+  const APY = 0.0144;
   const r = Math.pow(1 + APY, 1/12) - 1;
 
   function proyectar(meses) {
@@ -915,7 +915,7 @@ function _renderFMProyeccion(saldoActual) {
   return `
   <div class="card" style="margin-bottom:16px;border-left:3px solid var(--accent2)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <h3>📈 Proyección Fondo Monetario (~1.38% TIR)</h3>
+      <h3>📈 Proyección Fondo Monetario (~1.44% TIR)</h3>
       <div style="display:flex;align-items:center;gap:8px">
         <label style="font-size:.75rem;color:var(--text3)">Aportación/mes:</label>
         <input type="number" id="fin-fm-apor-input" value="${aportacion}" min="0" step="5"
@@ -949,7 +949,7 @@ function _renderFMProyeccion(saldoActual) {
     <div style="font-size:.72rem;color:var(--text3);margin-top:10px">
       Saldo base: <strong style="color:var(--text2)">${fmt(saldoActual)}</strong> ·
       Sin aportaciones a 5 años: <strong>${fmt(soloInteres5)}</strong> ·
-      TIR estimada Revolut Money Market ~1.38%
+      TIR estimada Revolut Money Market ~1.44%
     </div>
   </div>`;
 }
