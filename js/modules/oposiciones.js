@@ -458,7 +458,7 @@ function _renderOposTabla(filtered) {
       <td data-label="Fase">${r.fase ? `<span class="chip">${r.fase}</span>` : '—'}</td>
     </tr>
     <tr class="opos-detalle-row hidden" id="opos-det-${realIdx}">
-      <td colspan="9" style="padding:0">${renderDetalleHTML(r, realIdx)}</td>
+      <td colspan="9" style="padding:0"></td>
     </tr>`;
   }).join('');
 }
@@ -545,9 +545,7 @@ function renderOposPipeline(filtered) {
             </select>
           </div>
         </div>
-        <div id="opos-pipe-det-${realIdx}" style="display:none;border-top:1px solid var(--border)">
-          ${renderDetalleHTML(r, realIdx)}
-        </div>
+        <div id="opos-pipe-det-${realIdx}" style="display:none;border-top:1px solid var(--border)"></div>
       </div>`;
     }).join('');
 
@@ -569,6 +567,14 @@ function toggleOposPipelineDetalle(realIdx) {
   const isOpen = det.style.display !== 'none';
   document.querySelectorAll('[id^="opos-pipe-det-"]').forEach(d => d.style.display = 'none');
   if (!isOpen) {
+    // Render lazy: solo la primera vez que se abre
+    if (!det.hasChildNodes()) {
+      const r = (window._oposData || [])[realIdx];
+      if (r) {
+        try { det.innerHTML = renderDetalleHTML(r, realIdx); }
+        catch(e) { det.innerHTML = `<p style="color:var(--red);padding:12px">⚠️ Error al cargar el detalle.</p>`; console.error('[opos pipe detalle]', e); }
+      }
+    }
     det.style.display = 'block';
     requestAnimationFrame(() => det.scrollIntoView({ behavior:'smooth', block:'nearest' }));
   }
@@ -579,13 +585,20 @@ function toggleOposDetalle(i, tr) {
   const det = document.getElementById('opos-det-' + i);
   if (!det) return;
   const isOpen = !det.classList.contains('hidden');
-  // Cierra todos
   document.querySelectorAll('.opos-detalle-row').forEach(r => r.classList.add('hidden'));
   document.querySelectorAll('.opos-row').forEach(r => r.classList.remove('opos-row--active'));
   if (!isOpen) {
     det.classList.remove('hidden');
     tr.classList.add('opos-row--active');
-    // Activar primera tab del detalle
+    // Render lazy: solo la primera vez que se abre
+    const td = det.querySelector('td');
+    if (td && !td.hasChildNodes()) {
+      const r = (window._oposData || [])[i];
+      if (r) {
+        try { td.innerHTML = renderDetalleHTML(r, i); }
+        catch(e) { td.innerHTML = `<p style="color:var(--red);padding:12px">⚠️ Error al cargar el detalle. Abre la consola para más info.</p>`; console.error('[opos detalle]', e); }
+      }
+    }
     activarTabDetalle(i, 'fechas');
   }
 }
@@ -653,6 +666,12 @@ function renderFechasPanel(r) {
     onclick="opos_setInscrita('${inscrKey}','${v}')"
     style="padding:7px 16px;border-radius:8px;border:2px solid ${inscrVal===v?col:'var(--border)'};background:${inscrVal===v?bg:'var(--bg4)'};color:${inscrVal===v?col:'var(--text2)'};cursor:pointer;font-size:.85rem;font-weight:${inscrVal===v?'700':'400'};font-family:inherit">${label}</button>`;
 
+  // Declare these BEFORE the fechas array that references them
+  const ubKey      = 'opos_ubicacion_' + (r.convocatoria || '').replace(/\s+/g,'_');
+  const ub         = Store.get(ubKey);
+  const notaKey    = 'opos_nota_' + (r.convocatoria || '').replace(/\s+/g,'_');
+  const notaGuardada = localStorage.getItem(notaKey) || '';
+
   const fechas = [
     { label: 'Apertura inscripción',  val: r.fecha_apertura,    icon: '🟢' },
     { label: 'Fin inscripción',       val: r.fecha_fin_inscr,   icon: '🔴' },
@@ -662,12 +681,6 @@ function renderFechasPanel(r) {
     { label: 'Examen',                val: r.fecha_examen,      icon: '📝', extra: notaGuardada ? `📊 ${notaGuardada}` : r.hora_examen ? `🕐 ${r.hora_examen}` : null },
   ];
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-
-  // Ubicación del examen (guardada en localStorage por convocatoria)
-  const ubKey   = 'opos_ubicacion_' + (r.convocatoria || '').replace(/\s+/g,'_');
-  const ub      = Store.get(ubKey);
-  const notaKey = 'opos_nota_' + (r.convocatoria || '').replace(/\s+/g,'_');
-  const notaGuardada = localStorage.getItem(notaKey) || '';
 
   // Si un hito posterior tiene fecha pasada, los hitos anteriores sin fecha se marcan como superados
   const primerFuturoIdx = fechas.findIndex(f => {
