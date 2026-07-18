@@ -1,81 +1,127 @@
 (() => {
   'use strict';
 
-  const SAVE_KEY = 'dmi-save-v1';
-  const COST_GROWTH = 1.15;
-  const AUTOSAVE_MS = 10000;
+  const SAVE_KEY = 'dmi-evolution-save-v1';
   const TICK_MS = 200;
+  const AUTOSAVE_MS = 10000;
   const OFFLINE_CAP_S = 3 * 60 * 60;
 
-  // ─── DATA ───────────────────────────────────────────────────────────────
+  // ─── ECONOMY CONSTANTS ──────────────────────────────────────────────────
+  // Cadena de hitos al estilo Cells to Singularity: cada nodo produce solo,
+  // se puede "potenciar" (multiplicar) por separado, y hay que ahorrar para
+  // desbloquear el siguiente. Ver /scratchpad/sim2.js para el ritmo validado.
 
-  const EMPLOYEES = [
-    { id: 'kevin',   name: 'Kevin Malone',     emoji: '🍫', role: 'Contable júnior',        quote: '"Trato de hacer mi trabajo bien, y también trato de comer mucho chile."', baseCost: 15,           baseCps: 0.1 },
-    { id: 'meredith',name: 'Meredith Palmer',  emoji: '🍷', role: 'Suministros',            quote: '"No es que tenga un problema. Es que ustedes tienen un problema con mi problema."', baseCost: 100,          baseCps: 1 },
-    { id: 'creed',   name: 'Creed Bratton',    emoji: '👴', role: 'Control de Calidad',     quote: '"No sé qué está pasando aquí, pero quiero ser parte de ello."', baseCost: 550,          baseCps: 5 },
-    { id: 'ryan',    name: 'Ryan Howard',      emoji: '💼', role: 'Becario',                quote: '"Voy a ser el Steve Jobs del papel."', baseCost: 3000,         baseCps: 25 },
-    { id: 'kelly',   name: 'Kelly Kapoor',     emoji: '💅', role: 'Atención al cliente',    quote: '"Callaos todos, está sonando mi canción."', baseCost: 15000,        baseCps: 110 },
-    { id: 'toby',    name: 'Toby Flenderson',  emoji: '😔', role: 'Recursos Humanos',       quote: '"En un mundo justo, nada de esto habría pasado."', baseCost: 75000,        baseCps: 500 },
-    { id: 'phyllis', name: 'Phyllis Vance',    emoji: '🧶', role: 'Ventas',                 quote: '"He estado vendiendo papel más tiempo que Michael en esta empresa."', baseCost: 350000,       baseCps: 2200 },
-    { id: 'stanley', name: 'Stanley Hudson',   emoji: '🧩', role: 'Ventas',                 quote: '"Ya me he jubilado mentalmente."', baseCost: 1600000,      baseCps: 10000 },
-    { id: 'angela',  name: 'Angela Martin',    emoji: '🐱', role: 'Contabilidad jefa',      quote: '"Los gatos nunca me han decepcionado como las personas."', baseCost: 7500000,      baseCps: 45000 },
-    { id: 'oscar',   name: 'Oscar Martinez',   emoji: '📊', role: 'Contabilidad',           quote: '"En realidad no es así como funciona."', baseCost: 35000000,     baseCps: 200000 },
-    { id: 'andy',    name: 'Andy Bernard',     emoji: '🎵', role: 'Ventas (Cornell)',       quote: '"¡Fiesta de camisa naranja!"', baseCost: 165000000,    baseCps: 900000 },
-    { id: 'dwight',  name: 'Dwight Schrute',   emoji: '🥕', role: 'Subgerente Regional',    quote: '"Falso. Osos, remolachas, Battlestar Galactica."', baseCost: 800000000,    baseCps: 4000000 },
-    { id: 'jim',     name: 'Jim Halpert',      emoji: '😏', role: 'Ventas',                 quote: '"La mitad del tiempo vendo papel. La otra mitad, gasto bromas a Dwight."', baseCost: 3800000000,   baseCps: 18000000 },
-    { id: 'pam',     name: 'Pam Beesly',       emoji: '🎨', role: 'Recepción / Arte',       quote: '"Creo firmemente que esta oficina debería estar más limpia."', baseCost: 18000000000,  baseCps: 80000000 },
-    { id: 'michael', name: 'Michael Scott',    emoji: '🌎', role: 'Gerente Regional',       quote: '"No soy el mejor jefe... pero soy el jefe más regional del mundo."', baseCost: 85000000000,  baseCps: 360000000 },
+  const PROD0 = 0.2;
+  const PROD_GROWTH = 1.42;
+  const UNLOCK0MULT = 15;
+  const COST_GROWTH = 1.55;
+  const MULT_PER_LEVEL = 1.35;
+  const MULT_COST_GROWTH = 1.5;
+  const MULT_BASE_FACTOR = 60;
+
+  const PRESTIGE_DIVISOR = 1e5;
+  const PRESTIGE_BONUS_PER_POINT = 0.02;
+  const DISCOVERY_BONUS_PER = 0.0025;
+  const CLICK_FLAT = 0.5;
+  const CLICK_FACTOR = 2;
+
+  function baseProd(i) { return PROD0 * Math.pow(PROD_GROWTH, i); }
+  function unlockCost(i) { return i === 0 ? 0 : UNLOCK0MULT * Math.pow(COST_GROWTH, i - 1); }
+  function multBaseCost(i) { return baseProd(i) * MULT_BASE_FACTOR; }
+  function multCost(i, level) { return multBaseCost(i) * Math.pow(MULT_COST_GROWTH, level); }
+  function nodeProd(i, level) { return baseProd(i) * Math.pow(MULT_PER_LEVEL, level); }
+
+  // ─── DATA: ERAS ─────────────────────────────────────────────────────────
+
+  const ERAS = [
+    { name: 'Los novatos de Scranton', emoji: '🗂️', color: '#8fa7c9' },
+    { name: 'Vida en la oficina', emoji: '🎉', color: '#3fb8a4' },
+    { name: 'Ascenso en Dunder Mifflin', emoji: '📈', color: '#e0a53d' },
+    { name: 'La era Corporate', emoji: '🏢', color: '#9b6fd1' },
+    { name: 'La era Sabre', emoji: '💠', color: '#3dc7d6' },
+    { name: 'Imperio del papel digital', emoji: '🌐', color: '#4fbf7a' },
+    { name: 'La Singularidad de la Oficina', emoji: '✨', color: '#e8b93f' },
   ];
 
-  const EMPLOYEE_UPGRADES = EMPLOYEES.map((e, i) => ({
-    id: 'emp_' + e.id,
-    empIndex: i,
-    reqOwned: 10,
-    cost: e.baseCost * 12,
-    name: 'Café doble para ' + e.name,
-    desc: 'Duplica la producción de ' + e.name + '.',
-    emoji: '☕',
-    mult: 2,
-  }));
+  // ─── DATA: NODES (cadena de 42 hitos, 6 por era) ───────────────────────
 
-  const GLOBAL_UPGRADES = [
-    { id: 'g_jelly',    name: 'Grapadora en gelatina', emoji: '🍮', desc: 'Jim ataca de nuevo. Duplica el poder de clic.', cost: 500, type: 'click', mult: 2 },
-    { id: 'g_dundies',  name: 'Fiesta de los Dundies', emoji: '🏆', desc: 'Toda la producción +10%.', cost: 10000, type: 'global', mult: 1.10 },
-    { id: 'g_prison',   name: 'Charla de Prison Mike', emoji: '🎤', desc: 'Poder de clic x3.', cost: 2000000, type: 'click', mult: 3 },
-    { id: 'g_threat',   name: 'Estreno de Threat Level Midnight', emoji: '🎬', desc: 'Toda la producción +20%.', cost: 20000000, type: 'global', mult: 1.20 },
-    { id: 'g_diversity',name: 'Diversity Day, segunda edición', emoji: '🌈', desc: 'Toda la producción +15%.', cost: 150000000, type: 'global', mult: 1.15 },
-    { id: 'g_beet',     name: 'Subvención de Schrute Farms', emoji: '🥕', desc: 'Toda la producción +20%.', cost: 1000000000, type: 'global', mult: 1.20 },
-    { id: 'g_mspc',     name: 'Michael Scott Paper Company', emoji: '📎', desc: 'Producción +25% y poder de clic x2.', cost: 10000000000, type: 'both', mult: 1.25, clickMult: 2 },
-    { id: 'g_dundie2',  name: 'Premio al Mejor Jefe del Mundo', emoji: '🏅', desc: 'Toda la producción +30%.', cost: 90000000000, type: 'global', mult: 1.30 },
+  const NODES = [
+    // Era 0 — Los novatos de Scranton
+    { name: 'Fotocopias y café', emoji: '📠', discovery: 'Primer día. Nadie recuerda tu nombre todavía, pero ya sabes dónde está la cafetera.' },
+    { name: 'Becario del correo interno', emoji: '📬', discovery: 'Ryan reparte el correo... o eso dice él. En realidad lo hace Kevin.' },
+    { name: 'Asistente de Toby en RRHH', emoji: '😔', discovery: 'Aprendes que en RRHH la respuesta a casi todo es "no puedo confirmar ni desmentir eso".' },
+    { name: 'Primeras llamadas en frío', emoji: '☎️', discovery: 'Marcas cien números. Te cuelgan noventa y nueve. El cien es Stanley, y también te cuelga.' },
+    { name: 'Primer cliente cerrado', emoji: '🤝', discovery: 'Vendes tu primera resma de papel. Dwight te mira con un respeto que dura tres segundos.' },
+    { name: 'Escritorio propio asignado', emoji: '🪑', discovery: 'Tienes silla, mesa y una grapadora. La grapadora desaparecerá en gelatina antes de fin de mes.' },
+    // Era 1 — Vida en la oficina
+    { name: 'Miembro del Comité de Fiestas', emoji: '🎈', discovery: 'Angela dirige el comité con mano de hierro. Nada de purpurina sin su aprobación.' },
+    { name: 'Superviviente del simulacro de incendio', emoji: '🔥', discovery: 'Dwight prende un fuego "controlado" para entrenar a la oficina. Nadie está entrenado. Todos corren.' },
+    { name: 'Ganador de un Dundie', emoji: '🏆', discovery: 'Te llevas el premio a "Mejor Actitud Nunca Vista Fuera del Trabajo". Hay lágrimas, las tuyas.' },
+    { name: 'Superviviente de Diversity Day', emoji: '🌈', discovery: 'Michael organiza una charla de sensibilidad cultural. Termina siendo la razón por la que hace falta otra.' },
+    { name: 'Campeón de las Olimpiadas de la Oficina', emoji: '🥇', discovery: 'Ganas el evento estrella: lanzamiento de bolígrafo a la papelera desde el escritorio de Kevin.' },
+    { name: 'Bromista certificado', emoji: '😏', discovery: 'Pones la grapadora de Dwight en gelatina. Él jura venganza. Vuelves a hacerlo la semana que viene.' },
+    // Era 2 — Ascenso en Dunder Mifflin
+    { name: 'Vendedor del mes', emoji: '📊', discovery: 'Tu foto va a la pared de la sala de descanso. Duraría más si Creed no la usara de posavasos.' },
+    { name: 'Asistente del Gerente Regional', emoji: '🎖️', discovery: 'Dwight insiste en que el título es real. Legalmente no lo es. Emocionalmente, para él, lo es todo.' },
+    { name: 'Sobrevives la fusión con Stamford', emoji: '🚚', discovery: 'Llegan escritorios, sillas y un tal Andy Bernard cantando a capela sin que nadie se lo pida.' },
+    { name: 'Co-gerente de la sucursal', emoji: '👔', discovery: 'Michael y Jim comparten el puesto. La reunión de equipo dura el doble por el doble de anécdotas.' },
+    { name: 'Gerente de la sucursal de Scranton', emoji: '🏅', discovery: 'Corporate te felicita por email. Es el gesto más cálido que vas a recibir de Corporate en años.' },
+    { name: 'Premio a la sucursal más rentable', emoji: '💹', discovery: 'Scranton supera a todas las demás sucursales. Josh, de Stamford, no lo puede creer.' },
+    // Era 3 — La era Corporate
+    { name: 'Sobrevives un recorte de personal', emoji: '✂️', discovery: 'Corporate anuncia despidos. Todos rezan. Holly llega desde RRHH a gestionar el caos con una sonrisa nerviosa.' },
+    { name: 'Auditor infiltrado de Corporate', emoji: '🕵️', discovery: 'Alguien de la central se sienta entre vosotros "sin razón aparente". Todos actúan como si no lo notaran.' },
+    { name: 'Fundación de Michael Scott Paper Company', emoji: '📎', discovery: 'Michael, Pam y Ryan alquilan una oficina diminuta. El logo lo dibuja Pam en cinco minutos y queda perfecto.' },
+    { name: 'Recompra por Dunder Mifflin', emoji: '🔄', discovery: 'La pequeña empresa de Michael acaba comprada por la propia Dunder Mifflin. Nadie sabe cómo sentirse.' },
+    { name: 'Vicepresidente Regional del Nororeste', emoji: '🗺️', discovery: 'Un ascenso con un título larguísimo y, sorprendentemente, casi ningún poder real.' },
+    { name: 'Sobrevives la salida de Michael a Colorado', emoji: '✈️', discovery: 'El jefe más regional del mundo se va a vivir su final feliz. La oficina no vuelve a ser igual.' },
+    // Era 4 — La era Sabre
+    { name: 'Adquisición por Sabre', emoji: '💠', discovery: 'Una empresa de tecnología compra Dunder Mifflin. Nadie entiende muy bien por qué, ni siquiera Sabre.' },
+    { name: 'Sobrevives el lanzamiento del Sabre Store', emoji: '📱', discovery: 'Se inaugura una tienda de tablets dentro de la oficina. Los tablets no funcionan bien. La tienda tampoco.' },
+    { name: 'Sobrevives a un CEO temporal caótico', emoji: '🎭', discovery: 'Robert California toma el mando con una filosofía de gestión que ni él mismo logra explicar.' },
+    { name: 'Bajo el mando de Nellie Bertram', emoji: '🎩', discovery: 'Una nueva jefa llega sin que nadie la haya contratado oficialmente. Se queda de todos modos.' },
+    { name: 'Dwight, nuevo Gerente Regional', emoji: '🥕', discovery: 'Después de años de esfuerzo, Dwight consigue el título que siempre quiso. Se lo ha ganado.' },
+    { name: 'Presidente de Sabre Norteamérica', emoji: '🌎', discovery: 'Dwight asciende más allá de la sucursal. Scranton sigue siendo, para él, el centro del universo.' },
+    // Era 5 — Imperio del papel digital
+    { name: 'Dunder Mifflin se vuelve marca global', emoji: '🌐', discovery: 'El logo empieza a aparecer en catálogos de medio mundo. Sigue oliendo a papel recién impreso.' },
+    { name: 'El fiasco de WUPHF.com', emoji: '📡', discovery: 'Ryan lanza una app que te notifica en todos tus dispositivos a la vez. Es imparable, durante un tiempo.' },
+    { name: 'Digitalización total de resmas', emoji: '💻', discovery: 'El inventario ya no se cuenta a mano. Kevin sigue insistiendo en revisarlo a mano, por si acaso.' },
+    { name: 'Franquicias en cada estado', emoji: '🗽', discovery: 'Hay una sucursal de Dunder Mifflin en lugares donde ni Michael habría imaginado vender papel.' },
+    { name: 'Fusión con una startup de impresión 3D', emoji: '🖨️', discovery: 'La empresa que vendía resmas ahora también imprime objetos. Kevin pregunta si se puede imprimir chile.' },
+    { name: 'Dunder Mifflin sale a bolsa', emoji: '📈', discovery: 'Las acciones suben. Oscar hace una hoja de cálculo para explicarlo. Nadie más la entiende.' },
+    // Era 6 — La Singularidad de la Oficina
+    { name: 'Automatización total del Annex', emoji: '🤖', discovery: 'El almacén se gestiona solo. Creed sigue teniendo, inexplicablemente, un despacho ahí dentro.' },
+    { name: 'Nace Dwight-Bot, la IA de ventas', emoji: '🥕', discovery: 'Una inteligencia artificial entrenada con los correos de Dwight. Implacable, leal y algo aterradora.' },
+    { name: 'Robots repartiendo papel por la sucursal', emoji: '🚚', discovery: 'Máquinas silenciosas recorren los pasillos. Kevin les pone nombre. A todas las llama "Nueva Kevin".' },
+    { name: 'La oficina se sube a la nube', emoji: '☁️', discovery: 'Archivos, contratos y memes de Jim viven ahora en un servidor en alguna parte del mundo.' },
+    { name: 'Fusión de todas las sucursales en una IA colectiva', emoji: '🧠', discovery: 'Scranton, Stamford, Utica y Nashua funcionan como una sola mente digital. Sigue prefiriendo el papel.' },
+    { name: 'La Singularidad: el papel gobierna el universo', emoji: '✨', discovery: 'La línea entre "vender papel" y "controlarlo todo" se difumina. Michael estaría orgullosísimo.' },
   ];
 
-  const ACHIEVEMENTS = [
-    { id: 'a1',  name: 'Primer día en Dunder Mifflin', desc: 'Gana tu primer dólar.', icon: '📎', check: s => s.lifetimeEarned >= 1 },
-    { id: 'a2',  name: 'Vendedor amateur', desc: 'Gana 1.000 $ en total.', icon: '💵', check: s => s.lifetimeEarned >= 1000 },
-    { id: 'a3',  name: 'Regional Manager', desc: 'Gana 1.000.000 $ en total.', icon: '📈', check: s => s.lifetimeEarned >= 1e6 },
-    { id: 'a4',  name: 'Imperio del papel', desc: 'Gana 1.000.000.000 $ en total.', icon: '🏢', check: s => s.lifetimeEarned >= 1e9 },
-    { id: 'a5',  name: 'Corporate no puede pararte', desc: 'Gana 1 billón de $ en total.', icon: '🏙️', check: s => s.lifetimeEarned >= 1e12 },
-    { id: 'a6',  name: 'Contrata a Kevin', desc: 'Ficha a tu primer empleado.', icon: '🍫', check: s => s.employees.kevin >= 1 },
-    { id: 'a7',  name: 'Equipo completo', desc: 'Ten al menos 1 de cada empleado.', icon: '👥', check: s => EMPLOYEES.every(e => (s.employees[e.id] || 0) >= 1) },
-    { id: 'a8',  name: 'Ejército de Dwights', desc: 'Contrata 25 Dwights.', icon: '🥕', check: s => (s.employees.dwight || 0) >= 25 },
-    { id: 'a9',  name: 'Dedo ágil', desc: 'Haz clic 100 veces.', icon: '👆', check: s => s.clicks >= 100 },
-    { id: 'a10', name: 'Dedo de acero', desc: 'Haz clic 1.000 veces.', icon: '🖱️', check: s => s.clicks >= 1000 },
-    { id: 'a11', name: 'Nunca dejes de hacer clic', desc: 'Haz clic 10.000 veces.', icon: '⚡', check: s => s.clicks >= 10000 },
-    { id: 'a12', name: 'Primera venta a Corporate', desc: 'Realiza tu primer prestigio.', icon: '📊', check: s => s.prestigeCount >= 1 },
-    { id: 'a13', name: 'Accionista', desc: 'Consigue 10 Acciones de Sabre.', icon: '📉', check: s => s.prestigePoints >= 10 },
-    { id: 'a14', name: 'Magnate de Sabre', desc: 'Consigue 50 Acciones de Sabre.', icon: '💎', check: s => s.prestigePoints >= 50 },
-    { id: 'a15', name: 'Todas las mejoras globales', desc: 'Compra todas las mejoras globales.', icon: '⭐', check: s => GLOBAL_UPGRADES.every(u => s.globalUpgrades[u.id]) },
-    { id: 'a16', name: 'El jefe más regional del mundo', desc: 'Ficha a Michael Scott.', icon: '🌎', check: s => (s.employees.michael || 0) >= 1 },
-    { id: 'a17', name: 'That\'s what she said', desc: 'Haz clic 500 veces.', icon: '😏', check: s => s.clicks >= 500 },
+  function eraOf(i) { return Math.floor(i / 6); }
+
+  // ─── DATA: DISCOVERIES EXTRA (hitos que no son de la cadena) ───────────
+
+  const MILESTONE_DISCOVERIES = [
+    { id: 'm_clicks50', name: 'Archivo perdido: primer día real', desc: 'Un post-it con 50 tareas tachadas. Todas decían "trabajar horas extra".', icon: '📄', check: s => s.clicks >= 50 },
+    { id: 'm_clicks500', name: 'Leyenda urbana: Creed', desc: '500 clics después, nadie sabe muy bien qué hace Creed en la oficina. Ni él.', icon: '👴', check: s => s.clicks >= 500 },
+    { id: 'm_prestige1', name: 'Memo interno: primer reinicio', desc: '"Se ha optimizado la sucursal." — Corporate, sobre absolutamente todo.', icon: '🌀', check: s => s.prestigeCount >= 1 },
+    { id: 'm_prestige25', name: 'Informe confidencial: Accionista', desc: '25 Núcleos Corporate. Empiezas a entender los correos de Sabre.', icon: '📊', check: s => s.prestigePoints >= 25 },
+    { id: 'm_prestige100', name: 'Informe confidencial: Magnate', desc: '100 Núcleos Corporate. Corporate ahora te devuelve las llamadas.', icon: '💎', check: s => s.prestigePoints >= 100 },
+    { id: 'm_allnodes', name: 'Archivo completo: la oficina entera', desc: 'Has recorrido toda la cadena, de la fotocopiadora a la Singularidad.', icon: '🗄️', check: s => s.frontier >= NODES.length - 1 },
   ];
+
+  function nodeDiscoveryId(i) { return 'node_' + i; }
+  const TOTAL_DISCOVERIES = NODES.length + MILESTONE_DISCOVERIES.length;
+
+  // ─── EVENTS ─────────────────────────────────────────────────────────────
 
   const EVENTS = [
-    { weight: 3, text: '🎉 ¡Fiesta improvisada en la sala de descanso! Producción x2 durante 20s.', apply: s => addBuff('cps', 2, 20) },
-    { weight: 2, text: '🏆 Ganas un Dundie. Producción +25% durante 30s.', apply: s => addBuff('cps', 1.25, 30) },
-    { weight: 2, text: '🎤 Prison Mike anima a la oficina. Poder de clic x2 durante 15s.', apply: s => addBuff('click', 2, 15) },
-    { weight: 2, text: '💰 Encuentras un cheque perdido de Kevin bajo el escritorio.', apply: s => { const bonus = Math.max(50, totalCps() * 30); addMoney(bonus); } },
-    { weight: 1, text: '🔥 Dwight activa la alarma de incendios. Evacuación: producción -50% durante 8s.', apply: s => addBuff('cps', 0.5, 8) },
-    { weight: 1, text: '📠 La fotocopiadora se atasca. Poder de clic -50% durante 10s.', apply: s => addBuff('click', 0.5, 10) },
+    { weight: 3, text: '🎉 ¡Fiesta improvisada en la sala de descanso! Producción x2 durante 20s.', apply: () => addBuff('cps', 2, 20) },
+    { weight: 2, text: '🏆 Ganas un Dundie. Producción +25% durante 30s.', apply: () => addBuff('cps', 1.25, 30) },
+    { weight: 2, text: '🎤 Prison Mike anima a la oficina. Poder de clic x2 durante 15s.', apply: () => addBuff('click', 2, 15) },
+    { weight: 2, text: '💰 Encuentras un cheque perdido de Kevin bajo el escritorio.', apply: () => { const bonus = Math.max(20, totalProduction() * 30); addResource(bonus); } },
+    { weight: 1, text: '🔥 Dwight activa la alarma de incendios. Evacuación: producción -50% durante 8s.', apply: () => addBuff('cps', 0.5, 8) },
+    { weight: 1, text: '📠 La fotocopiadora se atasca. Poder de clic -50% durante 10s.', apply: () => addBuff('click', 0.5, 10) },
   ];
 
   const QUOTES = [
@@ -94,17 +140,14 @@
   // ─── STATE ──────────────────────────────────────────────────────────────
 
   function defaultState() {
-    const employees = {};
-    EMPLOYEES.forEach(e => employees[e.id] = 0);
     return {
-      money: 0,
+      resource: 0,
       runEarned: 0,
       lifetimeEarned: 0,
       clicks: 0,
-      employees,
-      employeeUpgrades: {},
-      globalUpgrades: {},
-      achievements: {},
+      frontier: 0,
+      levels: new Array(NODES.length).fill(0),
+      discoveries: { [nodeDiscoveryId(0)]: true },
       prestigePoints: 0,
       prestigeCount: 0,
       lastSeen: Date.now(),
@@ -120,12 +163,12 @@
       if (!raw) return defaultState();
       const parsed = JSON.parse(raw);
       const def = defaultState();
-      return Object.assign(def, parsed, {
-        employees: Object.assign(def.employees, parsed.employees || {}),
-        employeeUpgrades: parsed.employeeUpgrades || {},
-        globalUpgrades: parsed.globalUpgrades || {},
-        achievements: parsed.achievements || {},
+      const merged = Object.assign(def, parsed, {
+        levels: (parsed.levels && parsed.levels.length === NODES.length) ? parsed.levels : def.levels,
+        discoveries: parsed.discoveries || def.discoveries,
       });
+      for (let i = 0; i <= merged.frontier; i++) merged.discoveries[nodeDiscoveryId(i)] = true;
+      return merged;
     } catch (e) {
       console.error('No se pudo cargar la partida', e);
       return defaultState();
@@ -139,63 +182,13 @@
 
   // ─── FORMULAS ───────────────────────────────────────────────────────────
 
-  function employeeCost(idx) {
-    const e = EMPLOYEES[idx];
-    const owned = state.employees[e.id] || 0;
-    return Math.ceil(e.baseCost * Math.pow(COST_GROWTH, owned));
-  }
+  function discoveryCount() { return Object.keys(state.discoveries).filter(k => state.discoveries[k]).length; }
 
   function globalMultiplier() {
-    let mult = 1 + state.prestigePoints * 0.02;
-    GLOBAL_UPGRADES.forEach(u => {
-      if (state.globalUpgrades[u.id] && (u.type === 'global' || u.type === 'both')) mult *= u.mult;
-    });
-    const unlockedAch = ACHIEVEMENTS.filter(a => state.achievements[a.id]).length;
-    mult *= (1 + unlockedAch * 0.005);
+    let mult = 1 + state.prestigePoints * PRESTIGE_BONUS_PER_POINT;
+    mult *= (1 + discoveryCount() * DISCOVERY_BONUS_PER);
     buffs.forEach(b => { if (b.kind === 'cps') mult *= b.mult; });
     return mult;
-  }
-
-  function clickMultiplier() {
-    let mult = 1;
-    GLOBAL_UPGRADES.forEach(u => {
-      if (state.globalUpgrades[u.id]) {
-        if (u.type === 'click') mult *= u.mult;
-        if (u.type === 'both') mult *= u.clickMult;
-      }
-    });
-    buffs.forEach(b => { if (b.kind === 'click') mult *= b.mult; });
-    return mult;
-  }
-
-  function employeeCps(idx) {
-    const e = EMPLOYEES[idx];
-    const owned = state.employees[e.id] || 0;
-    if (owned <= 0) return 0;
-    let base = owned * e.baseCps;
-    const upg = EMPLOYEE_UPGRADES[idx];
-    if (state.employeeUpgrades[upg.id]) base *= upg.mult;
-    return base;
-  }
-
-  function totalCps() {
-    let sum = 0;
-    for (let i = 0; i < EMPLOYEES.length; i++) sum += employeeCps(i);
-    return sum * globalMultiplier();
-  }
-
-  function clickValue() {
-    return 1 * clickMultiplier() * globalMultiplier();
-  }
-
-  function addMoney(amount) {
-    state.money += amount;
-    state.runEarned += amount;
-    state.lifetimeEarned += amount;
-  }
-
-  function addBuff(kind, mult, seconds) {
-    buffs.push({ kind, mult, expires: Date.now() + seconds * 1000 });
   }
 
   function activeBuffMultiplier(kind) {
@@ -204,8 +197,28 @@
     return m;
   }
 
+  function totalProduction() {
+    let sum = 0;
+    for (let i = 0; i <= state.frontier; i++) sum += nodeProd(i, state.levels[i]);
+    return sum * globalMultiplier();
+  }
+
+  function clickValue() {
+    return Math.max(CLICK_FLAT, totalProduction() * CLICK_FACTOR) * activeBuffMultiplier('click');
+  }
+
+  function addResource(amount) {
+    state.resource += amount;
+    state.runEarned += amount;
+    state.lifetimeEarned += amount;
+  }
+
+  function addBuff(kind, mult, seconds) {
+    buffs.push({ kind, mult, expires: Date.now() + seconds * 1000 });
+  }
+
   function prestigeGain(runEarned) {
-    return Math.floor(Math.sqrt(Math.max(0, runEarned) / 1e7));
+    return Math.floor(Math.sqrt(Math.max(0, runEarned) / PRESTIGE_DIVISOR));
   }
 
   // ─── NUMBER FORMAT ──────────────────────────────────────────────────────
@@ -221,7 +234,6 @@
     const scaled = n / Math.pow(10, tier * 3);
     return sign + scaled.toFixed(2) + UNITS[tier];
   }
-  function fmtMoney(n) { return fmt(n) + ' $'; }
 
   // ─── DOM REFS ───────────────────────────────────────────────────────────
 
@@ -233,10 +245,10 @@
   const clickPowerLabel = $('#clickPowerLabel');
   const clickBtn = $('#clickBtn');
   const floatContainer = $('#floatContainer');
-  const employeeListEl = $('#employeeList');
-  const upgradeListEl = $('#upgradeList');
-  const achievementListEl = $('#achievementList');
-  const officeSummaryEl = $('#officeSummary');
+  const nodeChainEl = $('#nodeChain');
+  const eraBannerEl = $('#eraBanner');
+  const discoveryListEl = $('#discoveryList');
+  const discoveryProgressEl = $('#discoveryProgress');
   const eventToast = $('#eventToast');
   const michaelQuote = $('#michaelQuote');
 
@@ -248,9 +260,8 @@
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       $('#panel-' + btn.dataset.tab).classList.add('active');
-      if (btn.dataset.tab === 'empleados') renderEmployees();
-      if (btn.dataset.tab === 'mejoras') renderUpgrades();
-      if (btn.dataset.tab === 'logros') renderAchievements();
+      if (btn.dataset.tab === 'carrera') renderChain();
+      if (btn.dataset.tab === 'descubrimientos') renderDiscoveries();
       if (btn.dataset.tab === 'corporate') renderPrestige();
     });
   });
@@ -259,10 +270,10 @@
 
   clickBtn.addEventListener('click', ev => {
     const gain = clickValue();
-    addMoney(gain);
+    addResource(gain);
     state.clicks++;
     spawnFloat(gain, ev);
-    checkAchievements();
+    checkDiscoveries();
   });
 
   function spawnFloat(amount, ev) {
@@ -272,175 +283,179 @@
     const y = (ev.clientY || (rect.top + rect.height / 2)) - parentRect.top;
     const el = document.createElement('div');
     el.className = 'float-number';
-    el.textContent = '+' + fmtMoney(amount);
+    el.textContent = '+' + fmt(amount);
     el.style.left = x + 'px';
     el.style.top = y + 'px';
     floatContainer.appendChild(el);
     setTimeout(() => el.remove(), 1000);
   }
 
-  // ─── EMPLOYEES RENDER ───────────────────────────────────────────────────
+  // ─── NODE CHAIN RENDER ──────────────────────────────────────────────────
 
-  function renderEmployees() {
-    employeeListEl.innerHTML = '';
-    EMPLOYEES.forEach((e, idx) => {
-      const owned = state.employees[e.id] || 0;
-      const cost = employeeCost(idx);
-      const affordable = state.money >= cost;
+  function renderEraBanner() {
+    const era = ERAS[eraOf(Math.min(state.frontier, NODES.length - 1))];
+    eraBannerEl.style.setProperty('--era-color', era.color);
+    eraBannerEl.textContent = `${era.emoji} ${era.name}`;
+  }
+
+  function renderChain() {
+    renderEraBanner();
+    nodeChainEl.innerHTML = '';
+    let lastEra = -1;
+    NODES.forEach((node, i) => {
+      const era = eraOf(i);
+      if (era !== lastEra) {
+        lastEra = era;
+        const divider = document.createElement('div');
+        divider.className = 'era-divider';
+        divider.style.setProperty('--era-color', ERAS[era].color);
+        divider.textContent = `${ERAS[era].emoji} ${ERAS[era].name}`;
+        nodeChainEl.appendChild(divider);
+      }
+
       const card = document.createElement('div');
-      card.className = 'employee-card' + (affordable ? ' affordable' : '');
-      card.innerHTML = `
-        <div class="emp-emoji">${e.emoji}</div>
-        <div class="emp-info">
-          <div class="emp-name">${e.name} ${owned > 0 ? `<span class="emp-owned-badge">x${owned}</span>` : ''}</div>
-          <div class="emp-role">${e.role}</div>
-          <div class="emp-quote">${e.quote}</div>
-          <div class="emp-stats">Produce ${fmtMoney(employeeCps(idx))}/s ${owned > 0 ? `&middot; ${fmtMoney(e.baseCps)}/s cada uno` : ''}</div>
-        </div>
-        <button class="emp-buy-btn" ${affordable ? '' : 'disabled'}>Contratar<br>${fmtMoney(cost)}</button>
-      `;
-      card.querySelector('.emp-buy-btn').addEventListener('click', () => buyEmployee(idx));
-      employeeListEl.appendChild(card);
+      const level = state.levels[i];
+
+      if (i <= state.frontier) {
+        const prod = nodeProd(i, level);
+        const cost = multCost(i, level);
+        const affordable = state.resource >= cost;
+        card.className = 'node-card state-active' + (affordable ? ' affordable-mult' : '');
+        card.innerHTML = `
+          <div class="node-emoji">${node.emoji}</div>
+          <div class="node-info">
+            <div class="node-name">${node.name} ${level > 0 ? `<span class="node-level-badge">Nivel ${level}</span>` : ''}</div>
+            <div class="node-stats">Produce ${fmt(prod)}/s</div>
+          </div>
+          <button class="node-btn btn-mult" ${affordable ? '' : 'disabled'}>Potenciar<br>${fmt(cost)}</button>
+        `;
+        card.querySelector('.node-btn').addEventListener('click', () => buyMult(i));
+      } else if (i === state.frontier + 1) {
+        const cost = unlockCost(i);
+        const affordable = state.resource >= cost;
+        card.className = 'node-card state-next' + (affordable ? ' affordable-unlock' : '');
+        card.innerHTML = `
+          <div class="node-emoji">${node.emoji}</div>
+          <div class="node-info">
+            <div class="node-name">${node.name}</div>
+            <div class="node-stats">Producirá ${fmt(baseProd(i))}/s al desbloquearlo</div>
+          </div>
+          <button class="node-btn btn-unlock" ${affordable ? '' : 'disabled'}>Desbloquear<br>${fmt(cost)}</button>
+        `;
+        card.querySelector('.node-btn').addEventListener('click', () => buyUnlock());
+      } else {
+        card.className = 'node-card state-locked';
+        card.innerHTML = `
+          <div class="node-emoji">${node.emoji}</div>
+          <div class="node-info">
+            <div class="node-name">${node.name}</div>
+            <div class="node-locked-label">Bloqueado — desbloquea antes el hito anterior</div>
+          </div>
+        `;
+      }
+
+      nodeChainEl.appendChild(card);
     });
   }
 
-  function buyEmployee(idx) {
-    const cost = employeeCost(idx);
-    if (state.money < cost) return;
-    state.money -= cost;
-    const e = EMPLOYEES[idx];
-    state.employees[e.id] = (state.employees[e.id] || 0) + 1;
-    renderEmployees();
-    checkAchievements();
+  function buyUnlock() {
+    const i = state.frontier + 1;
+    if (i >= NODES.length) return;
+    const cost = unlockCost(i);
+    if (state.resource < cost) return;
+    state.resource -= cost;
+    state.frontier = i;
+    state.discoveries[nodeDiscoveryId(i)] = true;
+    renderChain();
+    checkDiscoveries();
     saveState();
   }
 
-  // ─── UPGRADES RENDER ────────────────────────────────────────────────────
-
-  function renderUpgrades() {
-    upgradeListEl.innerHTML = '';
-
-    GLOBAL_UPGRADES.forEach(u => {
-      const bought = !!state.globalUpgrades[u.id];
-      const affordable = state.money >= u.cost;
-      const card = document.createElement('div');
-      card.className = 'upgrade-card' + (bought ? ' bought' : '');
-      card.innerHTML = `
-        <div class="upg-emoji">${u.emoji}</div>
-        <div class="upg-name">${u.name}</div>
-        <div class="upg-desc">${u.desc}</div>
-        ${bought ? '<span class="upg-bought-label">✔ Comprada</span>' : `<button class="upg-btn" ${affordable ? '' : 'disabled'}>Comprar &middot; ${fmtMoney(u.cost)}</button>`}
-      `;
-      if (!bought) card.querySelector('.upg-btn').addEventListener('click', () => buyGlobalUpgrade(u));
-      upgradeListEl.appendChild(card);
-    });
-
-    EMPLOYEE_UPGRADES.forEach(u => {
-      const e = EMPLOYEES[u.empIndex];
-      const owned = state.employees[e.id] || 0;
-      if (owned < 1) return;
-      const bought = !!state.employeeUpgrades[u.id];
-      const unlocked = owned >= u.reqOwned;
-      const affordable = state.money >= u.cost;
-      const card = document.createElement('div');
-      card.className = 'upgrade-card' + (bought ? ' bought' : '') + (!unlocked ? ' locked' : '');
-      card.innerHTML = `
-        <div class="upg-emoji">${u.emoji}</div>
-        <div class="upg-name">${u.name}</div>
-        <div class="upg-desc">${u.desc}</div>
-        ${bought
-          ? '<span class="upg-bought-label">✔ Comprada</span>'
-          : unlocked
-            ? `<button class="upg-btn" ${affordable ? '' : 'disabled'}>Comprar &middot; ${fmtMoney(u.cost)}</button>`
-            : `<span class="upg-bought-label" style="color:var(--text3)">Requiere ${u.reqOwned}x ${e.name}</span>`
-        }
-      `;
-      if (!bought && unlocked) card.querySelector('.upg-btn').addEventListener('click', () => buyEmployeeUpgrade(u));
-      upgradeListEl.appendChild(card);
-    });
-  }
-
-  function buyGlobalUpgrade(u) {
-    if (state.globalUpgrades[u.id] || state.money < u.cost) return;
-    state.money -= u.cost;
-    state.globalUpgrades[u.id] = true;
-    renderUpgrades();
-    checkAchievements();
+  function buyMult(i) {
+    if (i > state.frontier) return;
+    const cost = multCost(i, state.levels[i]);
+    if (state.resource < cost) return;
+    state.resource -= cost;
+    state.levels[i]++;
+    renderChain();
     saveState();
   }
 
-  function buyEmployeeUpgrade(u) {
-    if (state.employeeUpgrades[u.id] || state.money < u.cost) return;
-    state.money -= u.cost;
-    state.employeeUpgrades[u.id] = true;
-    renderUpgrades();
-    saveState();
-  }
+  // ─── DISCOVERIES ────────────────────────────────────────────────────────
 
-  // ─── ACHIEVEMENTS ───────────────────────────────────────────────────────
-
-  function checkAchievements() {
+  function checkDiscoveries() {
     let newlyUnlocked = null;
-    ACHIEVEMENTS.forEach(a => {
-      if (!state.achievements[a.id] && a.check(state)) {
-        state.achievements[a.id] = true;
-        newlyUnlocked = a;
+    MILESTONE_DISCOVERIES.forEach(d => {
+      if (!state.discoveries[d.id] && d.check(state)) {
+        state.discoveries[d.id] = true;
+        newlyUnlocked = d;
       }
     });
     if (newlyUnlocked) {
-      showToast(`🏆 Logro desbloqueado: ${newlyUnlocked.name}`);
-      if ($('#panel-logros').classList.contains('active')) renderAchievements();
+      showToast(`📖 Nueva página del diario: ${newlyUnlocked.name}`);
+      if ($('#panel-descubrimientos').classList.contains('active')) renderDiscoveries();
     }
   }
 
-  function renderAchievements() {
-    achievementListEl.innerHTML = '';
-    ACHIEVEMENTS.forEach(a => {
-      const unlocked = !!state.achievements[a.id];
-      const card = document.createElement('div');
-      card.className = 'ach-card' + (unlocked ? ' unlocked' : '');
-      card.innerHTML = `
-        <div class="ach-icon">${unlocked ? a.icon : '🔒'}</div>
-        <div>
-          <div class="ach-name">${a.name}</div>
-          <div class="ach-desc">${a.desc}</div>
-        </div>
-      `;
-      achievementListEl.appendChild(card);
+  function renderDiscoveries() {
+    const collected = discoveryCount();
+    discoveryProgressEl.innerHTML = `<div class="discovery-progress-fill" style="width:${(collected / TOTAL_DISCOVERIES * 100).toFixed(1)}%"></div>`;
+
+    discoveryListEl.innerHTML = '';
+    NODES.forEach((node, i) => {
+      const id = nodeDiscoveryId(i);
+      const unlocked = !!state.discoveries[id];
+      appendDiscoveryCard(unlocked ? node.emoji : '🔒', unlocked ? node.name : '???', unlocked ? node.discovery : 'Aún no has llegado a este hito de la cadena.', unlocked);
     });
+    MILESTONE_DISCOVERIES.forEach(d => {
+      const unlocked = !!state.discoveries[d.id];
+      appendDiscoveryCard(unlocked ? d.icon : '🔒', unlocked ? d.name : '???', unlocked ? d.desc : 'Sigue jugando para desbloquear esta página.', unlocked);
+    });
+  }
+
+  function appendDiscoveryCard(icon, name, desc, unlocked) {
+    const card = document.createElement('div');
+    card.className = 'disc-card' + (unlocked ? ' unlocked' : '');
+    card.innerHTML = `
+      <div class="disc-icon">${icon}</div>
+      <div>
+        <div class="disc-name">${name}</div>
+        <div class="disc-desc">${desc}</div>
+      </div>
+    `;
+    discoveryListEl.appendChild(card);
   }
 
   // ─── PRESTIGE ───────────────────────────────────────────────────────────
 
   function renderPrestige() {
     const gain = prestigeGain(state.runEarned);
-    $('#prestigeGainPreview').textContent = `+${gain} ${gain === 1 ? 'acción' : 'acciones'}`;
+    $('#prestigeGainPreview').textContent = `+${gain} núcleo${gain === 1 ? '' : 's'}`;
     $('#prestigeDetail').textContent = gain > 0
-      ? 'Vende la sucursal a Corporate y reinicia el dinero y los empleados a cambio de un bonus permanente.'
-      : `Necesitas ganar más dinero en esta partida para conseguir tu primera acción (llevas ${fmtMoney(state.runEarned)}).`;
+      ? 'Reinicia con Corporate: pierdes la cadena de hitos y el progreso de esta partida, pero tus descubrimientos y núcleos se quedan contigo para siempre.'
+      : `Sigue avanzando en la cadena para conseguir tu primer núcleo (llevas ${fmt(state.runEarned)} de progreso en esta partida).`;
     $('#prestigeCurrent').textContent = fmt(state.prestigePoints);
-    $('#prestigeBonus').textContent = '+' + Math.round(state.prestigePoints * 2) + '%';
+    $('#prestigeBonus').textContent = '+' + Math.round(state.prestigePoints * PRESTIGE_BONUS_PER_POINT * 100) + '%';
     $('#prestigeCount').textContent = fmt(state.prestigeCount);
-    const btn = $('#prestigeBtn');
-    btn.disabled = gain <= 0;
+    $('#prestigeBtn').disabled = gain <= 0;
   }
 
   $('#prestigeBtn').addEventListener('click', () => {
     const gain = prestigeGain(state.runEarned);
     if (gain <= 0) return;
-    if (!confirm(`¿Vender la sucursal a Corporate? Ganarás ${gain} Acciones de Sabre pero perderás el dinero y los empleados de esta partida (las mejoras y logros se conservan).`)) return;
+    if (!confirm(`¿Reiniciar con Corporate? Ganarás ${gain} Núcleos Corporate pero volverás al primer hito de la cadena (tus descubrimientos se conservan).`)) return;
     state.prestigePoints += gain;
     state.prestigeCount += 1;
-    state.money = 0;
+    state.resource = 0;
     state.runEarned = 0;
-    EMPLOYEES.forEach(e => state.employees[e.id] = 0);
+    state.frontier = 0;
+    state.levels = new Array(NODES.length).fill(0);
     buffs = [];
-    checkAchievements();
+    checkDiscoveries();
     renderPrestige();
-    renderEmployees();
-    renderUpgrades();
+    renderChain();
     saveState();
-    showToast('📈 ¡Trato cerrado con Corporate! Acciones de Sabre: ' + fmt(state.prestigePoints));
+    showToast('🌀 ¡Corporate ha reiniciado la sucursal! Núcleos Corporate: ' + fmt(state.prestigePoints));
   });
 
   // ─── TOASTS / EVENTS ────────────────────────────────────────────────────
@@ -453,8 +468,8 @@
     toastTimer = setTimeout(() => eventToast.classList.add('hidden'), 4200);
   }
 
-  let nextEventAt = Date.now() + randRange(45, 90) * 1000;
   function randRange(a, b) { return a + Math.random() * (b - a); }
+  let nextEventAt = Date.now() + randRange(45, 90) * 1000;
 
   function maybeTriggerEvent() {
     if (Date.now() < nextEventAt) return;
@@ -464,7 +479,7 @@
     for (const ev of EVENTS) {
       r -= ev.weight;
       if (r <= 0) {
-        ev.apply(state);
+        ev.apply();
         showToast(ev.text);
         break;
       }
@@ -493,11 +508,10 @@
         const parsed = JSON.parse(reader.result);
         const def = defaultState();
         state = Object.assign(def, parsed, {
-          employees: Object.assign(def.employees, parsed.employees || {}),
-          employeeUpgrades: parsed.employeeUpgrades || {},
-          globalUpgrades: parsed.globalUpgrades || {},
-          achievements: parsed.achievements || {},
+          levels: (parsed.levels && parsed.levels.length === NODES.length) ? parsed.levels : def.levels,
+          discoveries: parsed.discoveries || def.discoveries,
         });
+        for (let i = 0; i <= state.frontier; i++) state.discoveries[nodeDiscoveryId(i)] = true;
         buffs = [];
         saveState();
         renderAll();
@@ -522,25 +536,13 @@
   // ─── MAIN LOOP ──────────────────────────────────────────────────────────
 
   function updateStats() {
-    statMoney.textContent = fmtMoney(state.money);
-    statCps.textContent = fmt(totalCps()) + ' $/s';
+    statMoney.textContent = fmt(state.resource);
+    statCps.textContent = fmt(totalProduction()) + ' /s';
     clickPowerLabel.textContent = fmt(clickValue());
     if (state.prestigePoints > 0 || state.prestigeCount > 0) {
       prestigeStatBlock.style.display = '';
       statPrestige.textContent = fmt(state.prestigePoints);
     }
-  }
-
-  function updateOfficeSummary() {
-    const totalEmployees = EMPLOYEES.reduce((s, e) => s + (state.employees[e.id] || 0), 0);
-    officeSummaryEl.innerHTML = `
-      <div class="os-item"><span class="os-label">Empleados totales</span><span class="os-value">${fmt(totalEmployees)}</span></div>
-      <div class="os-item"><span class="os-label">Clics totales</span><span class="os-value">${fmt(state.clicks)}</span></div>
-      <div class="os-item"><span class="os-label">Ganado en total</span><span class="os-value">${fmtMoney(state.lifetimeEarned)}</span></div>
-      <div class="os-item"><span class="os-label">Logros</span><span class="os-value">${ACHIEVEMENTS.filter(a => state.achievements[a.id]).length} / ${ACHIEVEMENTS.length}</span></div>
-      <div class="os-item"><span class="os-label">Acciones de Sabre</span><span class="os-value">${fmt(state.prestigePoints)}</span></div>
-      <div class="os-item"><span class="os-label">Ventas a Corporate</span><span class="os-value">${fmt(state.prestigeCount)}</span></div>
-    `;
   }
 
   let lastTick = Date.now();
@@ -551,48 +553,35 @@
 
     buffs = buffs.filter(b => b.expires > now);
 
-    const cps = totalCps();
-    if (cps > 0) addMoney(cps * dt);
+    const prod = totalProduction();
+    if (prod > 0) addResource(prod * dt);
 
     maybeTriggerEvent();
     updateStats();
 
     const activePanel = document.querySelector('.tab-panel.active');
-    if (activePanel && activePanel.id === 'panel-empleados') refreshAffordability();
-    if (activePanel && activePanel.id === 'panel-mejoras') renderUpgrades();
-    if (activePanel && activePanel.id === 'panel-oficina') updateOfficeSummary();
+    if (activePanel && activePanel.id === 'panel-carrera') renderChain();
     if (activePanel && activePanel.id === 'panel-corporate') renderPrestige();
 
-    checkAchievements();
-  }
-
-  function refreshAffordability() {
-    document.querySelectorAll('.employee-card .emp-buy-btn').forEach((btn, idx) => {
-      const cost = employeeCost(idx);
-      const affordable = state.money >= cost;
-      btn.disabled = !affordable;
-      btn.parentElement.classList.toggle('affordable', affordable);
-    });
+    checkDiscoveries();
   }
 
   function renderAll() {
     updateStats();
-    renderEmployees();
-    renderUpgrades();
-    renderAchievements();
+    renderChain();
+    renderDiscoveries();
     renderPrestige();
-    updateOfficeSummary();
   }
 
   function applyOfflineProgress() {
     const now = Date.now();
     const elapsedS = Math.min(OFFLINE_CAP_S, Math.max(0, (now - (state.lastSeen || now)) / 1000));
     if (elapsedS > 30) {
-      const cps = totalCps();
-      const earned = cps * elapsedS;
+      const prod = totalProduction();
+      const earned = prod * elapsedS;
       if (earned > 0) {
-        addMoney(earned);
-        showToast(`👋 Bienvenido de nuevo. Mientras estabas fuera ganaste ${fmtMoney(earned)}.`);
+        addResource(earned);
+        showToast(`👋 Bienvenido de nuevo. Mientras estabas fuera ganaste ${fmt(earned)}.`);
       }
     }
   }
