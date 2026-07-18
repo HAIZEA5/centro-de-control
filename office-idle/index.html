@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="theme-color" content="#0c3b63" />
+<title>Dunder Mifflin Idle</title>
+<meta name="description" content="Un juego idle inspirado en The Office. Convierte a Scranton en el imperio del papel." />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kalam:wght@700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <div id="eventToast" class="event-toast hidden"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-logo">📠</span>
+      <div class="brand-text">
+        <h1>Dunder Mifflin <span>Idle</span></h1>
+        <p class="brand-sub">"World's Best Paper Company" — Scranton, PA</p>
+      </div>
+    </div>
+
+    <div class="topbar-stats">
+      <div class="stat-block">
+        <span class="stat-label">💵 Dinero</span>
+        <span class="stat-value" id="statMoney">0 $</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">📈 Por segundo</span>
+        <span class="stat-value" id="statCps">0 $/s</span>
+      </div>
+      <div class="stat-block" id="prestigeStatBlock" style="display:none">
+        <span class="stat-label">📊 Acciones de Sabre</span>
+        <span class="stat-value" id="statPrestige">0</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="oficina">🏢 Oficina</button>
+    <button class="tab-btn" data-tab="empleados">👥 Empleados</button>
+    <button class="tab-btn" data-tab="mejoras">⭐ Mejoras</button>
+    <button class="tab-btn" data-tab="logros">🏆 Logros</button>
+    <button class="tab-btn" data-tab="corporate">🏙️ Corporate</button>
+    <button class="tab-btn" data-tab="ajustes">⚙️ Ajustes</button>
+  </nav>
+
+  <main class="game-main">
+
+    <!-- OFICINA / CLICKER -->
+    <section class="tab-panel active" id="panel-oficina">
+      <div class="office-hero">
+        <p class="quote" id="michaelQuote">"No soy el mejor jefe... pero soy el jefe más regional del mundo." — Michael</p>
+
+        <button id="clickBtn" class="click-btn">
+          <span class="click-emoji">📠</span>
+          <span class="click-text">Vender una resma de papel</span>
+        </button>
+        <p class="click-power-label">+<span id="clickPowerLabel">1</span> $ por clic</p>
+
+        <div id="floatContainer" class="float-container"></div>
+      </div>
+
+      <div class="mini-summary card-office">
+        <h3>Resumen de la oficina</h3>
+        <div id="officeSummary" class="office-summary-grid"></div>
+      </div>
+    </section>
+
+    <!-- EMPLEADOS -->
+    <section class="tab-panel" id="panel-empleados">
+      <h2 class="panel-title">👥 Contrata al equipo de Scranton</h2>
+      <p class="panel-sub">Cada empleado genera dinero automáticamente cada segundo. El coste sube con cada contratación.</p>
+      <div id="employeeList" class="employee-list"></div>
+    </section>
+
+    <!-- MEJORAS -->
+    <section class="tab-panel" id="panel-mejoras">
+      <h2 class="panel-title">⭐ Mejoras</h2>
+      <p class="panel-sub">Referencias, gags y golpes de suerte que multiplican tu producción.</p>
+      <div id="upgradeList" class="upgrade-list"></div>
+    </section>
+
+    <!-- LOGROS -->
+    <section class="tab-panel" id="panel-logros">
+      <h2 class="panel-title">🏆 Logros</h2>
+      <p class="panel-sub">Cada logro desbloqueado da +0.5% de producción global, para siempre.</p>
+      <div id="achievementList" class="achievement-list"></div>
+    </section>
+
+    <!-- CORPORATE / PRESTIGE -->
+    <section class="tab-panel" id="panel-corporate">
+      <h2 class="panel-title">🏙️ Corporate (Sabre)</h2>
+      <p class="panel-sub">Cuando Scranton ya no da más de sí, firma la venta a Corporate. Reinicias dinero y empleados, pero ganas <strong>Acciones de Sabre</strong>: cada una es +2% de producción global para siempre.</p>
+
+      <div class="prestige-card card-office">
+        <div class="prestige-row">
+          <div>
+            <div class="prestige-big" id="prestigeGainPreview">+0 acciones</div>
+            <div class="prestige-detail" id="prestigeDetail">Gana dinero para desbloquear tu primera venta a Corporate.</div>
+          </div>
+          <button id="prestigeBtn" class="prestige-btn" disabled>Vender a Corporate 📈</button>
+        </div>
+        <div class="prestige-footer">
+          <span>Acciones actuales: <strong id="prestigeCurrent">0</strong></span>
+          <span>Bonus permanente: <strong id="prestigeBonus">+0%</strong></span>
+          <span>Ventas realizadas: <strong id="prestigeCount">0</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- AJUSTES -->
+    <section class="tab-panel" id="panel-ajustes">
+      <h2 class="panel-title">⚙️ Ajustes</h2>
+      <div class="settings-grid">
+        <div class="card-office">
+          <h3>💾 Copia de seguridad</h3>
+          <p class="panel-sub">Tu partida se guarda sola en este navegador. Expórtala para no perderla.</p>
+          <div class="settings-actions">
+            <button class="btn-secondary" id="exportBtn">⬇️ Exportar partida</button>
+            <button class="btn-secondary" id="importBtn">⬆️ Importar partida</button>
+            <input type="file" id="importFile" accept="application/json" class="hidden" />
+          </div>
+        </div>
+        <div class="card-office">
+          <h3>⚠️ Zona peligrosa</h3>
+          <p class="panel-sub">Esto borra toda la partida (empleados, mejoras, logros y acciones de Sabre). No se puede deshacer.</p>
+          <button class="btn-danger" id="resetBtn">🗑️ Reiniciar partida</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="game-footer">
+    <span>Fan game no oficial inspirado en <em>The Office</em> (NBC). Sin ánimo de lucro.</span>
+  </footer>
+
+  <script src="js/game.js"></script>
+</body>
+</html>
