@@ -124,6 +124,32 @@
     { weight: 1, text: '📠 La fotocopiadora se atasca. Poder de clic -50% durante 10s.', apply: () => addBuff('click', 0.5, 10) },
   ];
 
+  // Iconos flotantes al estilo Cells to Singularity: aparecen un momento y
+  // hay que pillarlos a tiempo para llevarte el bonus.
+  const FLOAT_BONUSES = [
+    { emoji: '🥕', catchText: '¡Has pillado a Dwight espiando y le has quitado una zanahoria de Schrute Farms!' },
+    { emoji: '🌶️', catchText: '¡Has salvado el chile de Kevin antes de que se derramara otra vez!' },
+    { emoji: '✈️', catchText: '¡Has interceptado un avión de papel de Jim en pleno vuelo!' },
+    { emoji: '🍷', catchText: '¡Has rescatado la copa de vino escondida de Meredith justo a tiempo!' },
+    { emoji: '🐱', catchText: '¡Has encontrado al gato que Angela había perdido en la oficina!' },
+    { emoji: '🥨', catchText: '¡Has pillado el último pretzel de Pretzel Day!' },
+    { emoji: '🏆', catchText: '¡Has encontrado un Dundie perdido debajo de una mesa!' },
+    { emoji: '🐍', catchText: '¡Has atrapado la serpiente de Dwight antes de que asustara a Kelly!' },
+    { emoji: '📎', catchText: '¡Has recuperado el clip gigante de la sala de Corporate!' },
+    { emoji: '🧇', catchText: '¡Has cazado uno de los gofres de Schrute Farms antes de que se enfriara!' },
+  ];
+
+  // Evento "meteorito" de C2S adaptado: hay que hacer clic rápido durante
+  // unos segundos para maximizar la recompensa antes de que se acabe el tiempo.
+  const URGENT_EVENTS = [
+    { icon: '🚨', title: '¡Visita sorpresa de Corporate!', prompt: 'Haz clic rápido para impresionarlos antes de que se vayan.', success: 'Corporate se ha ido gratamente sorprendida.', meh: 'Corporate no se ha quedado muy impresionada, pero algo es algo.' },
+    { icon: '🔥', title: '¡Incendio de verdad en la cocina!', prompt: 'Ryan ha dejado un burrito en el microondas demasiado tiempo. Nadie se cree que sea real después del simulacro de Dwight. Haz clic rápido para apagarlo.', success: 'Habéis apagado el fuego justo a tiempo. Otra vez.', meh: 'El fuego se apaga casi solo, pero por los pelos.' },
+    { icon: '🫀', title: '¡Día de entrenamiento de RCP!', prompt: 'Michael os enseña a hacer compresiones al ritmo de "Stayin\' Alive". Haz clic rápido siguiendo el ritmo.', success: 'Toda la oficina domina el ritmo perfecto de compresiones.', meh: 'Perdéis el ritmo a media canción, pero se entiende la idea.' },
+    { icon: '🎬', title: '¡Están grabando el documental!', prompt: 'Da lo mejor de ti antes de que corten la cámara.', success: 'Saldrás genial en el documental de la NBC.', meh: 'Te han grabado, pero seguro que editan esta parte.' },
+    { icon: '🥨', title: '¡Es Pretzel Day!', prompt: 'Aprovecha el chute de azúcar de la oficina mientras dura.', success: 'Toda la oficina está a tope de energía por los pretzels.', meh: 'El subidón de azúcar se te ha pasado muy rápido.' },
+    { icon: '📞', title: '¡Cliente importante al teléfono!', prompt: 'Cierra la venta antes de que cuelgue.', success: 'Has cerrado el trato del año.', meh: 'El cliente ha colgado, pero no parecía enfadado.' },
+  ];
+
   const QUOTES = [
     '"No soy el mejor jefe... pero soy el jefe más regional del mundo." — Michael',
     '"Identity theft is not a joke, Jim. Millones de familias sufren cada año." — Dwight',
@@ -260,6 +286,7 @@
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       $('#panel-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab !== 'carrera') clearFloatBonus();
       if (btn.dataset.tab === 'carrera') renderChain();
       if (btn.dataset.tab === 'descubrimientos') renderDiscoveries();
       if (btn.dataset.tab === 'corporate') renderPrestige();
@@ -273,6 +300,10 @@
     addResource(gain);
     state.clicks++;
     spawnFloat(gain, ev);
+    if (urgentEvent && Date.now() < urgentEvent.endsAt) {
+      urgentEvent.taps++;
+      renderUrgentBanner();
+    }
     checkDiscoveries();
   });
 
@@ -486,6 +517,103 @@
     }
   }
 
+  // ─── FLOATING BONUS (icono flotante a lo Cells to Singularity) ─────────
+
+  const FLOAT_BONUS_LIFETIME_MS = 5000;
+  let floatBonusEl = null;
+  let nextFloatBonusAt = Date.now() + randRange(20, 40) * 1000;
+
+  function carreraTabActive() {
+    const panel = $('#panel-carrera');
+    return panel && panel.classList.contains('active');
+  }
+
+  function clearFloatBonus() {
+    if (floatBonusEl) { floatBonusEl.remove(); floatBonusEl = null; }
+  }
+
+  function maybeSpawnFloatBonus() {
+    if (Date.now() < nextFloatBonusAt) return;
+    nextFloatBonusAt = Date.now() + randRange(25, 55) * 1000;
+    if (!carreraTabActive() || document.hidden || floatBonusEl) return;
+
+    const item = FLOAT_BONUSES[Math.floor(Math.random() * FLOAT_BONUSES.length)];
+    const margin = 70;
+    const x = randRange(margin, Math.max(margin + 1, window.innerWidth - margin));
+    const y = randRange(160, Math.max(220, window.innerHeight - 120));
+
+    const el = document.createElement('button');
+    el.className = 'float-bonus';
+    el.textContent = item.emoji;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.setAttribute('aria-label', 'Bonus');
+
+    const remove = () => { if (floatBonusEl === el) floatBonusEl = null; el.classList.add('leaving'); setTimeout(() => el.remove(), 250); };
+    const timeout = setTimeout(remove, FLOAT_BONUS_LIFETIME_MS);
+
+    el.addEventListener('click', ev => {
+      clearTimeout(timeout);
+      const bonus = Math.max(5, totalProduction() * randRange(15, 30));
+      addResource(bonus);
+      spawnFloat(bonus, ev);
+      showToast(`${item.emoji} ${item.catchText} +${fmt(bonus)}`);
+      checkDiscoveries();
+      saveState();
+      remove();
+    });
+
+    document.body.appendChild(el);
+    floatBonusEl = el;
+  }
+
+  // ─── URGENT EVENT (evento "meteorito" de clic rápido) ──────────────────
+
+  const URGENT_EVENT_DURATION_MS = 8000;
+  const urgentBannerEl = $('#urgentEventBanner');
+  let urgentEvent = null; // { def, taps, endsAt }
+  let nextUrgentEventAt = Date.now() + randRange(180, 300) * 1000;
+
+  function maybeTriggerUrgentEvent() {
+    if (urgentEvent) return;
+    if (Date.now() < nextUrgentEventAt) return;
+    nextUrgentEventAt = Date.now() + randRange(240, 420) * 1000;
+    if (!carreraTabActive() || document.hidden) return;
+
+    const def = URGENT_EVENTS[Math.floor(Math.random() * URGENT_EVENTS.length)];
+    urgentEvent = { def, taps: 0, endsAt: Date.now() + URGENT_EVENT_DURATION_MS };
+    clickBtn.classList.add('urgent-active');
+    renderUrgentBanner();
+  }
+
+  function renderUrgentBanner() {
+    if (!urgentEvent) { urgentBannerEl.classList.add('hidden'); return; }
+    const remaining = Math.max(0, urgentEvent.endsAt - Date.now());
+    const pct = (remaining / URGENT_EVENT_DURATION_MS) * 100;
+    urgentBannerEl.classList.remove('hidden');
+    urgentBannerEl.innerHTML = `
+      <div class="urgent-title">${urgentEvent.def.icon} ${urgentEvent.def.title}</div>
+      <div class="urgent-prompt">${urgentEvent.def.prompt}</div>
+      <div class="urgent-meter"><div class="urgent-meter-fill" style="width:${pct.toFixed(0)}%"></div></div>
+      <div class="urgent-footer"><span>Clics: ${urgentEvent.taps}</span><span>${Math.ceil(remaining / 1000)}s</span></div>
+    `;
+  }
+
+  function resolveUrgentEventIfDone() {
+    if (!urgentEvent) return;
+    if (Date.now() < urgentEvent.endsAt) return;
+    const { def, taps } = urgentEvent;
+    const success = taps >= 12;
+    const bonus = success ? totalProduction() * taps * 3 : totalProduction() * 8;
+    addResource(Math.max(bonus, 5));
+    showToast(`${def.icon} ${success ? def.success : def.meh} +${fmt(Math.max(bonus, 5))}`);
+    urgentEvent = null;
+    clickBtn.classList.remove('urgent-active');
+    urgentBannerEl.classList.add('hidden');
+    checkDiscoveries();
+    saveState();
+  }
+
   // ─── SETTINGS ───────────────────────────────────────────────────────────
 
   $('#exportBtn').addEventListener('click', () => {
@@ -557,6 +685,10 @@
     if (prod > 0) addResource(prod * dt);
 
     maybeTriggerEvent();
+    maybeSpawnFloatBonus();
+    maybeTriggerUrgentEvent();
+    resolveUrgentEventIfDone();
+    if (urgentEvent) renderUrgentBanner();
     updateStats();
 
     const activePanel = document.querySelector('.tab-panel.active');
