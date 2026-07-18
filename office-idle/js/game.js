@@ -4,7 +4,8 @@
   const SAVE_KEY = 'dmi-evolution-save-v1';
   const TICK_MS = 200;
   const AUTOSAVE_MS = 10000;
-  const OFFLINE_CAP_S = 3 * 60 * 60;
+  const OFFLINE_CAP_BASE_S = 3 * 60 * 60;
+  const OFFLINE_CAP_PERK_S = 8 * 60 * 60;
 
   // ─── ECONOMY CONSTANTS ──────────────────────────────────────────────────
   // Cadena de hitos al estilo Cells to Singularity: cada nodo produce solo,
@@ -21,15 +22,40 @@
 
   const PRESTIGE_DIVISOR = 1e5;
   const PRESTIGE_BONUS_PER_POINT = 0.02;
+  const PRESTIGE_BONUS_PER_POINT_PERK = 0.03;
   const DISCOVERY_BONUS_PER = 0.0025;
   const CLICK_FLAT = 0.5;
   const CLICK_FACTOR = 2;
+  const PERK_DISCOUNT = 0.85;
+  const HEADSTART_FRONTIER = 2;
 
   function baseProd(i) { return PROD0 * Math.pow(PROD_GROWTH, i); }
-  function unlockCost(i) { return i === 0 ? 0 : UNLOCK0MULT * Math.pow(COST_GROWTH, i - 1); }
+  function unlockCost(i) {
+    if (i === 0) return 0;
+    const base = UNLOCK0MULT * Math.pow(COST_GROWTH, i - 1);
+    return perkBought('p_unlockdiscount') ? base * PERK_DISCOUNT : base;
+  }
   function multBaseCost(i) { return baseProd(i) * MULT_BASE_FACTOR; }
-  function multCost(i, level) { return multBaseCost(i) * Math.pow(MULT_COST_GROWTH, level); }
+  function multCost(i, level) {
+    const base = multBaseCost(i) * Math.pow(MULT_COST_GROWTH, level);
+    return perkBought('p_multdiscount') ? base * PERK_DISCOUNT : base;
+  }
   function nodeProd(i, level) { return baseProd(i) * Math.pow(MULT_PER_LEVEL, level); }
+
+  function perkBought(id) { return !!(state && state.perks && state.perks[id]); }
+
+  // ─── DATA: PERKS (mejoras permanentes compradas con Núcleos Corporate) ──
+
+  const PERKS = [
+    { id: 'p_headstart', name: 'Arranque rápido', desc: 'Cada reinicio con Corporate empieza con los 3 primeros hitos ya desbloqueados.', emoji: '🚀', cost: 5 },
+    { id: 'p_unlockdiscount', name: 'Negociador nato', desc: 'El coste de desbloquear hitos baja un 15% para siempre.', emoji: '💰', cost: 10 },
+    { id: 'p_multdiscount', name: 'Eficiencia de Corporate', desc: 'El coste de potenciar hitos baja un 15% para siempre.', emoji: '⚡', cost: 10 },
+    { id: 'p_click', name: 'Café ilimitado', desc: 'Poder de clic x2 para siempre.', emoji: '☕', cost: 8 },
+    { id: 'p_offline', name: 'Horario flexible', desc: 'El límite de progreso offline sube de 3 a 8 horas.', emoji: '🕐', cost: 15 },
+    { id: 'p_events', name: 'Buena fama en la oficina', desc: 'Los eventos y los iconos flotantes aparecen el doble de a menudo.', emoji: '🎉', cost: 12 },
+    { id: 'p_discovery', name: 'Memoria de elefante', desc: 'Cada página del diario da el doble de bonus permanente.', emoji: '📖', cost: 20 },
+    { id: 'p_corebonus', name: 'Contrato mejorado con Sabre', desc: 'Cada Núcleo Corporate da +3% de producción en vez de +2%.', emoji: '🌀', cost: 30 },
+  ];
 
   // ─── DATA: ERAS ─────────────────────────────────────────────────────────
 
@@ -105,8 +131,8 @@
     { id: 'm_clicks50', name: 'Archivo perdido: primer día real', desc: 'Un post-it con 50 tareas tachadas. Todas decían "trabajar horas extra".', icon: '📄', check: s => s.clicks >= 50 },
     { id: 'm_clicks500', name: 'Leyenda urbana: Creed', desc: '500 clics después, nadie sabe muy bien qué hace Creed en la oficina. Ni él.', icon: '👴', check: s => s.clicks >= 500 },
     { id: 'm_prestige1', name: 'Memo interno: primer reinicio', desc: '"Se ha optimizado la sucursal." — Corporate, sobre absolutamente todo.', icon: '🌀', check: s => s.prestigeCount >= 1 },
-    { id: 'm_prestige25', name: 'Informe confidencial: Accionista', desc: '25 Núcleos Corporate. Empiezas a entender los correos de Sabre.', icon: '📊', check: s => s.prestigePoints >= 25 },
-    { id: 'm_prestige100', name: 'Informe confidencial: Magnate', desc: '100 Núcleos Corporate. Corporate ahora te devuelve las llamadas.', icon: '💎', check: s => s.prestigePoints >= 100 },
+    { id: 'm_prestige25', name: 'Informe confidencial: Accionista', desc: '25 Núcleos Corporate conseguidos. Empiezas a entender los correos de Sabre.', icon: '📊', check: s => s.prestigePointsLifetime >= 25 },
+    { id: 'm_prestige100', name: 'Informe confidencial: Magnate', desc: '100 Núcleos Corporate conseguidos. Corporate ahora te devuelve las llamadas.', icon: '💎', check: s => s.prestigePointsLifetime >= 100 },
     { id: 'm_allnodes', name: 'Archivo completo: la oficina entera', desc: 'Has recorrido toda la cadena, de la fotocopiadora a la Singularidad.', icon: '🗄️', check: s => s.frontier >= NODES.length - 1 },
   ];
 
@@ -175,7 +201,9 @@
       levels: new Array(NODES.length).fill(0),
       discoveries: { [nodeDiscoveryId(0)]: true },
       prestigePoints: 0,
+      prestigePointsLifetime: 0,
       prestigeCount: 0,
+      perks: {},
       lastSeen: Date.now(),
     };
   }
@@ -192,6 +220,8 @@
       const merged = Object.assign(def, parsed, {
         levels: (parsed.levels && parsed.levels.length === NODES.length) ? parsed.levels : def.levels,
         discoveries: parsed.discoveries || def.discoveries,
+        perks: parsed.perks || def.perks,
+        prestigePointsLifetime: parsed.prestigePointsLifetime !== undefined ? parsed.prestigePointsLifetime : (parsed.prestigePoints || 0),
       });
       for (let i = 0; i <= merged.frontier; i++) merged.discoveries[nodeDiscoveryId(i)] = true;
       return merged;
@@ -211,8 +241,10 @@
   function discoveryCount() { return Object.keys(state.discoveries).filter(k => state.discoveries[k]).length; }
 
   function globalMultiplier() {
-    let mult = 1 + state.prestigePoints * PRESTIGE_BONUS_PER_POINT;
-    mult *= (1 + discoveryCount() * DISCOVERY_BONUS_PER);
+    const bonusPerPoint = perkBought('p_corebonus') ? PRESTIGE_BONUS_PER_POINT_PERK : PRESTIGE_BONUS_PER_POINT;
+    const discoveryBonus = perkBought('p_discovery') ? DISCOVERY_BONUS_PER * 2 : DISCOVERY_BONUS_PER;
+    let mult = 1 + state.prestigePointsLifetime * bonusPerPoint;
+    mult *= (1 + discoveryCount() * discoveryBonus);
     buffs.forEach(b => { if (b.kind === 'cps') mult *= b.mult; });
     return mult;
   }
@@ -230,8 +262,13 @@
   }
 
   function clickValue() {
-    return Math.max(CLICK_FLAT, totalProduction() * CLICK_FACTOR) * activeBuffMultiplier('click');
+    const clickPerk = perkBought('p_click') ? 2 : 1;
+    return Math.max(CLICK_FLAT, totalProduction() * CLICK_FACTOR) * activeBuffMultiplier('click') * clickPerk;
   }
+
+  function offlineCapS() { return perkBought('p_offline') ? OFFLINE_CAP_PERK_S : OFFLINE_CAP_BASE_S; }
+
+  function eventFreqFactor() { return perkBought('p_events') ? 0.5 : 1; }
 
   function addResource(amount) {
     state.resource += amount;
@@ -275,7 +312,10 @@
   const eraBannerEl = $('#eraBanner');
   const discoveryListEl = $('#discoveryList');
   const discoveryProgressEl = $('#discoveryProgress');
+  const perkListEl = $('#perkList');
   const eventToast = $('#eventToast');
+  const clickEmojiEl = $('.click-emoji');
+  const clickTextEl = $('.click-text');
   const michaelQuote = $('#michaelQuote');
 
   // ─── TABS ───────────────────────────────────────────────────────────────
@@ -324,13 +364,24 @@
   // ─── NODE CHAIN RENDER ──────────────────────────────────────────────────
 
   function renderEraBanner() {
-    const era = ERAS[eraOf(Math.min(state.frontier, NODES.length - 1))];
+    const eraIndex = eraOf(Math.min(state.frontier, NODES.length - 1));
+    const era = ERAS[eraIndex];
+    const eraNext = ERAS[Math.min(eraIndex + 1, ERAS.length - 1)];
     eraBannerEl.style.setProperty('--era-color', era.color);
     eraBannerEl.textContent = `${era.emoji} ${era.name}`;
+    document.documentElement.style.setProperty('--era-glow', era.color);
+    document.documentElement.style.setProperty('--era-glow2', eraNext.color);
+  }
+
+  function updateHeroVisual() {
+    const node = NODES[Math.min(state.frontier, NODES.length - 1)];
+    if (clickEmojiEl) clickEmojiEl.textContent = node.emoji;
+    if (clickTextEl) clickTextEl.textContent = node.name;
   }
 
   function renderChain() {
     renderEraBanner();
+    updateHeroVisual();
     nodeChainEl.innerHTML = '';
     let lastEra = -1;
     NODES.forEach((node, i) => {
@@ -461,33 +512,67 @@
 
   function renderPrestige() {
     const gain = prestigeGain(state.runEarned);
+    const bonusPerPoint = perkBought('p_corebonus') ? PRESTIGE_BONUS_PER_POINT_PERK : PRESTIGE_BONUS_PER_POINT;
     $('#prestigeGainPreview').textContent = `+${gain} núcleo${gain === 1 ? '' : 's'}`;
     $('#prestigeDetail').textContent = gain > 0
-      ? 'Reinicia con Corporate: pierdes la cadena de hitos y el progreso de esta partida, pero tus descubrimientos y núcleos se quedan contigo para siempre.'
+      ? 'Reinicia con Corporate: pierdes la cadena de hitos y el progreso de esta partida, pero tus descubrimientos, núcleos y mejoras se quedan contigo para siempre.'
       : `Sigue avanzando en la cadena para conseguir tu primer núcleo (llevas ${fmt(state.runEarned)} de progreso en esta partida).`;
     $('#prestigeCurrent').textContent = fmt(state.prestigePoints);
-    $('#prestigeBonus').textContent = '+' + Math.round(state.prestigePoints * PRESTIGE_BONUS_PER_POINT * 100) + '%';
+    $('#prestigeLifetime').textContent = fmt(state.prestigePointsLifetime);
+    $('#prestigeBonus').textContent = '+' + Math.round(state.prestigePointsLifetime * bonusPerPoint * 100) + '%';
     $('#prestigeCount').textContent = fmt(state.prestigeCount);
     $('#prestigeBtn').disabled = gain <= 0;
+    renderPerks();
   }
 
   $('#prestigeBtn').addEventListener('click', () => {
     const gain = prestigeGain(state.runEarned);
     if (gain <= 0) return;
-    if (!confirm(`¿Reiniciar con Corporate? Ganarás ${gain} Núcleos Corporate pero volverás al primer hito de la cadena (tus descubrimientos se conservan).`)) return;
+    if (!confirm(`¿Reiniciar con Corporate? Ganarás ${gain} Núcleos Corporate pero volverás al primer hito de la cadena (tus descubrimientos y mejoras se conservan).`)) return;
     state.prestigePoints += gain;
+    state.prestigePointsLifetime += gain;
     state.prestigeCount += 1;
     state.resource = 0;
     state.runEarned = 0;
-    state.frontier = 0;
+    state.frontier = perkBought('p_headstart') ? HEADSTART_FRONTIER : 0;
     state.levels = new Array(NODES.length).fill(0);
+    for (let i = 0; i <= state.frontier; i++) state.discoveries[nodeDiscoveryId(i)] = true;
     buffs = [];
     checkDiscoveries();
     renderPrestige();
     renderChain();
     saveState();
-    showToast('🌀 ¡Corporate ha reiniciado la sucursal! Núcleos Corporate: ' + fmt(state.prestigePoints));
+    showToast('🌀 ¡Corporate ha reiniciado la sucursal! Núcleos disponibles: ' + fmt(state.prestigePoints));
   });
+
+  function renderPerks() {
+    perkListEl.innerHTML = '';
+    PERKS.forEach(p => {
+      const bought = !!state.perks[p.id];
+      const affordable = state.prestigePoints >= p.cost;
+      const card = document.createElement('div');
+      card.className = 'perk-card' + (bought ? ' bought' : '');
+      card.innerHTML = `
+        <div class="perk-emoji">${p.emoji}</div>
+        <div class="perk-name">${p.name}</div>
+        <div class="perk-desc">${p.desc}</div>
+        ${bought ? '<span class="perk-bought-label">✔ Comprada</span>' : `<button class="perk-btn" ${affordable ? '' : 'disabled'}>Comprar &middot; ${p.cost} núcleos</button>`}
+      `;
+      if (!bought) card.querySelector('.perk-btn').addEventListener('click', () => buyPerk(p));
+      perkListEl.appendChild(card);
+    });
+  }
+
+  function buyPerk(p) {
+    if (state.perks[p.id] || state.prestigePoints < p.cost) return;
+    state.prestigePoints -= p.cost;
+    state.perks[p.id] = true;
+    renderPerks();
+    renderPrestige();
+    updateStats();
+    saveState();
+    showToast(`${p.emoji} Mejora permanente activada: ${p.name}`);
+  }
 
   // ─── TOASTS / EVENTS ────────────────────────────────────────────────────
 
@@ -500,11 +585,11 @@
   }
 
   function randRange(a, b) { return a + Math.random() * (b - a); }
-  let nextEventAt = Date.now() + randRange(45, 90) * 1000;
+  let nextEventAt = Date.now() + randRange(45, 90) * 1000 * eventFreqFactor();
 
   function maybeTriggerEvent() {
     if (Date.now() < nextEventAt) return;
-    nextEventAt = Date.now() + randRange(60, 130) * 1000;
+    nextEventAt = Date.now() + randRange(60, 130) * 1000 * eventFreqFactor();
     const totalWeight = EVENTS.reduce((s, e) => s + e.weight, 0);
     let r = Math.random() * totalWeight;
     for (const ev of EVENTS) {
@@ -521,7 +606,7 @@
 
   const FLOAT_BONUS_LIFETIME_MS = 5000;
   let floatBonusEl = null;
-  let nextFloatBonusAt = Date.now() + randRange(20, 40) * 1000;
+  let nextFloatBonusAt = Date.now() + randRange(20, 40) * 1000 * eventFreqFactor();
 
   function carreraTabActive() {
     const panel = $('#panel-carrera');
@@ -534,7 +619,7 @@
 
   function maybeSpawnFloatBonus() {
     if (Date.now() < nextFloatBonusAt) return;
-    nextFloatBonusAt = Date.now() + randRange(25, 55) * 1000;
+    nextFloatBonusAt = Date.now() + randRange(25, 55) * 1000 * eventFreqFactor();
     if (!carreraTabActive() || document.hidden || floatBonusEl) return;
 
     const item = FLOAT_BONUSES[Math.floor(Math.random() * FLOAT_BONUSES.length)];
@@ -572,12 +657,12 @@
   const URGENT_EVENT_DURATION_MS = 8000;
   const urgentBannerEl = $('#urgentEventBanner');
   let urgentEvent = null; // { def, taps, endsAt }
-  let nextUrgentEventAt = Date.now() + randRange(180, 300) * 1000;
+  let nextUrgentEventAt = Date.now() + randRange(180, 300) * 1000 * eventFreqFactor();
 
   function maybeTriggerUrgentEvent() {
     if (urgentEvent) return;
     if (Date.now() < nextUrgentEventAt) return;
-    nextUrgentEventAt = Date.now() + randRange(240, 420) * 1000;
+    nextUrgentEventAt = Date.now() + randRange(240, 420) * 1000 * eventFreqFactor();
     if (!carreraTabActive() || document.hidden) return;
 
     const def = URGENT_EVENTS[Math.floor(Math.random() * URGENT_EVENTS.length)];
@@ -638,6 +723,8 @@
         state = Object.assign(def, parsed, {
           levels: (parsed.levels && parsed.levels.length === NODES.length) ? parsed.levels : def.levels,
           discoveries: parsed.discoveries || def.discoveries,
+          perks: parsed.perks || def.perks,
+          prestigePointsLifetime: parsed.prestigePointsLifetime !== undefined ? parsed.prestigePointsLifetime : (parsed.prestigePoints || 0),
         });
         for (let i = 0; i <= state.frontier; i++) state.discoveries[nodeDiscoveryId(i)] = true;
         buffs = [];
@@ -707,7 +794,7 @@
 
   function applyOfflineProgress() {
     const now = Date.now();
-    const elapsedS = Math.min(OFFLINE_CAP_S, Math.max(0, (now - (state.lastSeen || now)) / 1000));
+    const elapsedS = Math.min(offlineCapS(), Math.max(0, (now - (state.lastSeen || now)) / 1000));
     if (elapsedS > 30) {
       const prod = totalProduction();
       const earned = prod * elapsedS;
