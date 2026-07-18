@@ -10,11 +10,13 @@
   // ─── ECONOMY CONSTANTS ──────────────────────────────────────────────────
   // Cadena de hitos al estilo Cells to Singularity: cada nodo produce solo,
   // se puede "potenciar" (multiplicar) por separado, y hay que ahorrar para
-  // desbloquear el siguiente. Ver /scratchpad/sim2.js para el ritmo validado.
+  // desbloquear el siguiente. Ritmo validado en /scratchpad/sim3.js, que
+  // simula clics activos además de producción idle (el arranque se sentía
+  // demasiado rápido cuando solo se medía la producción pasiva).
 
   const PROD0 = 0.2;
   const PROD_GROWTH = 1.42;
-  const UNLOCK0MULT = 15;
+  const UNLOCK0MULT = 40;
   const COST_GROWTH = 1.55;
   const MULT_PER_LEVEL = 1.35;
   const MULT_COST_GROWTH = 1.5;
