@@ -29,6 +29,9 @@
   const CLICK_FLAT = 0.5;
   const CLICK_FACTOR = 2;
   const PERK_DISCOUNT = 0.85;
+  const BOOST_MULT = 3;
+  const BOOST_DURATION_S = 20;
+  const BOOST_COOLDOWN_S = 90;
   const HEADSTART_FRONTIER = 2;
 
   function baseProd(i) { return PROD0 * Math.pow(PROD_GROWTH, i); }
@@ -57,6 +60,7 @@
     { id: 'p_events', name: 'Buena fama en la oficina', desc: 'Los eventos y los iconos flotantes aparecen el doble de a menudo.', emoji: '🎉', cost: 12 },
     { id: 'p_discovery', name: 'Memoria de elefante', desc: 'Cada página del diario da el doble de bonus permanente.', emoji: '📖', cost: 20 },
     { id: 'p_corebonus', name: 'Contrato mejorado con Sabre', desc: 'Cada Núcleo Corporate da +3% de producción en vez de +2%.', emoji: '🌀', cost: 30 },
+    { id: 'p_autobuy', name: 'Piloto automático', desc: 'Cuando puedas permitirte potenciar el hito más rentable, se compra solo.', emoji: '🤖', cost: 25 },
   ];
 
   // ─── DATA: ERAS ─────────────────────────────────────────────────────────
@@ -319,6 +323,13 @@
   const clickEmojiEl = $('.click-emoji');
   const clickTextEl = $('.click-text');
   const michaelQuote = $('#michaelQuote');
+  const boostBtn = $('#boostBtn');
+  const boostStateEl = $('#boostState');
+  const nextEvoNameEl = $('#nextEvoName');
+  const nextEvoHaveEl = $('#nextEvoHave');
+  const nextEvoCostEl = $('#nextEvoCost');
+  const nextEvoFillEl = $('#nextEvoFill');
+  const bigBangFlashEl = $('#bigBangFlash');
 
   // ─── TABS ───────────────────────────────────────────────────────────────
 
@@ -348,6 +359,51 @@
     }
     checkDiscoveries();
   });
+
+  let boostReadyAt = 0;
+
+  boostBtn.addEventListener('click', () => {
+    if (Date.now() < boostReadyAt) return;
+    addBuff('cps', BOOST_MULT, BOOST_DURATION_S);
+    boostReadyAt = Date.now() + BOOST_COOLDOWN_S * 1000;
+    showToast(`🚀 ¡Impulso activado! Producción x${BOOST_MULT} durante ${BOOST_DURATION_S}s.`);
+    renderBoostBtn();
+  });
+
+  function renderBoostBtn() {
+    const now = Date.now();
+    const activeBuff = buffs.find(b => b.kind === 'cps' && b.mult === BOOST_MULT);
+    if (activeBuff && activeBuff.expires > now) {
+      boostBtn.disabled = true;
+      boostBtn.classList.add('active');
+      boostStateEl.textContent = Math.ceil((activeBuff.expires - now) / 1000) + 's';
+    } else if (now < boostReadyAt) {
+      boostBtn.disabled = true;
+      boostBtn.classList.remove('active');
+      boostStateEl.textContent = Math.ceil((boostReadyAt - now) / 1000) + 's';
+    } else {
+      boostBtn.disabled = false;
+      boostBtn.classList.remove('active');
+      boostStateEl.textContent = 'listo';
+    }
+  }
+
+  function renderNextEvo() {
+    if (state.frontier >= NODES.length - 1) {
+      nextEvoNameEl.textContent = '¡Cadena completa!';
+      nextEvoHaveEl.textContent = fmt(state.resource);
+      nextEvoCostEl.textContent = '—';
+      nextEvoFillEl.style.width = '100%';
+      return;
+    }
+    const i = state.frontier + 1;
+    const cost = unlockCost(i);
+    const pct = cost > 0 ? Math.min(100, (state.resource / cost) * 100) : 100;
+    nextEvoNameEl.textContent = `${NODES[i].emoji} ${NODES[i].name}`;
+    nextEvoHaveEl.textContent = fmt(state.resource);
+    nextEvoCostEl.textContent = fmt(cost);
+    nextEvoFillEl.style.width = pct.toFixed(1) + '%';
+  }
 
   function spawnFloat(amount, ev) {
     const rect = clickBtn.getBoundingClientRect();
@@ -465,6 +521,24 @@
     saveState();
   }
 
+  function autoBuyTick() {
+    if (!perkBought('p_autobuy')) return;
+    for (let guard = 0; guard < 25; guard++) {
+      let bestIdx = null, bestRatio = -1;
+      for (let i = 0; i <= state.frontier; i++) {
+        const cost = multCost(i, state.levels[i]);
+        if (state.resource < cost) continue;
+        const cur = nodeProd(i, state.levels[i]);
+        const next = nodeProd(i, state.levels[i] + 1);
+        const ratio = (next - cur) / cost;
+        if (ratio > bestRatio) { bestRatio = ratio; bestIdx = i; }
+      }
+      if (bestIdx === null) break;
+      state.resource -= multCost(bestIdx, state.levels[bestIdx]);
+      state.levels[bestIdx]++;
+    }
+  }
+
   // ─── DISCOVERIES ────────────────────────────────────────────────────────
 
   function checkDiscoveries() {
@@ -531,6 +605,7 @@
     const gain = prestigeGain(state.runEarned);
     if (gain <= 0) return;
     if (!confirm(`¿Reiniciar con Corporate? Ganarás ${gain} Núcleos Corporate pero volverás al primer hito de la cadena (tus descubrimientos y mejoras se conservan).`)) return;
+    fireBigBangFlash();
     state.prestigePoints += gain;
     state.prestigePointsLifetime += gain;
     state.prestigeCount += 1;
@@ -584,6 +659,12 @@
     eventToast.classList.remove('hidden');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => eventToast.classList.add('hidden'), 4200);
+  }
+
+  function fireBigBangFlash() {
+    bigBangFlashEl.classList.remove('firing');
+    void bigBangFlashEl.offsetWidth;
+    bigBangFlashEl.classList.add('firing');
   }
 
   function randRange(a, b) { return a + Math.random() * (b - a); }
@@ -773,12 +854,16 @@
     const prod = totalProduction();
     if (prod > 0) addResource(prod * dt);
 
+    autoBuyTick();
+
     maybeTriggerEvent();
     maybeSpawnFloatBonus();
     maybeTriggerUrgentEvent();
     resolveUrgentEventIfDone();
     if (urgentEvent) renderUrgentBanner();
     updateStats();
+    renderBoostBtn();
+    renderNextEvo();
 
     const activePanel = document.querySelector('.tab-panel.active');
     if (activePanel && activePanel.id === 'panel-carrera') renderChain();
@@ -789,6 +874,8 @@
 
   function renderAll() {
     updateStats();
+    renderBoostBtn();
+    renderNextEvo();
     renderChain();
     renderDiscoveries();
     renderPrestige();

@@ -13,6 +13,7 @@
 <body>
 
   <div id="eventToast" class="event-toast hidden"></div>
+  <div id="bigBangFlash" class="big-bang-flash"></div>
 
   <header class="topbar">
     <div class="brand">
@@ -60,12 +61,22 @@
         <p class="click-hint">👆 Toca para trabajar horas extra</p>
         <p class="click-power-label">+<span id="clickPowerLabel">1</span> por clic</p>
 
+        <button id="boostBtn" class="boost-btn">🚀 Impulso de última hora <span id="boostState">listo</span></button>
+
         <div id="floatContainer" class="float-container"></div>
       </div>
 
       <div id="urgentEventBanner" class="urgent-banner hidden"></div>
 
       <div class="era-banner" id="eraBanner"></div>
+
+      <div class="next-evo card-office">
+        <div class="next-evo-row">
+          <span class="next-evo-label">Próximo hito: <strong id="nextEvoName">—</strong></span>
+          <span class="next-evo-amounts"><strong id="nextEvoHave">0</strong> / <span id="nextEvoCost">0</span></span>
+        </div>
+        <div class="next-evo-bar"><div class="next-evo-fill" id="nextEvoFill"></div></div>
+      </div>
 
       <p class="panel-sub chain-hint">🧬 Cada hito produce progreso solo. Potencia los hitos que ya tienes para acelerar, o desbloquea el siguiente cuando puedas pagarlo. Es un único camino: no puedes saltarte pasos.</p>
 

@@ -192,6 +192,52 @@ body {
 .click-power-label { margin-top: 4px; font-size: .82rem; color: var(--text3); }
 .click-power-label span { color: var(--green); font-weight: 800; }
 
+.boost-btn {
+  margin-top: 16px;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(240,193,75,.18), rgba(240,193,75,.06));
+  color: var(--gold);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform .1s ease, filter .15s ease;
+}
+.boost-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.1); }
+.boost-btn:disabled { border-color: var(--border); color: var(--text3); background: var(--bg3); cursor: not-allowed; }
+.boost-btn.active { border-color: var(--red); color: var(--red); background: linear-gradient(135deg, rgba(239,106,99,.2), rgba(239,106,99,.06)); animation: boostPulse 1s ease-in-out infinite; }
+@keyframes boostPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,106,99,.35); }
+  50% { box-shadow: 0 0 0 6px rgba(239,106,99,0); }
+}
+#boostState { font-weight: 800; }
+
+.next-evo { margin-bottom: 16px; padding: 14px 16px; }
+.next-evo-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: .82rem; flex-wrap: wrap; }
+.next-evo-label { color: var(--text2); }
+.next-evo-amounts { color: var(--text3); font-variant-numeric: tabular-nums; }
+.next-evo-bar { height: 10px; border-radius: 999px; background: var(--bg3); overflow: hidden; margin-top: 8px; }
+.next-evo-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--gold)); transition: width .2s ease; }
+
+.big-bang-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: radial-gradient(circle at 50% 45%, #ffffff, var(--gold) 55%, transparent 80%);
+  pointer-events: none;
+  opacity: 0;
+}
+.big-bang-flash.firing { animation: bigBangFlash .7s ease-out; }
+@keyframes bigBangFlash {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .float-container {
   position: absolute;
   inset: 0;
