@@ -33,6 +33,10 @@
   const BOOST_DURATION_S = 20;
   const BOOST_COOLDOWN_S = 90;
   const HEADSTART_FRONTIER = 2;
+  const STANLEY_IDLE_THRESHOLD_S = 15;
+  const STANLEY_IDLE_MULT = 1.6;
+  const DARRYL_BONUS = 1.15;
+  const HOLLY_DURATION_MULT = 1.5;
 
   function baseProd(i) { return PROD0 * Math.pow(PROD_GROWTH, i); }
   function unlockCost(i) {
@@ -49,7 +53,7 @@
 
   function perkBought(id) { return !!(state && state.perks && state.perks[id]); }
 
-  // ─── DATA: PERKS (mejoras permanentes compradas con Núcleos Corporate) ──
+  // ─── DATA: PERKS (mejoras permanentes compradas con Dundies) ──
 
   const PERKS = [
     { id: 'p_headstart', name: 'Arranque rápido', desc: 'Cada reinicio con Corporate empieza con los 3 primeros hitos ya desbloqueados.', emoji: '🚀', cost: 5 },
@@ -59,7 +63,10 @@
     { id: 'p_offline', name: 'Horario flexible', desc: 'El límite de progreso offline sube de 3 a 8 horas.', emoji: '🕐', cost: 15 },
     { id: 'p_events', name: 'Buena fama en la oficina', desc: 'Los eventos y los iconos flotantes aparecen el doble de a menudo.', emoji: '🎉', cost: 12 },
     { id: 'p_discovery', name: 'Memoria de elefante', desc: 'Cada página del diario da el doble de bonus permanente.', emoji: '📖', cost: 20 },
-    { id: 'p_corebonus', name: 'Contrato mejorado con Sabre', desc: 'Cada Núcleo Corporate da +3% de producción en vez de +2%.', emoji: '🌀', cost: 30 },
+    { id: 'p_stanley', name: 'Modo Stanley', desc: 'Si pasas 15s sin hacer clic, la producción sube un 60% mientras esperas — como quien hace crucigramas y no necesita más.', emoji: '🧩', cost: 18 },
+    { id: 'p_darryl', name: 'Turno de Darryl', desc: 'El almacén abre un turno extra: +15% de producción para siempre.', emoji: '📦', cost: 14 },
+    { id: 'p_holly', name: 'Holly en RRHH', desc: 'Los eventos, impulsos y bonus temporales duran un 50% más.', emoji: '💛', cost: 16 },
+    { id: 'p_corebonus', name: 'Contrato mejorado con Sabre', desc: 'Cada Dundie da +3% de producción en vez de +2%.', emoji: '🌀', cost: 30 },
     { id: 'p_autobuy', name: 'Piloto automático', desc: 'Cuando puedas permitirte potenciar el hito más rentable, se compra solo.', emoji: '🤖', cost: 25 },
   ];
 
@@ -135,10 +142,13 @@
 
   const MILESTONE_DISCOVERIES = [
     { id: 'm_clicks50', name: 'Archivo perdido: primer día real', desc: 'Un post-it con 50 tareas tachadas. Todas decían "trabajar horas extra".', icon: '📄', check: s => s.clicks >= 50 },
+    { id: 'm_clicks100', name: 'Eso es lo que ella dijo', desc: '100 llamadas en frío. Al menos una conversación ha sido... ambigua.', icon: '😏', check: s => s.clicks >= 100 },
     { id: 'm_clicks500', name: 'Leyenda urbana: Creed', desc: '500 clics después, nadie sabe muy bien qué hace Creed en la oficina. Ni él.', icon: '👴', check: s => s.clicks >= 500 },
     { id: 'm_prestige1', name: 'Memo interno: primer reinicio', desc: '"Se ha optimizado la sucursal." — Corporate, sobre absolutamente todo.', icon: '🌀', check: s => s.prestigeCount >= 1 },
-    { id: 'm_prestige25', name: 'Informe confidencial: Accionista', desc: '25 Núcleos Corporate conseguidos. Empiezas a entender los correos de Sabre.', icon: '📊', check: s => s.prestigePointsLifetime >= 25 },
-    { id: 'm_prestige100', name: 'Informe confidencial: Magnate', desc: '100 Núcleos Corporate conseguidos. Corporate ahora te devuelve las llamadas.', icon: '💎', check: s => s.prestigePointsLifetime >= 100 },
+    { id: 'm_prestige25', name: 'Informe confidencial: Accionista', desc: '25 Dundies conseguidos. Empiezas a entender los correos de Sabre.', icon: '📊', check: s => s.prestigePointsLifetime >= 25 },
+    { id: 'm_prestige100', name: 'Informe confidencial: Magnate', desc: '100 Dundies conseguidos. Corporate ahora te devuelve las llamadas.', icon: '💎', check: s => s.prestigePointsLifetime >= 100 },
+    { id: 'm_streak3', name: 'Vas cogiéndole el gusto', desc: '3 días seguidos volviendo a la sucursal. Ya casi eres de la familia.', icon: '📅', check: s => s.streakDays >= 3 },
+    { id: 'm_streak7', name: 'Committed to Scranton', desc: '7 días seguidos. En Scranton no se van, se quedan.', icon: '🏙️', check: s => s.streakDays >= 7 },
     { id: 'm_allnodes', name: 'Archivo completo: la oficina entera', desc: 'Has recorrido toda la cadena, de la fotocopiadora a la Singularidad.', icon: '🗄️', check: s => s.frontier >= NODES.length - 1 },
   ];
 
@@ -154,6 +164,7 @@
     { weight: 2, text: '💰 Encuentras un cheque perdido de Kevin bajo el escritorio.', apply: () => { const bonus = Math.max(20, totalProduction() * 30); addResource(bonus); } },
     { weight: 1, text: '🔥 Dwight activa la alarma de incendios. Evacuación: producción -50% durante 8s.', apply: () => addBuff('cps', 0.5, 8) },
     { weight: 1, text: '📠 La fotocopiadora se atasca. Poder de clic -50% durante 10s.', apply: () => addBuff('click', 0.5, 10) },
+    { weight: 2, text: '👴 Creed hace algo que nadie puede explicar. El resultado es... impredecible, durante 25s.', apply: () => addBuff('cps', 0.5 + Math.random() * 2, 25) },
   ];
 
   // Iconos flotantes al estilo Cells to Singularity: aparecen un momento y
@@ -210,6 +221,8 @@
       prestigePointsLifetime: 0,
       prestigeCount: 0,
       perks: {},
+      lastPlayDate: null,
+      streakDays: 0,
       lastSeen: Date.now(),
     };
   }
@@ -251,6 +264,8 @@
     const discoveryBonus = perkBought('p_discovery') ? DISCOVERY_BONUS_PER * 2 : DISCOVERY_BONUS_PER;
     let mult = 1 + state.prestigePointsLifetime * bonusPerPoint;
     mult *= (1 + discoveryCount() * discoveryBonus);
+    if (perkBought('p_darryl')) mult *= DARRYL_BONUS;
+    if (perkBought('p_stanley') && (Date.now() - lastClickAt) / 1000 >= STANLEY_IDLE_THRESHOLD_S) mult *= STANLEY_IDLE_MULT;
     buffs.forEach(b => { if (b.kind === 'cps') mult *= b.mult; });
     return mult;
   }
@@ -283,7 +298,8 @@
   }
 
   function addBuff(kind, mult, seconds) {
-    buffs.push({ kind, mult, expires: Date.now() + seconds * 1000 });
+    const durationMult = perkBought('p_holly') ? HOLLY_DURATION_MULT : 1;
+    buffs.push({ kind, mult, expires: Date.now() + seconds * durationMult * 1000 });
   }
 
   function prestigeGain(runEarned) {
@@ -348,10 +364,13 @@
 
   // ─── CLICK ──────────────────────────────────────────────────────────────
 
+  let lastClickAt = Date.now();
+
   clickBtn.addEventListener('click', ev => {
     const gain = clickValue();
     addResource(gain);
     state.clicks++;
+    lastClickAt = Date.now();
     spawnFloat(gain, ev);
     if (urgentEvent && Date.now() < urgentEvent.endsAt) {
       urgentEvent.taps++;
@@ -589,10 +608,10 @@
   function renderPrestige() {
     const gain = prestigeGain(state.runEarned);
     const bonusPerPoint = perkBought('p_corebonus') ? PRESTIGE_BONUS_PER_POINT_PERK : PRESTIGE_BONUS_PER_POINT;
-    $('#prestigeGainPreview').textContent = `+${gain} núcleo${gain === 1 ? '' : 's'}`;
+    $('#prestigeGainPreview').textContent = `+${gain} Dundie${gain === 1 ? '' : 's'}`;
     $('#prestigeDetail').textContent = gain > 0
-      ? 'Reinicia con Corporate: pierdes la cadena de hitos y el progreso de esta partida, pero tus descubrimientos, núcleos y mejoras se quedan contigo para siempre.'
-      : `Sigue avanzando en la cadena para conseguir tu primer núcleo (llevas ${fmt(state.runEarned)} de progreso en esta partida).`;
+      ? 'Reinicia con Corporate: pierdes la cadena de hitos y el progreso de esta partida, pero tus descubrimientos, Dundies y mejoras se quedan contigo para siempre.'
+      : `Sigue avanzando en la cadena para conseguir tu primer Dundie (llevas ${fmt(state.runEarned)} de progreso en esta partida).`;
     $('#prestigeCurrent').textContent = fmt(state.prestigePoints);
     $('#prestigeLifetime').textContent = fmt(state.prestigePointsLifetime);
     $('#prestigeBonus').textContent = '+' + Math.round(state.prestigePointsLifetime * bonusPerPoint * 100) + '%';
@@ -604,7 +623,7 @@
   $('#prestigeBtn').addEventListener('click', () => {
     const gain = prestigeGain(state.runEarned);
     if (gain <= 0) return;
-    if (!confirm(`¿Reiniciar con Corporate? Ganarás ${gain} Núcleos Corporate pero volverás al primer hito de la cadena (tus descubrimientos y mejoras se conservan).`)) return;
+    if (!confirm(`¿Reiniciar con Corporate? Ganarás ${gain} Dundies pero volverás al primer hito de la cadena (tus descubrimientos y mejoras se conservan).`)) return;
     fireBigBangFlash();
     state.prestigePoints += gain;
     state.prestigePointsLifetime += gain;
@@ -619,7 +638,7 @@
     renderPrestige();
     renderChain();
     saveState();
-    showToast('🌀 ¡Corporate ha reiniciado la sucursal! Núcleos disponibles: ' + fmt(state.prestigePoints));
+    showToast('🌀 ¡Corporate ha reiniciado la sucursal! Dundies disponibles: ' + fmt(state.prestigePoints));
   });
 
   function renderPerks() {
@@ -633,7 +652,7 @@
         <div class="perk-emoji">${p.emoji}</div>
         <div class="perk-name">${p.name}</div>
         <div class="perk-desc">${p.desc}</div>
-        ${bought ? '<span class="perk-bought-label">✔ Comprada</span>' : `<button class="perk-btn" ${affordable ? '' : 'disabled'}>Comprar &middot; ${p.cost} núcleos</button>`}
+        ${bought ? '<span class="perk-bought-label">✔ Comprada</span>' : `<button class="perk-btn" ${affordable ? '' : 'disabled'}>Comprar &middot; ${p.cost} Dundies</button>`}
       `;
       if (!bought) card.querySelector('.perk-btn').addEventListener('click', () => buyPerk(p));
       perkListEl.appendChild(card);
@@ -881,6 +900,15 @@
     renderPrestige();
   }
 
+  function updateStreak() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (state.lastPlayDate === today) return;
+    const prev = state.lastPlayDate ? new Date(state.lastPlayDate) : null;
+    const diffDays = prev ? Math.round((new Date(today) - prev) / 86400000) : null;
+    state.streakDays = diffDays === 1 ? state.streakDays + 1 : 1;
+    state.lastPlayDate = today;
+  }
+
   function applyOfflineProgress() {
     const now = Date.now();
     const elapsedS = Math.min(offlineCapS(), Math.max(0, (now - (state.lastSeen || now)) / 1000));
@@ -899,7 +927,9 @@
   }
 
   function init() {
+    updateStreak();
     applyOfflineProgress();
+    checkDiscoveries();
     renderAll();
     rotateQuote();
     setInterval(rotateQuote, 12000);

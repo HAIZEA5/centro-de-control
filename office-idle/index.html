@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<meta name="theme-color" content="#0c3b63" />
+<meta name="theme-color" content="#386fa4" />
 <title>Dunder Mifflin Idle</title>
 <meta name="description" content="Un idle inspirado en Cells to Singularity y The Office: evoluciona una carrera en Dunder Mifflin desde becario hasta la Singularidad." />
 <link rel="stylesheet" href="css/style.css" />
@@ -26,7 +26,7 @@
 
     <div class="topbar-stats">
       <div class="stat-block">
-        <span class="stat-label">💵 Progreso</span>
+        <span class="stat-label">📄 Resmas de Papel</span>
         <span class="stat-value" id="statMoney">0</span>
       </div>
       <div class="stat-block">
@@ -34,7 +34,7 @@
         <span class="stat-value" id="statCps">0 /s</span>
       </div>
       <div class="stat-block" id="prestigeStatBlock" style="display:none">
-        <span class="stat-label">🌀 Núcleos Corporate</span>
+        <span class="stat-label">🏆 Dundies</span>
         <span class="stat-value" id="statPrestige">0</span>
       </div>
     </div>
@@ -55,10 +55,22 @@
         <p class="quote" id="michaelQuote">"No soy el mejor jefe... pero soy el jefe más regional del mundo." — Michael</p>
 
         <button id="clickBtn" class="click-btn">
-          <span class="click-emoji">📠</span>
+          <div class="chibi-avatar" aria-hidden="true">
+            <svg class="chibi-svg" viewBox="0 0 100 110">
+              <rect class="chibi-desk" x="8" y="90" width="84" height="12" rx="4"></rect>
+              <rect class="chibi-body" x="29" y="54" width="42" height="40" rx="15"></rect>
+              <polygon class="chibi-tie" points="50,57 45,68 50,82 55,68"></polygon>
+              <circle class="chibi-head" cx="50" cy="34" r="24"></circle>
+              <path class="chibi-hair" d="M25,29 Q27,7 50,7 Q73,7 75,29 Q60,18 50,18 Q40,18 25,29 Z"></path>
+              <circle class="chibi-eye" cx="42" cy="35" r="2.6"></circle>
+              <circle class="chibi-eye" cx="58" cy="35" r="2.6"></circle>
+              <path class="chibi-mouth" d="M43,45 Q50,50 57,45"></path>
+            </svg>
+            <span class="click-emoji" id="clickEmojiBadge">📠</span>
+          </div>
           <span class="click-text">Fotocopias y café</span>
         </button>
-        <p class="click-hint">👆 Toca para trabajar horas extra</p>
+        <p class="click-hint">📞 Toca para hacer una llamada en frío</p>
         <p class="click-power-label">+<span id="clickPowerLabel">1</span> por clic</p>
 
         <button id="boostBtn" class="boost-btn">🚀 Impulso de última hora <span id="boostState">listo</span></button>
@@ -94,26 +106,26 @@
     <!-- CORPORATE / PRESTIGE -->
     <section class="tab-panel" id="panel-corporate">
       <h2 class="panel-title">🌀 Reinicio Corporate</h2>
-      <p class="panel-sub">Cuando Corporate decide "optimizar" la sucursal, todo vuelve a empezar: pierdes tu progreso en la cadena de hitos, pero conservas <strong>Núcleos Corporate</strong> — cada uno da producción permanente, en todas las partidas futuras. Gástalos en mejoras permanentes para tu próxima vuelta.</p>
+      <p class="panel-sub">Cuando Corporate decide "optimizar" la sucursal, todo vuelve a empezar: pierdes tu progreso en la cadena de hitos, pero te llevas a casa un <strong>Dundie</strong> — cada uno da producción permanente, en todas las partidas futuras. Gástalos en mejoras permanentes para tu próxima vuelta.</p>
 
       <div class="prestige-card card-office">
         <div class="prestige-row">
           <div>
-            <div class="prestige-big" id="prestigeGainPreview">+0 núcleos</div>
+            <div class="prestige-big" id="prestigeGainPreview">+0 Dundies</div>
             <div class="prestige-detail" id="prestigeDetail">Avanza en la cadena para desbloquear tu primer reinicio.</div>
           </div>
           <button id="prestigeBtn" class="prestige-btn" disabled>Reiniciar con Corporate 🌀</button>
         </div>
         <div class="prestige-footer">
-          <span>Núcleos disponibles: <strong id="prestigeCurrent">0</strong></span>
-          <span>Núcleos conseguidos en total: <strong id="prestigeLifetime">0</strong></span>
+          <span>Dundies disponibles: <strong id="prestigeCurrent">0</strong></span>
+          <span>Dundies conseguidos en total: <strong id="prestigeLifetime">0</strong></span>
           <span>Bonus permanente: <strong id="prestigeBonus">+0%</strong></span>
           <span>Reinicios realizados: <strong id="prestigeCount">0</strong></span>
         </div>
       </div>
 
       <h3 class="perks-title">🏙️ Mejoras permanentes de Corporate</h3>
-      <p class="panel-sub">Gasta tus Núcleos disponibles en mejoras que se quedan contigo para siempre, incluso después de reiniciar.</p>
+      <p class="panel-sub">Gasta tus Dundies disponibles en mejoras que se quedan contigo para siempre, incluso después de reiniciar.</p>
       <div id="perkList" class="perk-list"></div>
     </section>
 
@@ -132,7 +144,7 @@
         </div>
         <div class="card-office">
           <h3>⚠️ Zona peligrosa</h3>
-          <p class="panel-sub">Esto borra toda la partida (cadena de hitos, descubrimientos, núcleos y mejoras Corporate). No se puede deshacer.</p>
+          <p class="panel-sub">Esto borra toda la partida (cadena de hitos, descubrimientos, Dundies y mejoras Corporate). No se puede deshacer.</p>
           <button class="btn-danger" id="resetBtn">🗑️ Reiniciar partida</button>
         </div>
       </div>
